@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - develop  # 'develop' 브랜치에 푸시될 때마다 실행
+      - feature/*  # 'feature' 브랜치에 푸시될 때도 실행
   workflow_dispatch: # 수동으로 워크플로우 실행 가능
 
 env:
@@ -20,11 +21,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Maven을 사용하여 Spring Boot 애플리케이션 빌드
-      - name: Build with Maven
-        run: mvn clean package -DskipTests
+      # 2. Gradle 빌드를 위한 환경변수 설정 (기본적으로 'staging' 환경으로 설정)
+      - name: Set environment variables for feature branch
+        run: |
+          if [[ $GITHUB_REF == 'refs/heads/feature/*' ]]; then
+            echo "APP_ENV=staging" >> $GITHUB_ENV
+          fi
 
-      # 3. SSH로 EC2 서버에 배포
+      # 3. Gradle 빌드 명령어 실행
+      - name: Build with Gradle
+        run: ./gradlew build --no-daemon  # Gradle 빌드 명령어
+
+      # 4. EC2 서버에 배포
       - name: Deploy to EC2
         run: |
           # SSH Key 설정
@@ -32,7 +40,7 @@ jobs:
           chmod 600 private_key.pem
 
           # EC2에 배포: 빌드된 JAR 파일을 EC2로 복사하고 실행
-          scp -i private_key.pem target/*.jar $EC2_USER@$EC2_HOST:/home/$EC2_USER/
+          scp -i private_key.pem build/libs/*.jar $EC2_USER@$EC2_HOST:/home/$EC2_USER/
           
           # EC2에서 JAR 파일 실행
           ssh -i private_key.pem $EC2_USER@$EC2_HOST "nohup java -jar /home/$EC2_USER/*.jar > output.log 2>&1 &"
