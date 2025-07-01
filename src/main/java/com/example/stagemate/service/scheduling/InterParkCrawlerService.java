@@ -24,10 +24,8 @@ public class InterParkCrawlerService {
     private static final String MUSICAL_URL = BASE_URL + "/contents/genre/musical";
     private static final String PLAY_URL = BASE_URL + "/contents/genre/play";
     private static final Duration DEFAULT_WAIT_TIMEOUT = Duration.ofSeconds(10);
-    private static final int SCROLL_PAUSE_MS = 1000;
     private static final int MAX_NO_NEW_DATA_ATTEMPTS = 5;
-    private static final int CLICK_RETRY_DELAY_MS = 500;
-    
+
     private WebDriver driver;
     private WebDriverWait wait;
     private final Set<String> collectedPerformanceIds = new HashSet<>();
