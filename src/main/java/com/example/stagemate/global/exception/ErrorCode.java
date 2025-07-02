@@ -1,4 +1,4 @@
-package com.example.trendlog.global.exception;
+package com.example.stagemate.global.exception;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

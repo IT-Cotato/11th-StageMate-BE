@@ -1,5 +1,6 @@
-package com.example.trendlog.global.dto;
+package com.example.stagemate.global.dto;
 
+import com.example.stagemate.global.dto.BaseResponse;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
