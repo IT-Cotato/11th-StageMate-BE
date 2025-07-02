@@ -1,7 +1,5 @@
 package com.example.stagemate.global.exception;
 
-
-
 import com.example.stagemate.global.dto.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +20,11 @@ public class ExceptionController {
         log.error("처리되지 않은 예외 발생: ", e);
         log.error("에러가 발생한 지점 {}, {}", request.getMethod(), request.getRequestURI());
         ErrorResponse errorResponse = ErrorResponse.of(
+<<<<<<< HEAD
                 INTERNAL_SERVER_ERROR,
+=======
+                com.example.stagemate.global.exception.ErrorCode.INTERNAL_SERVER_ERROR,
+>>>>>>> fbc2d3d ([refactor] : 패키지 경로 수정)
                 request
         );
         return ResponseEntity
@@ -30,8 +32,8 @@ public class ExceptionController {
                 .body(errorResponse);
     }
 
-    @ExceptionHandler(AppException.class)
-    public ResponseEntity<ErrorResponse> handleAppCustomException(AppException e, HttpServletRequest request) {
+    @ExceptionHandler(com.example.stagemate.global.exception.AppException.class)
+    public ResponseEntity<ErrorResponse> handleAppCustomException(com.example.stagemate.global.exception.AppException e, HttpServletRequest request) {
         log.error("AppException 발생: {}", e.getErrorCode().getMessage());
         log.error("에러가 발생한 지점 {}, {}", request.getMethod(), request.getRequestURI());
         ErrorResponse errorResponse = ErrorResponse.of(e.getErrorCode(), request);
