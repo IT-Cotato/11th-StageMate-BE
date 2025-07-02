@@ -1,7 +1,7 @@
 package com.example.stagemate.dto.data;
 
-import com.example.stagemate.global.code.gubun.PerformanceType;
-import com.example.stagemate.global.code.status.PerformanceStatus;
+import com.example.stagemate.domain.performances.PerformanceType;
+import com.example.stagemate.domain.performances.PerformanceStatus;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;

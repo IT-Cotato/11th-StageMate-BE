@@ -1,8 +1,6 @@
-package com.example.stagemate.domain;
+package com.example.stagemate.domain.performances;
 
 import com.example.stagemate.dto.data.CrawledPerformanceInfo;
-import com.example.stagemate.global.code.gubun.PerformanceType;
-import com.example.stagemate.global.code.status.PerformanceStatus;
 import com.example.stagemate.global.converter.PerformanceStatusConverter;
 import com.example.stagemate.global.converter.PerformanceTypeConverter;
 import jakarta.persistence.*;

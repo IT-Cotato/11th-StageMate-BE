@@ -1,6 +1,6 @@
 package com.example.stagemate.scheduler;
 
-import com.example.stagemate.domain.Performances;
+import com.example.stagemate.domain.performances.Performances;
 import com.example.stagemate.dto.data.CrawledPerformanceInfo;
 import com.example.stagemate.service.PerformanceService;
 import com.example.stagemate.service.scheduling.InterParkCrawlerService;

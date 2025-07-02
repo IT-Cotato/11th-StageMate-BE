@@ -1,8 +1,8 @@
 package com.example.stagemate.service.scheduling;
 
 import com.example.stagemate.dto.data.CrawledPerformanceInfo;
-import com.example.stagemate.global.code.gubun.PerformanceType;
-import com.example.stagemate.global.code.status.PerformanceStatus;
+import com.example.stagemate.domain.performances.PerformanceType;
+import com.example.stagemate.domain.performances.PerformanceStatus;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.*;

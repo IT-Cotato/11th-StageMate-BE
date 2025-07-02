@@ -1,6 +1,6 @@
 package com.example.stagemate.global.converter;
 
-import com.example.stagemate.global.code.status.PerformanceStatus;
+import com.example.stagemate.domain.performances.PerformanceStatus;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 

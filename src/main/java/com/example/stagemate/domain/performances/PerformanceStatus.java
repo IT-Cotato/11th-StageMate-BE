@@ -1,4 +1,4 @@
-package com.example.stagemate.global.code.status;
+package com.example.stagemate.domain.performances;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

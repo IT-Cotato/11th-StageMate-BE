@@ -1,7 +1,7 @@
 package com.example.stagemate.repository;
 
-import com.example.stagemate.domain.Performances;
-import com.example.stagemate.global.code.status.PerformanceStatus;
+import com.example.stagemate.domain.performances.Performances;
+import com.example.stagemate.domain.performances.PerformanceStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
