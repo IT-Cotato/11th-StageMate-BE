@@ -1,6 +1,7 @@
-package com.example.trendlog.global.dto;
+package com.example.stagemate.global.dto;
 
-import com.example.trendlog.global.exception.ErrorCode;
+import com.example.stagemate.global.dto.BaseResponse;
+import com.example.stagemate.global.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
