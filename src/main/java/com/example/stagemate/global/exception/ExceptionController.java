@@ -1,12 +1,16 @@
-package com.example.trendlog.global.exception;
+package com.example.stagemate.global.exception;
 
-import com.example.trendlog.global.dto.ErrorResponse;
+
+
+import com.example.stagemate.global.dto.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import static com.example.stagemate.global.exception.CommonErrorCode.INTERNAL_SERVER_ERROR;
 
 @Slf4j
 @RestControllerAdvice
@@ -18,7 +22,7 @@ public class ExceptionController {
         log.error("처리되지 않은 예외 발생: ", e);
         log.error("에러가 발생한 지점 {}, {}", request.getMethod(), request.getRequestURI());
         ErrorResponse errorResponse = ErrorResponse.of(
-                ErrorCode.INTERNAL_SERVER_ERROR,
+                INTERNAL_SERVER_ERROR,
                 request
         );
         return ResponseEntity

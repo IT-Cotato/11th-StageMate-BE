@@ -1,4 +1,4 @@
-package com.example.trendlog.global.dto;
+package com.example.stagemate.global.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
