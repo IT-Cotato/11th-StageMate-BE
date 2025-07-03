@@ -1,7 +1,5 @@
 package com.example.stagemate.global.exception;
 
-
-
 import com.example.stagemate.global.dto.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
