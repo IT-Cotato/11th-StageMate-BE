@@ -1,5 +1,6 @@
-package com.example.stagemate.service.scheduling;
+package com.example.stagemate.service.crawler;
 
+import com.example.stagemate.domain.performances.PerformanceGenre;
 import com.example.stagemate.dto.data.CrawledPerformanceInfo;
 import com.example.stagemate.domain.performances.PerformanceType;
 import com.example.stagemate.domain.performances.PerformanceStatus;
@@ -8,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.stereotype.Service;
@@ -19,10 +21,11 @@ import java.util.*;
 
 @Slf4j
 @Service
-public class InterParkCrawlerService {
+public class InterParkCrawlingService {
     private static final String BASE_URL = "https://tickets.interpark.com";
     private static final String MUSICAL_URL = BASE_URL + "/contents/genre/musical";
     private static final String PLAY_URL = BASE_URL + "/contents/genre/play";
+    private static final String FAMILY_URL = BASE_URL + "/contents/genre/family";
     private static final Duration DEFAULT_WAIT_TIMEOUT = Duration.ofSeconds(10);
     private static final int MAX_NO_NEW_DATA_ATTEMPTS = 5;
 
@@ -39,21 +42,18 @@ public class InterParkCrawlerService {
         return crawlInterPark(PLAY_URL, PerformanceType.PLAY);
     }
 
+    public List<CrawledPerformanceInfo> crawlChildrenAndFamilyInfo() {
+        //아동/가족 공연은 뮤지컬, 공연 둘다 가능
+        return crawlInterPark(FAMILY_URL, null);
+    }
+
     public List<CrawledPerformanceInfo> crawlPerformances() {
         List<CrawledPerformanceInfo> result = new ArrayList<>();
         result.addAll(crawlMusicalInfo());
         result.addAll(crawlPlayInfo());
+        result.addAll(crawlChildrenAndFamilyInfo());
         return result;
     }
-
-
-
-
-
-
-
-
-
 
 
 
@@ -145,7 +145,9 @@ public class InterParkCrawlerService {
     }
 
     private Collection<CrawledPerformanceInfo> crawlPerformances(String regionName, PerformanceType performanceType) {
-        log.info("🔍 {} 크롤링 시작: {}", performanceType.getDescription(), regionName);
+        if (performanceType != null) {
+            log.info("🔍 {} 크롤링 시작: {}", performanceType.getDescription(), regionName);
+        }
         Collection<CrawledPerformanceInfo> collectedPerformances = new HashSet<>();
         int noNewDataCount = 0;
         collectedPerformanceIds.clear();
@@ -270,13 +272,17 @@ public class InterParkCrawlerService {
 
         PerformanceStatus performanceStatus = getPerformanceStatus(parsedDates[0], parsedDates[1]);
 
+        //8자리 String Date를 LocalDate로 변환
+        LocalDate startDate = LocalDate.parse(parsedDates[0], DateTimeFormatter.ofPattern("yyyyMMdd"));
+        LocalDate endDate = LocalDate.parse(parsedDates[1], DateTimeFormatter.ofPattern("yyyyMMdd"));
+
         return CrawledPerformanceInfo.builder()
                 .interparkPerformanceId(itemId)
                 .performanceName(title)
                 .performanceUrl(url)
                 .imageUrl(imageUrl)
-                .startDate(parsedDates[0])
-                .endDate(parsedDates[1])
+                .startDate(startDate)
+                .endDate(endDate)
                 .theaterName(place)
                 .region(region)
                 .performanceType(performanceType)
@@ -330,7 +336,7 @@ public class InterParkCrawlerService {
         String[] parts = date.split("\\.");
         if (parts.length < 2 || parts.length > 3) {
             log.warn("❌ 잘못된 날짜 형식: {}", date);
-            return "";
+            return "20000101";
         }
 
         StringBuilder normalized = new StringBuilder(parts[0]); // year
@@ -342,13 +348,13 @@ public class InterParkCrawlerService {
 
     private String to8DigitDate(String date) {
         if (date == null || date.isEmpty()) {
-            return "00000000";
+            return "20000101";
         }
 
         String[] parts = date.split("\\.");
         if (parts.length != 3) {
             log.warn("❌ 날짜 형식 오류: {}", date);
-            return "00000000";
+            return "20000101";
         }
 
         String year = parts[0];
@@ -368,18 +374,59 @@ public class InterParkCrawlerService {
     }
 
     private List<CrawledPerformanceInfo> crawlInterPark(String url, PerformanceType performanceType) {
+        List<CrawledPerformanceInfo> performanceInfos = new ArrayList<>();
+
         try {
             initWebDriver();
-            log.info("🎭 인터파크 [{}] 지역 필터링 크롤러 시작", performanceType.getDescription());
 
             driver.get(url);
 
             //전체보기 탭 클릭
             clickAllTab();
-            
-            //지역 선택
-            Collection<CrawledPerformanceInfo> performanceInfos = processRegions(performanceType);
-            return new ArrayList<>(performanceInfos);
+
+            //장르별 탭 순회
+            List<WebElement> genreTabs = driver.findElements(By.cssSelector(".genre-tab-item"));
+
+
+            Collection<CrawledPerformanceInfo> performanceInfosByRegionAndGenre = null;
+            for (WebElement genreTab : genreTabs) {
+                //장르 탭 클릭
+                safeClick(genreTab);
+
+                String performanceGenre = genreTab.getText();
+                log.info("🎭 인터파크 [{}] 지역 필터링 크롤러 시작", performanceGenre);
+
+                //PerformanceGenre 외 다른 장르이면 다음 탭으로 이동
+                if (!filterByPerformanceGenre(performanceGenre)) continue;
+
+                //지역 선택
+                performanceInfosByRegionAndGenre = processRegions(performanceType);
+                PerformanceGenre genre;
+
+                if (performanceGenre.equals("뮤지컬")) {
+                    genre = PerformanceGenre.FAMILY_MUSICAL;
+                    PerformanceType type = PerformanceType.MUSICAL;
+                    performanceInfosByRegionAndGenre.forEach(performanceInfo -> performanceInfo.setPerformanceType(type));
+                } else if (performanceGenre.equals("연극")) {
+                    genre = PerformanceGenre.FAMILY_PLAY;
+                    PerformanceType type = PerformanceType.PLAY;
+                    performanceInfosByRegionAndGenre.forEach(performanceInfo -> performanceInfo.setPerformanceType(type));
+                } else {
+                    genre = PerformanceGenre.fromDescription(performanceGenre);
+                }
+
+                performanceInfosByRegionAndGenre.forEach(performanceInfo -> performanceInfo.setPerformanceGenre(genre));
+
+                if (performanceType != null) {
+                    log.info("🎭 인터파크 [{}] [{}] 지역 필터링 크롤러 완료", performanceType.getDescription(), performanceGenre);
+                }
+
+            }
+
+            if(performanceInfosByRegionAndGenre != null){
+                performanceInfos.addAll(performanceInfosByRegionAndGenre);
+            }
+
 
         } catch (Exception e) {
             log.error("❌ 크롤링 중 치명적 오류 발생", e);
@@ -387,6 +434,16 @@ public class InterParkCrawlerService {
         } finally {
             cleanup();
         }
+
+        return performanceInfos;
+    }
+
+    //장르 ENUM에 있는 지역만 크롤링
+    private boolean filterByPerformanceGenre(String performanceGenre) {
+        //아동/가족 공연은 장르탭 대신 뮤지컬, 연극 탭으로 구성
+        if(performanceGenre.equals("뮤지컬") || performanceGenre.equals("연극")) return true;
+
+        return PerformanceGenre.contains(performanceGenre);
     }
 
     private void clickAllTab() {
@@ -403,6 +460,12 @@ public class InterParkCrawlerService {
     private Collection<CrawledPerformanceInfo> processRegions(PerformanceType performanceType) {
         //전체 탭 
         clickAllTab();
+
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
 
         //지역 필터링
         openRegionFilter();
