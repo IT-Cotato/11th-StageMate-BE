@@ -18,7 +18,6 @@ import java.util.List;
 public class PerformanceService {
     private final PerformanceRepository performanceRepository;
     private final PerformanceScheduleRepository performanceScheduleRepository;
-    private final PerformanceScheduleService performanceScheduleService;
 
     //공연 상세 정보 가져오기
     public Performance getPerformance(Long performanceId) {
