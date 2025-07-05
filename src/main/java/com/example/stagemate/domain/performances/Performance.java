@@ -1,8 +1,6 @@
 package com.example.stagemate.domain.performances;
 
 import com.example.stagemate.dto.data.CrawledPerformanceInfo;
-import com.example.stagemate.global.converter.PerformanceStatusConverter;
-import com.example.stagemate.global.converter.PerformanceTypeConverter;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,14 +9,15 @@ import lombok.NoArgsConstructor;
 
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+
 
 @Entity
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Performances {
+@Table(name = "performances")
+public class Performance {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long performanceId; // 공연 ID
@@ -32,37 +31,38 @@ public class Performances {
 
     private String imageUrl; // 이미지 URL
 
-    private String startDate; // 시작 날짜
+    private LocalDate startDate; // 시작 날짜
 
-    private String endDate; // 종료 날짜
+    private LocalDate endDate; // 종료 날짜
 
     private String theaterName; // 극장 이름
 
     private String region; // 지역
 
-    @Convert(converter = PerformanceTypeConverter.class)
+    @Enumerated(EnumType.STRING)
+    private PerformanceGenre performanceGenre;
+
+    @Enumerated(EnumType.STRING)
     private PerformanceType performanceType; // 공연 유형 (뮤지컬, 연극 등)
 
-    @Convert(converter = PerformanceStatusConverter.class)
+    @Enumerated(EnumType.STRING)
     private PerformanceStatus performanceStatus; // 공연 상태 (예정, 진행중, 종료)
 
     //현재시간 기준으로 상태업데이트
     public void updateStatusBasedOnCurrentDate() {
         LocalDate currentDate = LocalDate.now();
-        //startDate는 20250701 형식
-        LocalDate convertedStartDate = LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyyMMdd"));
-        LocalDate convertedendDate = LocalDate.parse(endDate, DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-        if (convertedStartDate.isBefore(currentDate) && convertedendDate.isAfter(currentDate)) {
+        if (startDate.isBefore(currentDate) && endDate.isAfter(currentDate)) {
             this.performanceStatus = PerformanceStatus.ONGOING;
-        } else if (convertedendDate.isBefore(currentDate)) {
+        } else if (endDate.isBefore(currentDate)) {
             this.performanceStatus = PerformanceStatus.ENDED;
         } else {
             this.performanceStatus = PerformanceStatus.UPCOMING;
         }
     }
 
-    public void updateFromCrawledData(Performances crawled) {
+    public void updateFromCrawledData(Performance crawled) {
+        this.interparkPerformanceId = crawled.getInterparkPerformanceId();
         this.performanceName = crawled.getPerformanceName();
         this.url = crawled.getUrl();
         this.imageUrl = crawled.getImageUrl();
@@ -72,13 +72,14 @@ public class Performances {
         this.region = crawled.getRegion();
         this.performanceType = crawled.getPerformanceType();
         this.performanceStatus = crawled.getPerformanceStatus();
+        this.performanceGenre = crawled.getPerformanceGenre();
     }
 
 
 
-    //crawledPerformanceInfo -> Performances
-    public static Performances from(CrawledPerformanceInfo crawledPerformanceInfo) {
-        return Performances.builder()
+    //crawledPerformanceInfo -> Performance
+    public static Performance from(CrawledPerformanceInfo crawledPerformanceInfo) {
+        return Performance.builder()
                 .interparkPerformanceId(crawledPerformanceInfo.getInterparkPerformanceId())
                 .performanceName(crawledPerformanceInfo.getPerformanceName())
                 .url(crawledPerformanceInfo.getPerformanceUrl())
@@ -89,6 +90,7 @@ public class Performances {
                 .region(crawledPerformanceInfo.getRegion())
                 .performanceType(crawledPerformanceInfo.getPerformanceType())
                 .performanceStatus(crawledPerformanceInfo.getPerformanceStatus())
+                .performanceGenre(crawledPerformanceInfo.getPerformanceGenre())
                 .build();
     }
 
