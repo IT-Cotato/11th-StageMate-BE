@@ -38,3 +38,7 @@ out/
 
 ### .yml ###
 *.yml
+application-local.yml
+
+# GCS 서비스 키
+stagemate_gcs.json
