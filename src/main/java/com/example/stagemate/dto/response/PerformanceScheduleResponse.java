@@ -1,7 +1,7 @@
 package com.example.stagemate.dto.response;
 
-import com.example.stagemate.domain.performanceSchedules.PerformanceSchedule;
-import com.example.stagemate.domain.performances.PerformanceType;
+import com.example.stagemate.domain.performanceSchedule.PerformanceSchedule;
+import com.example.stagemate.domain.performance.PerformanceType;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

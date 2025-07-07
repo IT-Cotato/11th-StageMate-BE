@@ -1,6 +1,6 @@
-package com.example.stagemate.domain.performanceSchedules;
+package com.example.stagemate.domain.performanceSchedule;
 
-import com.example.stagemate.domain.performances.Performance;
+import com.example.stagemate.domain.performance.Performance;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,7 +18,8 @@ import java.time.LocalDate;
 public class PerformanceSchedule {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long performanceScheduleId;
+    @Column(name = "performance_schedule_id")
+    private Long id;
 
     @ManyToOne
     private Performance performance;
