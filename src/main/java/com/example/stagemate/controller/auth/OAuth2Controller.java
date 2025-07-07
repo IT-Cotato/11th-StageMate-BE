@@ -2,6 +2,7 @@ package com.example.stagemate.controller.auth;
 
 import com.example.stagemate.dto.auth.GuestInfo;
 import com.example.stagemate.dto.request.OAuth2RegisterRequestDTO;
+import com.example.stagemate.dto.request.OAuth2SignupRequestDTO;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.CommonErrorCode;
 import com.example.stagemate.service.user.UserService;
@@ -23,15 +24,15 @@ public class OAuth2Controller {
 
     @PostMapping("/signup")
     public ResponseEntity<Void> oauthSignUp(
-            @Valid @RequestBody OAuth2RegisterRequestDTO request,
+            @Valid @RequestBody OAuth2SignupRequestDTO request,
             HttpSession session
     ) {
         GuestInfo guestInfo = (GuestInfo) session.getAttribute("guestInfo");
         if (guestInfo == null) {
-            throw new AppException(CommonErrorCode.UNAUTHORIZED, "세션 정보가 유효하지 않습니다.");
+            throw new AppException(CommonErrorCode.SESSION_EXPIRED, "세션 정보가 유효하지 않습니다.");
         }
 
-        userService.oauthSignUp(request, guestInfo);
+        userService.oauthSignupInfo(request, guestInfo);
 
         // 회원가입 성공 후 세션 무효화
         session.invalidate();
