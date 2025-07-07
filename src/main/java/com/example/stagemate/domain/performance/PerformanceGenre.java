@@ -1,4 +1,4 @@
-package com.example.stagemate.domain.performances;
+package com.example.stagemate.domain.performance;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

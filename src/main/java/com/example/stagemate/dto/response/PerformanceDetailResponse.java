@@ -1,7 +1,6 @@
 package com.example.stagemate.dto.response;
 
-import com.example.stagemate.domain.performances.PerformanceStatus;
-import com.example.stagemate.domain.performances.PerformanceType;
+import com.example.stagemate.domain.performance.PerformanceType;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -16,7 +15,7 @@ public class PerformanceDetailResponse {
     private final String imageUrl;
     private final PerformanceType performanceType;
 
-    public static PerformanceDetailResponse from(com.example.stagemate.domain.performances.Performance performance) {
+    public static PerformanceDetailResponse from(com.example.stagemate.domain.performance.Performance performance) {
         return new PerformanceDetailResponse(
                 performance.getPerformanceName(),
                 performance.getUrl(),
