@@ -1,15 +1,14 @@
-package com.example.stagemate.service.crawler;
+package com.example.stagemate.service.crawling;
 
-import com.example.stagemate.domain.performances.PerformanceGenre;
+import com.example.stagemate.domain.performance.PerformanceGenre;
 import com.example.stagemate.dto.data.CrawledPerformanceInfo;
-import com.example.stagemate.domain.performances.PerformanceType;
-import com.example.stagemate.domain.performances.PerformanceStatus;
+import com.example.stagemate.domain.performance.PerformanceType;
+import com.example.stagemate.domain.performance.PerformanceStatus;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.stereotype.Service;
@@ -54,12 +53,6 @@ public class InterParkCrawlingService {
         result.addAll(crawlChildrenAndFamilyInfo());
         return result;
     }
-
-
-
-
-
-
 
 
     private void safeClick(WebElement element) {
@@ -145,9 +138,7 @@ public class InterParkCrawlingService {
     }
 
     private Collection<CrawledPerformanceInfo> crawlPerformances(String regionName, PerformanceType performanceType) {
-        if (performanceType != null) {
-            log.info("🔍 {} 크롤링 시작: {}", performanceType.getDescription(), regionName);
-        }
+
         Collection<CrawledPerformanceInfo> collectedPerformances = new HashSet<>();
         int noNewDataCount = 0;
         collectedPerformanceIds.clear();
@@ -190,8 +181,6 @@ public class InterParkCrawlingService {
             
             // 현재까지 수집된 공연 수 로깅
             int afterSize = collectedPerformanceIds.size();
-            log.info("📊 [{}] 현재까지 수집된 공연 수: {} (이번 스크롤에서 추가: {})", 
-                   regionName, afterSize, (afterSize - beforeSize));
             
             scrollAttempts++;
         }
@@ -239,7 +228,7 @@ public class InterParkCrawlingService {
 
         collectedPerformanceIds.add(itemId);
         CrawledPerformanceInfo performanceInfo = extractPerformanceInfo(performance, itemId, regionName, performanceType);
-        log.info("✅ 공연 정보 수집됨: {}", performanceInfo);
+//        log.info("✅ 공연 정보 수집됨: {}", performanceInfo);
 
         return performanceInfo;
     }
@@ -414,18 +403,22 @@ public class InterParkCrawlingService {
                 } else {
                     genre = PerformanceGenre.fromDescription(performanceGenre);
                 }
+                //genre 로깅
+                log.info("선택된 genre ------------------------------------ : {}", genre);
 
                 performanceInfosByRegionAndGenre.forEach(performanceInfo -> performanceInfo.setPerformanceGenre(genre));
 
                 if (performanceType != null) {
                     log.info("🎭 인터파크 [{}] [{}] 지역 필터링 크롤러 완료", performanceType.getDescription(), performanceGenre);
                 }
+                for (CrawledPerformanceInfo performanceInfo : performanceInfosByRegionAndGenre) {
+                    log.info("✅ 공연 정보 수집됨: {}", performanceInfo);
+                }
 
-            }
-
-            if(performanceInfosByRegionAndGenre != null){
                 performanceInfos.addAll(performanceInfosByRegionAndGenre);
+
             }
+
 
 
         } catch (Exception e) {
@@ -458,8 +451,6 @@ public class InterParkCrawlingService {
 
     //지역 선택 받고 크롤링
     private Collection<CrawledPerformanceInfo> processRegions(PerformanceType performanceType) {
-        //전체 탭 
-        clickAllTab();
 
         try {
             Thread.sleep(1000);

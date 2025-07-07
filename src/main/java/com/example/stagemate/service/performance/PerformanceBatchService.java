@@ -1,12 +1,13 @@
-package com.example.stagemate.service.crawler;
+package com.example.stagemate.service.performance;
 
-import com.example.stagemate.domain.performanceSchedules.PerformanceSchedule;
-import com.example.stagemate.domain.performanceSchedules.PerformanceScheduleType;
-import com.example.stagemate.domain.performances.Performance;
-import com.example.stagemate.domain.performances.PerformanceStatus;
+import com.example.stagemate.domain.performanceSchedule.PerformanceSchedule;
+import com.example.stagemate.domain.performanceSchedule.PerformanceScheduleType;
+import com.example.stagemate.domain.performance.Performance;
+import com.example.stagemate.domain.performance.PerformanceStatus;
 import com.example.stagemate.repository.PerformanceRepository;
 import com.example.stagemate.repository.PerformanceScheduleRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class PerformanceBatchService {
@@ -52,17 +54,21 @@ public class PerformanceBatchService {
                 .map(Performance::getInterparkPerformanceId)
                 .collect(Collectors.toSet());
 
+        int i = 0;
         // 없으면 삽입, 존재하면 바뀐부분 업데이트
         for (Performance crawledPerformance : crawledPerformances) {
             String performanceId = crawledPerformance.getInterparkPerformanceId();
+
+
             if (existingMap.containsKey(performanceId)) {
                 // 기존에 존재하면 업데이트
                 Performance existing = existingMap.get(performanceId);
 
+                existing.updateFromCrawledData(crawledPerformance);
+
                 //기존 공연의 시작일, 종료일이 변경되면 공연 스케줄 업데이트
                 updatePerformanceSchedule(existing);
 
-                existing.updateFromCrawledData(crawledPerformance);
                 performanceRepository.save(existing);
             } else {
                 // 새로운 공연이면 삽입
@@ -84,9 +90,9 @@ public class PerformanceBatchService {
         // }
     }
 
-    private PerformanceSchedule createPerformanceStartOrEndSchedule(Performance performance, LocalDate date) {
-        PerformanceScheduleType scheduleType = date.equals(performance.getStartDate()) ?
-                PerformanceScheduleType.START : PerformanceScheduleType.END;
+    private PerformanceSchedule createPerformanceStartOrEndSchedule(Performance performance, PerformanceScheduleType scheduleType) {
+        LocalDate date = scheduleType.equals(PerformanceScheduleType.START) ?
+                performance.getStartDate() : performance.getEndDate();
 
         String content = scheduleType.equals(PerformanceScheduleType.START) ?
                 "첫 공연" : "마지막 공연";
@@ -102,42 +108,53 @@ public class PerformanceBatchService {
 
     //기존 공연의 시작일, 종료일이 변경되면 공연 스케줄 업데이트
     //공연 시작 스케줄, 공연 종료 스케줄 둘다 업데이트
-    private void updatePerformanceSchedule(Performance newPerformance) {
+    private void updatePerformanceSchedule(Performance updatedPerformance) {
         //기존 공연의 첫 공연 스케줄 찾기
         PerformanceSchedule existingPerformanceStartSchedule = performanceScheduleRepository
-                .findByPerformance_PerformanceIdAndPerformanceScheduleType(
-                        newPerformance.getPerformanceId(), PerformanceScheduleType.START);
+                .findByPerformance_IdAndPerformanceScheduleType(
+                        updatedPerformance.getId(), PerformanceScheduleType.START);
 
         //기존 공연의 마지막 공연 스케줄 찾기
         PerformanceSchedule existingPerformanceEndSchedule = performanceScheduleRepository
-                .findByPerformance_PerformanceIdAndPerformanceScheduleType(
-                        newPerformance.getPerformanceId(), PerformanceScheduleType.END);
+                .findByPerformance_IdAndPerformanceScheduleType(
+                        updatedPerformance.getId(), PerformanceScheduleType.END);
 
 
         //시작날짜가 변경됐으면 시작 스케줄 업데이트
-        if(!existingPerformanceStartSchedule.getScheduleDate().equals(newPerformance.getStartDate())) {
-            existingPerformanceStartSchedule.updateDate(newPerformance.getStartDate());
+        if(!existingPerformanceStartSchedule.getScheduleDate().equals(updatedPerformance.getStartDate())) {
+            log.info("첫 공연 스케줄 UPDATE 발생 -----------------------------------------------");
+            existingPerformanceStartSchedule.updateDate(updatedPerformance.getStartDate());
             performanceScheduleRepository.save(existingPerformanceStartSchedule);
         }
 
         //종료날짜가 변경됐면 종료 스케줄 업데이트
-        if(!existingPerformanceEndSchedule.getScheduleDate().equals(newPerformance.getEndDate())) {
-            existingPerformanceEndSchedule.updateDate(newPerformance.getEndDate());
+        if(!existingPerformanceEndSchedule.getScheduleDate().equals(updatedPerformance.getEndDate())) {
+            log.info("마지막 공연 스케줄 UPDATE 발생 -----------------------------------------------");
+            existingPerformanceEndSchedule.updateDate(updatedPerformance.getEndDate());
             performanceScheduleRepository.save(existingPerformanceEndSchedule);
         }
     }
 
-    //새로운 공연이 insert -> 공연 시작 스케줄 + 공연 종료 스케줄 2개 추가
     private void insertPerformanceSchedule(Performance performance) {
-        PerformanceSchedule performanceStartSchedule =
-                createPerformanceStartOrEndSchedule(performance, performance.getStartDate());
+        // 기존에 해당 공연의 시작 스케줄과 종료 스케줄이 있는지 확인
+        PerformanceSchedule existingStartSchedule = performanceScheduleRepository
+                .findByPerformance_IdAndPerformanceScheduleType(performance.getId(), PerformanceScheduleType.START);
+        PerformanceSchedule existingEndSchedule = performanceScheduleRepository
+                .findByPerformance_IdAndPerformanceScheduleType(performance.getId(), PerformanceScheduleType.END);
 
-        PerformanceSchedule performanceEndSchedule =
-                createPerformanceStartOrEndSchedule(performance, performance.getEndDate());
+        // 기존에 시작 스케줄이 없다면 새로 추가
+        if (existingStartSchedule == null) {
+            PerformanceSchedule performanceStartSchedule =
+                    createPerformanceStartOrEndSchedule(performance, PerformanceScheduleType.START);
+            performanceScheduleRepository.save(performanceStartSchedule);
+        }
 
-        performanceScheduleRepository.save(performanceStartSchedule);
-        performanceScheduleRepository.save(performanceEndSchedule);
-
+        // 기존에 종료 스케줄이 없다면 새로 추가
+        if (existingEndSchedule == null) {
+            PerformanceSchedule performanceEndSchedule =
+                    createPerformanceStartOrEndSchedule(performance, PerformanceScheduleType.END);
+            performanceScheduleRepository.save(performanceEndSchedule);
+        }
     }
 
 }
