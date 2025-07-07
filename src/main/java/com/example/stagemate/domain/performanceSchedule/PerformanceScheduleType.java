@@ -1,4 +1,4 @@
-package com.example.stagemate.domain.performanceSchedules;
+package com.example.stagemate.domain.performanceSchedule;
 
 public enum PerformanceScheduleType {
     START,
