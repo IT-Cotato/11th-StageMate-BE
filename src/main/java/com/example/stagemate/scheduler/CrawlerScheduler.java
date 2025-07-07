@@ -1,9 +1,9 @@
 package com.example.stagemate.scheduler;
 
-import com.example.stagemate.domain.performances.Performance;
+import com.example.stagemate.domain.performance.Performance;
 import com.example.stagemate.dto.data.CrawledPerformanceInfo;
-import com.example.stagemate.service.crawler.InterParkCrawlingService;
-import com.example.stagemate.service.crawler.PerformanceBatchService;
+import com.example.stagemate.service.crawling.InterParkCrawlingService;
+import com.example.stagemate.service.performance.PerformanceBatchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;

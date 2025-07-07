@@ -1,8 +1,8 @@
 package com.example.stagemate.dto.data;
 
-import com.example.stagemate.domain.performances.PerformanceGenre;
-import com.example.stagemate.domain.performances.PerformanceType;
-import com.example.stagemate.domain.performances.PerformanceStatus;
+import com.example.stagemate.domain.performance.PerformanceGenre;
+import com.example.stagemate.domain.performance.PerformanceType;
+import com.example.stagemate.domain.performance.PerformanceStatus;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
