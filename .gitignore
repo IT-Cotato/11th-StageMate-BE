@@ -42,3 +42,4 @@ application-local.yml
 
 # GCS 서비스 키
 stagemate_gcs.json
+src/main/resources/stagemate_gcs.json
