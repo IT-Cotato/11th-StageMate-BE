@@ -1,4 +1,4 @@
-package com.example.stagemate.domain.performances;
+package com.example.stagemate.domain.performance;
 
 import com.example.stagemate.dto.data.CrawledPerformanceInfo;
 import jakarta.persistence.*;
@@ -20,7 +20,8 @@ import java.time.LocalDate;
 public class Performance {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long performanceId; // 공연 ID
+    @Column(name = "performance_id")
+    private Long id; // 공연 ID
 
     //인터파크에서 사용하는 item Id
     private String interparkPerformanceId;

@@ -1,10 +1,10 @@
 package com.example.stagemate.controller;
 
-import com.example.stagemate.domain.performanceSchedules.PerformanceSchedule;
-import com.example.stagemate.domain.performances.Performance;
+import com.example.stagemate.domain.performanceSchedule.PerformanceSchedule;
+import com.example.stagemate.domain.performance.Performance;
 import com.example.stagemate.dto.response.PerformanceScheduleResponse;
 import com.example.stagemate.global.dto.DataResponse;
-import com.example.stagemate.service.PerformanceService;
+import com.example.stagemate.service.performance.PerformanceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;

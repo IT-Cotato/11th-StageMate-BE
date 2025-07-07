@@ -1,8 +1,8 @@
-package com.example.stagemate.service;
+package com.example.stagemate.service.performance;
 
-import com.example.stagemate.domain.performanceSchedules.PerformanceSchedule;
-import com.example.stagemate.domain.performances.Performance;
-import com.example.stagemate.domain.performances.PerformanceStatus;
+import com.example.stagemate.domain.performanceSchedule.PerformanceSchedule;
+import com.example.stagemate.domain.performance.Performance;
+import com.example.stagemate.domain.performance.PerformanceStatus;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.performances.PerformanceErrorCode;
 import com.example.stagemate.repository.PerformanceRepository;
