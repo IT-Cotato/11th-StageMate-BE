@@ -2,6 +2,7 @@ package com.example.stagemate.service.archive;
 
 import com.example.stagemate.domain.archive.Archive;
 import com.example.stagemate.dto.request.ArchiveCreateRequest;
+import com.example.stagemate.dto.request.ArchiveUpdateRequest;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.archive.ArchiveErrorCode;
 import com.example.stagemate.repository.ArchiveRepository;
@@ -27,8 +28,11 @@ public class ArchiveService {
         archiveRepository.deleteById(archiveId);
     }
 
-    public void updateArchive(Archive archive) {
-        archiveRepository.save(archive);
+    public void updateArchive(Long archiveId, ArchiveUpdateRequest archiveUpdateRequest) {
+        Archive archive = archiveRepository.findById(archiveId)
+                .orElseThrow(() -> new AppException(ArchiveErrorCode.NOT_FOUND));
+
+        archive.update(archiveUpdateRequest);
     }
 
 }

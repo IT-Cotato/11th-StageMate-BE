@@ -2,9 +2,7 @@ package com.example.stagemate.domain.scheduleReport;
 
 import com.example.stagemate.domain.performance.Performance;
 import com.example.stagemate.dto.request.ScheduleReportCreateRequest;
-import jakarta.persistence.Entity;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -31,6 +29,7 @@ public class ScheduleReport {
 
     private String url;
 
+    @Enumerated(EnumType.STRING)
     private ScheduleReportStatus scheduleReportStatus;
 
     @ManyToOne

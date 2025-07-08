@@ -1,14 +1,20 @@
 package com.example.stagemate.dto.request;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Setter
 @Getter
-@RequiredArgsConstructor
+@NoArgsConstructor
 public class ScheduleReportCreateRequest {
-    private final String content;
+    @NotNull(message = "content cannot be null")
+    private String content;
 
+    @NotNull(message = "url cannot be null")
     private String url;
 
+    @NotNull(message = "performanceId cannot be null")
     private Long performanceId;
 }

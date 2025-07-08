@@ -1,10 +1,12 @@
 package com.example.stagemate.global.exception;
 
 import com.example.stagemate.global.dto.ErrorResponse;
+import com.example.stagemate.global.exception.archive.ArchiveErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -35,6 +37,25 @@ public class ExceptionController {
         ErrorResponse errorResponse = ErrorResponse.of(e.getErrorCode(), request);
         return ResponseEntity
                 .status(e.getErrorCode().getHttpStatus())
+                .body(errorResponse);
+    }
+
+    //spring validation 예외
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e, HttpServletRequest request) {
+        log.error("MethodArgumentNotValidException 발생: {}", e.getMessage());
+        log.error("에러가 발생한 지점 {}, {}", request.getMethod(), request.getRequestURI());
+
+        //field가 rating이면
+        if (e.getFieldError().getField().equals("rating")) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ErrorResponse.of(ArchiveErrorCode.INVALID_RATING, request));
+        }
+
+        ErrorResponse errorResponse = ErrorResponse.of(CommonErrorCode.BAD_REQUEST, request);
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
                 .body(errorResponse);
     }
 }

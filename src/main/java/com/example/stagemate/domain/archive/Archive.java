@@ -1,6 +1,7 @@
 package com.example.stagemate.domain.archive;
 
 import com.example.stagemate.dto.request.ArchiveCreateRequest;
+import com.example.stagemate.dto.request.ArchiveUpdateRequest;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -48,7 +49,18 @@ public class Archive {
                 .rating(request.getRating())
                 .memo(request.getMemo())
                 .imageUrl(request.getImageUrl())
+                .theaterName(request.getTheaterName())
+                .userId(request.getUserId())
                 .build();
     }
 
+    public void update(ArchiveUpdateRequest request) {
+        this.viewingDate = request.getViewingDate();
+        this.casting = request.getCasting();
+        this.review = request.getReview();
+        this.rating = request.getRating();
+        this.memo = request.getMemo();
+        this.imageUrl = request.getImageUrl();
+        this.theaterName = request.getTheaterName();
+    }
 }
