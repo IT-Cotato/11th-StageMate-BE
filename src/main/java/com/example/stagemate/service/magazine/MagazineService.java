@@ -1,17 +1,13 @@
 package com.example.stagemate.service.magazine;
 
 import com.example.stagemate.domain.image.Image;
-import com.example.stagemate.domain.magazine.Magazine;
-import com.example.stagemate.domain.magazine.MagazineCategory;
-import com.example.stagemate.domain.magazine.MagazineImage;
+import com.example.stagemate.domain.magazine.*;
 import com.example.stagemate.dto.request.MagazineCreateRequest;
 import com.example.stagemate.dto.response.MagazineListResponse;
 import com.example.stagemate.dto.response.MagazinePagedResponse;
 import com.example.stagemate.dto.response.MagazineResponse;
 import com.example.stagemate.global.exception.magazine.MagazineNotFoundException;
-import com.example.stagemate.repository.ImageRepository;
-import com.example.stagemate.repository.MagazineImageRepository;
-import com.example.stagemate.repository.MagazineRepository;
+import com.example.stagemate.repository.*;
 import com.example.stagemate.service.image.ImageService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +29,8 @@ public class MagazineService {
     private final ImageService imageService; // 이미지 업로드 서비스
     private final ImageRepository imageRepository;
     private final MagazineImageRepository magazineImageRepository;
+    private final MagazineLikeRepository magazineLikeRepository;
+    private final MagazineScrapRepository magazineScrapRepository;
 
     // 매거진 생성(사진 여러개 포함)
     public MagazineResponse createMagazine(MagazineCreateRequest request, List<MultipartFile> images) {
@@ -40,21 +38,23 @@ public class MagazineService {
         Magazine entity = request.toEntity(magazineCategory);
         magazineRepository.save(entity);
 
-        int order = 1;
-        // 이미지 저장
-        for(MultipartFile image : images) {
-            Image uploadImage = imageService.uploadImage(image);
+        if (images != null && !images.isEmpty()) {
+            int order = 1;
+            // 이미지 저장
+            for (MultipartFile image : images) {
+                Image uploadImage = imageService.uploadImage(image);
 
-            // 중간 테이블 연결, 순서 포함
-            MagazineImage magazineImage = MagazineImage.builder()
-                    .magazine(entity)
-                    .image(uploadImage)
-                    .sortOrder(order++)
-                    .build();
-            magazineImageRepository.save(magazineImage);
+                // 중간 테이블 연결, 순서 포함
+                MagazineImage magazineImage = MagazineImage.builder()
+                        .magazine(entity)
+                        .image(uploadImage)
+                        .sortOrder(order++)
+                        .build();
+                magazineImageRepository.save(magazineImage);
 
-            // 매거진 연관관계 편의 메서드로 이미지 추가
-            entity.getImages().add(magazineImage);
+                // 매거진 연관관계 편의 메서드로 이미지 추가
+                entity.getImages().add(magazineImage);
+            }
         }
         // 매거진 응답 DTO 생성
         return MagazineResponse.from(entity);
@@ -105,5 +105,56 @@ public class MagazineService {
             imageRepository.delete(mi.getImage());
         }
         magazineRepository.delete(magazine);
+    }
+
+    // 매거진 좋아요
+    public void likeMagazine(Long magazineId, Long userId) {
+        // 매거진 존재하는지 확인
+        Magazine magazine = magazineRepository.findById(magazineId).orElseThrow(
+                () -> new MagazineNotFoundException(MAGAZINE_NOT_FOUND));
+        // 유저 존재하는지 확인
+        // User user = userRepository.findById(userId).orElseThrow(
+        //  () -> new UserNotFoundException(USER_NOT_FOUND));
+
+        if(magazineLikeRepository.existsByUserIdAndMagazineId(userId, magazineId)) {
+            // 이미 좋아요를 누른 경우
+            magazineLikeRepository.deleteByUserIdAndMagazineId(userId, magazineId);
+            magazine.getLikes().removeIf(like -> like.getUserId().equals(userId));
+        } else {
+            // 좋아요를 누르지 않은 경우
+            MagazineLike magazineLike = magazineLikeRepository.save(MagazineLike.of(userId, magazine));
+            magazine.getLikes().add(magazineLike);
+        }
+    }
+
+    // 매거진 스크랩
+    public void scrapMagazine(Long magazineId, Long userId) {
+        // 매거진 존재하는지 확인
+        Magazine magazine = magazineRepository.findById(magazineId).orElseThrow(
+                () -> new MagazineNotFoundException(MAGAZINE_NOT_FOUND));
+        // 유저 존재하는지 확인
+        // User user = userRepository.findById(userId).orElseThrow(
+        //  () -> new UserNotFoundException(USER_NOT_FOUND));
+
+        if(magazineScrapRepository.existsByUserIdAndMagazineId(userId, magazineId)) {
+            // 이미 좋아요를 누른 경우
+            magazineScrapRepository.deleteByUserIdAndMagazineId(userId, magazineId);
+            magazine.getScraps().removeIf(scrap -> scrap.getUserId().equals(userId));
+        } else {
+            // 좋아요를 누르지 않은 경우
+            MagazineScrap magazineScrap = magazineScrapRepository.save(MagazineScrap.of(userId, magazine));
+            magazine.getScraps().add(magazineScrap);
+        }
+    }
+
+    // 좋아요 + 스크랩 많은 순 추천 매거진 4개 보여주기
+    // 같은 수일 경우, 최신 순으로 정렬
+    public List<MagazineListResponse> getRecommendedMagazines() {
+        Pageable pageable = PageRequest.of(0, 4);
+        List<Magazine> magazines = magazineRepository.findTop4ByLikesAndScrapsSum(pageable);
+        return magazines.stream()
+                .map(MagazineListResponse::from)
+                .toList();
+
     }
 }

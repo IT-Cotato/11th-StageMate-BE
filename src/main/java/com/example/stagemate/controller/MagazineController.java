@@ -38,7 +38,7 @@ public class MagazineController {
     @Operation(
             summary = "매거진 작성",
             description = """
-        매거진 정보를 JSON 문자열로 입력하고, 여러 이미지를 함께 업로드합니다.
+        매거진 정보를 JSON 문자열로 입력하고, 여러 이미지를 함께 업로드합니다. 이미지를 업로드하지 않는 경우 url에 "basic" 출력
 
         🔽 예시 JSON (request 필드 입력값):
 
@@ -74,7 +74,7 @@ public class MagazineController {
                             array = @ArraySchema(schema = @Schema(type = "string", format = "binary"))
                     )
             )
-            @RequestPart("images") List<MultipartFile> images
+            @RequestPart(value = "images", required = false) List<MultipartFile> images
 
     ) throws JsonProcessingException {
 
@@ -136,10 +136,49 @@ public class MagazineController {
     }
 
 
-
     // 매거진 좋아요
+    @Operation(summary = "매거진 좋아요", description = "매거진에 좋아요를 누릅니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "좋아요 성공"),
+            @ApiResponse(responseCode = "404", description = "매거진을 찾을 수 없음 (MAGAZINE-002)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            // 유저를 찾을 수 없음
+//            @ApiResponse(responseCode = "404", description = "유저를 찾을 수 없음 (USER-001)",
+//                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @PostMapping("/{magazineId}/likes")
+    public ResponseEntity<DataResponse<Void>> likeMagazine(
+            @PathVariable Long magazineId,
+            @RequestParam Long userId) { // 일단 userId를 요청 파라미터로 받음
+        magazineService.likeMagazine(magazineId, userId);
+        return ResponseEntity.ok(DataResponse.ok());
+    }
 
     // 매거진 스크랩
+    @Operation(summary = "매거진 스크랩", description = "매거진을 스크랩합니다. 스크랩은 좋아요와 별개로 저장됩니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "좋아요 성공"),
+            @ApiResponse(responseCode = "404", description = "매거진을 찾을 수 없음 (MAGAZINE-002)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            // 유저를 찾을 수 없음
+//            @ApiResponse(responseCode = "404", description = "유저를 찾을 수 없음 (USER-001)",
+//                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @PostMapping("/{magazineId}/scraps")
+    public ResponseEntity<DataResponse<Void>> scrapMagazine(
+            @PathVariable Long magazineId,
+            @RequestParam Long userId) { // 일단 userId를 요청 파라미터로 받음
+        magazineService.scrapMagazine(magazineId, userId);
+        return ResponseEntity.ok(DataResponse.ok());
+    }
 
     // 좋아요 + 스크랩 많은 순 추천 매거진 4개 보여주기
+    @Operation(summary = "추천 매거진 조회", description = "좋아요와 스크랩의 합이 높은 순으로 매거진 4개를 추천합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "추천 매거진 조회 성공"),
+    })
+    @GetMapping("/recommend")
+    public ResponseEntity<DataResponse<List<MagazineListResponse>>> getRecommendedMagazines() {
+        return ResponseEntity.ok(DataResponse.from(magazineService.getRecommendedMagazines()));
+    }
 }

@@ -31,4 +31,12 @@ public class Magazine {
     @Builder.Default
     @OneToMany(mappedBy = "magazine", cascade = CascadeType.ALL, orphanRemoval = true)
     List<MagazineImage> images = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "magazine", cascade = CascadeType.ALL, orphanRemoval = true)
+    List<MagazineLike> likes = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "magazine", cascade = CascadeType.ALL, orphanRemoval = true)
+    List<MagazineScrap> scraps = new ArrayList<>();
 }
