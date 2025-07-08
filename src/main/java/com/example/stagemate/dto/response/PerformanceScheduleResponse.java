@@ -11,7 +11,6 @@ public class PerformanceScheduleResponse {
     private final String scheduleDate;
     private final PerformanceType performanceType;
     private final String content;
-    private final String performanceName;
     private final PerformanceDetailResponse performanceDetailResponse;
 
     public static PerformanceScheduleResponse from(PerformanceSchedule performanceSchedule) {
@@ -19,7 +18,6 @@ public class PerformanceScheduleResponse {
                 performanceSchedule.getScheduleDate().toString(),
                 performanceSchedule.getPerformance().getPerformanceType(),
                 performanceSchedule.getContent(),
-                performanceSchedule.getPerformance().getPerformanceName(),
                 PerformanceDetailResponse.from(performanceSchedule.getPerformance())
         );
     }
