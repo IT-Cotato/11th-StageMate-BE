@@ -31,6 +31,7 @@ public class MagazineService {
     private final MagazineImageRepository magazineImageRepository;
     private final MagazineLikeRepository magazineLikeRepository;
     private final MagazineScrapRepository magazineScrapRepository;
+    private final MagazineStatisticsRepository magazineStatisticsRepository;
 
     // 매거진 생성(사진 여러개 포함)
     public MagazineResponse createMagazine(MagazineCreateRequest request, List<MultipartFile> images) {
@@ -150,9 +151,10 @@ public class MagazineService {
     // 좋아요 + 스크랩 많은 순 추천 매거진 4개 보여주기
     // 같은 수일 경우, 최신 순으로 정렬
     public List<MagazineListResponse> getRecommendedMagazines() {
-        Pageable pageable = PageRequest.of(0, 4);
-        List<Magazine> magazines = magazineRepository.findTop4ByLikesAndScrapsSum(pageable);
-        return magazines.stream()
+        // 매거진 통계 정보 가져오기
+        List<MagazineStatistics> statistics = magazineStatisticsRepository.findAll();
+        return statistics.stream()
+                .map(MagazineStatistics::getMagazine)
                 .map(MagazineListResponse::from)
                 .toList();
 
