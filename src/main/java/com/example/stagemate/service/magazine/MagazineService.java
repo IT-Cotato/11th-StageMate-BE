@@ -60,12 +60,12 @@ public class MagazineService {
         return MagazineResponse.from(entity);
     }
 
-    // 최신 순 4개 보여주기
-    public List<MagazineListResponse> getLatestMagazines() {
+    // 최신 순 매거진 보여주기
+    public List<MagazineListResponse> getLatestMagazines(int size) {
         List<Magazine> magazines = magazineRepository.findAllByOrderByCreatedAtDesc();
         return magazines.stream()
                 .map(MagazineListResponse::from)
-                .limit(4)
+                .limit(size)
                 .toList();
     }
 
