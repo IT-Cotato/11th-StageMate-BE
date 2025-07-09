@@ -1,6 +1,7 @@
 package com.example.stagemate.dto.response;
 
 import com.example.stagemate.domain.magazine.Magazine;
+import com.example.stagemate.domain.magazine.MagazineStatistics;
 
 import java.util.List;
 
