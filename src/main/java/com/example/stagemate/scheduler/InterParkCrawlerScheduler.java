@@ -3,7 +3,7 @@ package com.example.stagemate.scheduler;
 import com.example.stagemate.domain.performance.Performance;
 import com.example.stagemate.dto.data.CrawledPerformanceInfo;
 import com.example.stagemate.service.crawling.InterParkCrawlingService;
-import com.example.stagemate.service.performance.PerformanceBatchService;
+import com.example.stagemate.service.performance.PerformanceCrawlingBatchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -14,10 +14,10 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class CrawlerScheduler {
+public class InterParkCrawlerScheduler {
 
     private final InterParkCrawlingService interParkCrawlingService;
-    private final PerformanceBatchService performanceBatchService;
+    private final PerformanceCrawlingBatchService performanceBatchService;
 
 
     @Scheduled(cron = "0 0 */2 * * *")
@@ -56,10 +56,5 @@ public class CrawlerScheduler {
         }
     }
 
-    //자정에 상영종료되는 공연 상태정보 변경
-    @Scheduled(cron = "0 0 0 * * *")
-    public void updatePerformanceStatus() {
-        //현재 시간기준으로 상태업데이트
-        performanceBatchService.updatePerformanceStatusBasedOnCurrentDate();
-    }
+
 }

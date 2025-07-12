@@ -24,7 +24,6 @@ public class CrawledPerformanceInfo {
     private String theaterName;
     private String region;
     private PerformanceGenre performanceGenre;
-
     private PerformanceType performanceType;
     private PerformanceStatus performanceStatus;
 }

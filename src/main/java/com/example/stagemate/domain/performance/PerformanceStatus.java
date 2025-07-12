@@ -5,6 +5,4 @@ public enum PerformanceStatus {
     UPCOMING,
     ONGOING,
     ENDED;
-
-
 }

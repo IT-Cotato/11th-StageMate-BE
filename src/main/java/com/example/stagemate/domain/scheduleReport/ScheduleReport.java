@@ -33,6 +33,7 @@ public class ScheduleReport {
     private ScheduleReportStatus scheduleReportStatus;
 
     @ManyToOne
+    @JoinColumn(name = "performance_id")
     private Performance performance;
 
     private Long userId;
