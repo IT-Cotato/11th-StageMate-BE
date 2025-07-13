@@ -36,7 +36,7 @@ public class UserService implements LoginUseCase, RegisterUserUseCase {
 
     @Override
     @Transactional
-    public void normalSignupInfo(RegisterUserCommand command) {
+    public String normalSignupInfo(RegisterUserCommand command) {
         if (loadUserPort.existsByUserId(command.userId())) {
             throw new AppException(CommonErrorCode.RESOURCE_CONFLICT, "이미 사용 중인 아이디입니다.");
         }
@@ -55,6 +55,7 @@ public class UserService implements LoginUseCase, RegisterUserUseCase {
         );
 
         saveUserPort.save(guest);
+        return command.userId();
     }
 
     @Override

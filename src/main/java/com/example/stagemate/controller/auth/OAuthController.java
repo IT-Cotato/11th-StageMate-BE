@@ -5,8 +5,11 @@ import com.example.stagemate.dto.auth.GuestInfo;
 import com.example.stagemate.dto.request.OAuth2SignupRequestDTO;
 import com.example.stagemate.dto.request.ConsentRequestDTO;
 import com.example.stagemate.global.auth.dto.SessionUser;
+import com.example.stagemate.global.dto.DataResponse;
 import com.example.stagemate.global.security.session.SessionManager;
+import com.example.stagemate.service.user.LoginUseCase;
 import com.example.stagemate.service.user.UserService;
+import com.example.stagemate.service.user.command.LoginCommand;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpSession;
@@ -28,38 +31,22 @@ import org.springframework.web.bind.annotation.RestController;
 public class OAuthController {
 
     private final UserService userService;
-    private final SessionManager sessionManager;
-    private final HttpSession httpSession;
+    private final LoginUseCase loginUseCase;
 
-    @GetMapping("/")
-    public String home(Model model) {
-        // 세션에서 사용자 정보 꺼내기
-        SessionUser user = (SessionUser) httpSession.getAttribute("user");
-        if (user != null) {
-            model.addAttribute("userName", user.getName());
-            model.addAttribute("userEmail", user.getEmail());
-            model.addAttribute("userPicture", user.getPicture());
-        }
-        return "home"; // templates/home.html
-    }
 
     @Operation(summary = "소셜 회원가입 - 정보 입력", description = "소셜 로그인 후, 닉네임, 생년월일 등 추가 정보를 입력받습니다.")
     @PostMapping("/signup")
     public ResponseEntity<Void> oAuthSignup(@RequestBody @Valid OAuth2SignupRequestDTO request) {
-        GuestInfo guestInfo = sessionManager.getGuestInfo();
-        userService.oauthSignupInfo(request, guestInfo);
+        userService.oauthSignupInfo(request, request.getGuestInfo());
         return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "소셜 회원가입 - 약관 동의 및 최종 가입", description = "약관 동의를 받아 최종적으로 회원가입을 완료하고 로그인 처리합니다.")
     @PostMapping("/agree")
-    public ResponseEntity<Void> oAuthAgree(@RequestBody @Valid ConsentRequestDTO request) {
-        GuestInfo guestInfo = sessionManager.getGuestInfo();
-        User completedUser = userService.oauthAgreeAndRegister(request, guestInfo);
+    public ResponseEntity<DataResponse<String>> oAuthAgree(@RequestBody @Valid ConsentRequestDTO request) {
+        User completedUser = userService.oauthAgreeAndRegister(request, request.getGuestInfo());
 
-        sessionManager.logout();
-        sessionManager.login(completedUser.getUserId());
-
-        return ResponseEntity.ok().build();
+        String token = loginUseCase.login(LoginCommand.fromUser(completedUser));
+        return ResponseEntity.ok(DataResponse.from(token));
     }
 }

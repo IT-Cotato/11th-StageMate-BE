@@ -1,5 +1,6 @@
 package com.example.stagemate.dto.request;
 
+import com.example.stagemate.dto.auth.GuestInfo;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -14,4 +15,6 @@ public class OAuth2SignupRequestDTO {
 
     @NotNull
     private LocalDate birthdate;
+
+    private GuestInfo guestInfo;
 }

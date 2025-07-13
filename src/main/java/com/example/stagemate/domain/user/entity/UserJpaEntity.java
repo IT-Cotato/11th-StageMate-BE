@@ -54,7 +54,8 @@ public class UserJpaEntity {
     @Column(name = "role", nullable = false)
     private Role role;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Builder.Default
     private List<UserConsent> consents = new ArrayList<>();
 
     public UserJpaEntity update(String userId, String picture) {
@@ -69,14 +70,16 @@ public class UserJpaEntity {
                 .id(id)
                 .userId(userId)
                 .email(email)
-                .password(password)
                 .name(name)
                 .nickname(nickname)
+                .password(password)
                 .picture(picture)
                 .birthdate(birthdate)
                 .loginType(loginType)
                 .role(role)
-                .consents(consents.stream().map(UserConsent::getConsentType).collect(Collectors.toList()))
+                .consents(consents.stream()
+                        .map(consent -> consent.getConsentType())
+                        .collect(Collectors.toList()))
                 .build();
     }
 
@@ -94,7 +97,7 @@ public class UserJpaEntity {
                 .role(user.getRole())
                 .build();
 
-        if (user.getConsents() != null) {
+        if (user.getConsents() != null && !user.getConsents().isEmpty()) {
             List<UserConsent> userConsents = user.getConsents().stream()
                     .map(consentType -> UserConsent.builder()
                             .consentType(consentType)
@@ -107,11 +110,12 @@ public class UserJpaEntity {
         return entity;
     }
 
-    private void setConsents(List<UserConsent> consents) {
-        this.consents.clear();
-        if (consents != null) {
-            this.consents.addAll(consents);
-            consents.forEach(consent -> consent.setUser(this));
+    public void setConsents(List<UserConsent> consents) {
+        if (consents == null) {
+            return;
         }
+        this.consents.clear();
+        this.consents.addAll(consents);
+        consents.forEach(consent -> consent.setUser(this));
     }
 }
