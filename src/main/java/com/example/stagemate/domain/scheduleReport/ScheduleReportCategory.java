@@ -20,6 +20,7 @@ public class ScheduleReportCategory {
     private Long id;
 
     @ManyToOne
+    @jakarta.persistence.JoinColumn(name = "schedule_report_id")
     private ScheduleReport scheduleReport;
 
     private ScheduleReportCategoryType scheduleReportCategoryType;

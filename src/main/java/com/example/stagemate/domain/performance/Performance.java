@@ -1,6 +1,7 @@
 package com.example.stagemate.domain.performance;
 
 import com.example.stagemate.dto.data.CrawledPerformanceInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,6 +10,8 @@ import lombok.NoArgsConstructor;
 
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Entity
@@ -39,6 +42,11 @@ public class Performance {
     private String theaterName; // 극장 이름
 
     private String region; // 지역
+
+    @Builder.Default
+    @OneToMany(mappedBy = "performance", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<PerformanceScrap> scraps = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     private PerformanceGenre performanceGenre;

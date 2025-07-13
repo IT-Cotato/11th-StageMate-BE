@@ -11,4 +11,5 @@ public interface PerformanceRepository extends JpaRepository<Performance, Long> 
     List<Performance> findByPerformanceStatus(PerformanceStatus performanceStatus);
     List<Performance> findByPerformanceStatusIn(List<PerformanceStatus> statuses);
     List<Performance> findByStartDateBetween(LocalDate startDate, LocalDate endDate);
+
 }

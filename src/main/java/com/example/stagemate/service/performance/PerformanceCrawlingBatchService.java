@@ -20,9 +20,10 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class PerformanceBatchService {
+public class PerformanceCrawlingBatchService {
     private final PerformanceRepository performanceRepository;
     private final PerformanceScheduleRepository performanceScheduleRepository;
+
 
 
     // 현재시간 기준으로 상태 업데이트

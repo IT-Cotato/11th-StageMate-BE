@@ -22,6 +22,7 @@ public class PerformanceSchedule {
     private Long id;
 
     @ManyToOne
+    @JoinColumn(name = "performance_id")
     private Performance performance;
 
     private String content;
