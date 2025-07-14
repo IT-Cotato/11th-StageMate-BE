@@ -7,6 +7,7 @@ import com.example.stagemate.global.auth.dto.OAuthAttributes;
 import com.example.stagemate.global.auth.dto.SessionUser;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -28,44 +30,51 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     private final SaveUserPort saveUserPort;
     private final HttpSession httpSession;
 
+
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+        log.info("▶️ OAuth2 로그인 시작");
+
         OAuth2UserService<OAuth2UserRequest, OAuth2User> delegate = new DefaultOAuth2UserService();
         OAuth2User oAuth2User = delegate.loadUser(userRequest);
+        log.info("✅ 구글로부터 받은 사용자 정보: {}", oAuth2User.getAttributes());
 
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
         String userNameAttributeName = userRequest.getClientRegistration().getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName();
 
         OAuthAttributes attributes = OAuthAttributes.of(registrationId, userNameAttributeName, oAuth2User.getAttributes());
-
         User user = saveOrUpdate(attributes);
+
+        if (user == null) {
+            throw new IllegalStateException("❌ 저장된 유저가 null입니다.");
+        }
 
         httpSession.setAttribute("user", new SessionUser(user));
 
-        return new DefaultOAuth2User(
-                Collections.singleton(new SimpleGrantedAuthority(user.getRoleKey())),
-                attributes.getAttributes(),
-                attributes.getNameAttributeKey());
+        // ✅ 기존 DefaultOAuth2User → CustomUserDetails로 교체
+        return new CustomUserDetails(user, attributes.getAttributes());
     }
 
+
+
     private User saveOrUpdate(OAuthAttributes attributes) {
-        // DB에 이미 저장된 유저라면 최신 정보로 업데이트
-        // 아니라면 GUEST 권한을 가진 임시 User 객체 생성
+        log.info("🛠️ saveOrUpdate 진입: email={}", attributes.getEmail());
         return loadUserPort.findByEmail(attributes.getEmail())
-                .map(user -> {
-                    user.update(attributes.getUserId(), attributes.getPicture());
-                    return saveUserPort.save(user);
-                })
+                .map(user -> saveUserPort.save(user.update(attributes.getUserId(), attributes.getPicture())))
                 .orElseGet(() -> {
+                    log.info("🆕 새로운 유저 생성: email={}", attributes.getEmail());
                     String newUserId = generateUniqueRandomUserId();
-                    return User.googleGuestSignUp(
+                    User newUser = User.googleGuestSignUp(
                             newUserId,
                             attributes.getUserId(),
                             attributes.getEmail(),
                             attributes.getPicture()
                     );
+                    log.info("✅ 생성된 Guest 유저: {}", newUser);
+                    return saveUserPort.save(newUser);
                 });
     }
+
 
     private String generateUniqueRandomUserId() {
         String userId;

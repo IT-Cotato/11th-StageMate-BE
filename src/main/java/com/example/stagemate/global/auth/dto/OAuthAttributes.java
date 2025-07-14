@@ -33,33 +33,20 @@ public class OAuthAttributes {
     public static OAuthAttributes of(String registrationId,
                                      String userNameAttributeName,
                                      Map<String, Object> attributes) {
-        return ofGoogle(userNameAttributeName, attributes);
+        if ("google".equals(registrationId)) {
+            return ofGoogle(userNameAttributeName, attributes);
+        }
+        throw new IllegalArgumentException("Unsupported provider: " + registrationId);
     }
 
     private static OAuthAttributes ofGoogle(String userNameAttributeName,
                                             Map<String, Object> attributes) {
-        String email = (String) attributes.get("email");
-        if (email == null) {
-            System.out.println("[OAuth] email not found in attributes. Falling back to sub.");
-            email = (String) attributes.get("sub"); // fallback
-        }
-
         return OAuthAttributes.builder()
-                .userId((String) attributes.get("name"))
-                .email(email)
+                .userId((String) attributes.get("sub"))
+                .email((String) attributes.get("email"))
                 .picture((String) attributes.get("picture"))
                 .attributes(attributes)
                 .nameAttributeKey(userNameAttributeName)
-                .build();
-    }
-
-    public UserJpaEntity toEntity() {
-        return UserJpaEntity.builder()
-                .userId(userId)
-                .email(email)
-                .picture(picture)
-                .loginType(LoginType.GOOGLE)
-                .role(Role.USER)
                 .build();
     }
 }

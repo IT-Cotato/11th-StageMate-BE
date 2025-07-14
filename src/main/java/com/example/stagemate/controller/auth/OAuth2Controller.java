@@ -24,19 +24,10 @@ public class OAuth2Controller {
 
     @PostMapping("/signup")
     public ResponseEntity<Void> oauthSignUp(
-            @Valid @RequestBody OAuth2SignupRequestDTO request,
-            HttpSession session
+            @Valid @RequestBody OAuth2SignupRequestDTO request
     ) {
-        GuestInfo guestInfo = (GuestInfo) session.getAttribute("guestInfo");
-        if (guestInfo == null) {
-            throw new AppException(CommonErrorCode.SESSION_EXPIRED, "세션 정보가 유효하지 않습니다.");
-        }
-
-        userService.oauthSignupInfo(request, guestInfo);
-
-        // 회원가입 성공 후 세션 무효화
-        session.invalidate();
-
+        // 프론트에서 guestInfo 정보 포함해서 요청 보내야 함
+        userService.oauthSignupInfo(request, request.getGuestInfo());
         return ResponseEntity.ok().build();
     }
 }
