@@ -63,7 +63,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                 .map(user -> saveUserPort.save(user.update(attributes.getUserId(), attributes.getPicture())))
                 .orElseGet(() -> {
                     log.info("🆕 새로운 유저 생성: email={}", attributes.getEmail());
-                    String newUserId = generateUniqueRandomUserId();
+                    String newUserId = generateUniqueUserIdFromEmail(attributes.getEmail()); //수정된 방식
                     User newUser = User.googleGuestSignUp(
                             newUserId,
                             attributes.getUserId(),
@@ -93,5 +93,19 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             sb.append(chars.charAt(random.nextInt(chars.length())));
         }
         return sb.toString();
+    }
+
+    //구글 계정 이메일 주소에서 UserId 추출
+    private String generateUniqueUserIdFromEmail(String email) {
+        String baseUserId = email.split("@")[0];
+        String finalUserId = baseUserId;
+        int suffix = 1;
+
+        while (loadUserPort.existsByUserId(finalUserId)) {
+            finalUserId = baseUserId + suffix;
+            suffix++;
+        }
+
+        return finalUserId;
     }
 }
