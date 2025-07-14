@@ -1,10 +1,8 @@
 package com.example.stagemate.dto.request;
 
-import com.example.stagemate.domain.user.model.ConsentType;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
-import java.util.List;
 
 import static com.example.stagemate.global.util.ValidationConstants.*;
 

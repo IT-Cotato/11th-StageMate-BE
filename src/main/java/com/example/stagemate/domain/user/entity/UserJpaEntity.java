@@ -3,6 +3,7 @@ package com.example.stagemate.domain.user.entity;
 import com.example.stagemate.domain.user.Role;
 import com.example.stagemate.domain.user.User;
 
+import com.example.stagemate.domain.user.model.ConsentType;
 import com.example.stagemate.domain.user.model.UserConsent;
 import com.example.stagemate.domain.user.type.LoginType;
 import jakarta.persistence.*;
@@ -11,6 +12,7 @@ import lombok.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Entity
@@ -66,6 +68,12 @@ public class UserJpaEntity {
     }
 
     public User toDomain() {
+        Map<ConsentType, Boolean> consentMap = consents.stream()
+                .collect(Collectors.toMap(
+                        UserConsent::getConsentType,
+                        UserConsent::isAgreed
+                ));
+
         return User.builder()
                 .id(id)
                 .userId(userId)
@@ -77,9 +85,7 @@ public class UserJpaEntity {
                 .birthdate(birthdate)
                 .loginType(loginType)
                 .role(role)
-                .consents(consents.stream()
-                        .map(consent -> consent.getConsentType())
-                        .collect(Collectors.toList()))
+                .consents(consentMap)
                 .build();
     }
 
@@ -98,10 +104,11 @@ public class UserJpaEntity {
                 .build();
 
         if (user.getConsents() != null && !user.getConsents().isEmpty()) {
-            List<UserConsent> userConsents = user.getConsents().stream()
-                    .map(consentType -> UserConsent.builder()
-                            .consentType(consentType)
-                            .agreed(true)
+            List<UserConsent> userConsents = user.getConsents().entrySet().stream()
+                    .map(entry -> UserConsent.builder()
+                            .consentType(entry.getKey())
+                            .agreed(entry.getValue())
+                            .user(entity)
                             .build())
                     .collect(Collectors.toList());
             entity.setConsents(userConsents);
