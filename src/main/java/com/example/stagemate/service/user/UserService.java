@@ -12,18 +12,14 @@ import com.example.stagemate.service.user.command.NormalAgreeCommand;
 import com.example.stagemate.service.user.command.RegisterUserCommand;
 import com.example.stagemate.dto.auth.GuestInfo;
 import com.example.stagemate.dto.request.ConsentRequestDTO;
-import com.example.stagemate.dto.request.OAuth2RegisterRequestDTO;
 import com.example.stagemate.dto.request.OAuth2SignupRequestDTO;
-import com.example.stagemate.dto.request.RegisterUserRequestDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Map;
 
-import static com.example.stagemate.global.exception.CommonErrorCode.*;
 
 @Service
 @RequiredArgsConstructor
@@ -92,6 +88,7 @@ public class UserService implements LoginUseCase, RegisterUserUseCase {
         User guestUser = loadUserPort.findByEmail(guestInfo.email())
                 .orElseThrow(() -> new AppException(CommonErrorCode.NOT_FOUND_USER));
 
+        // 약관 동의와 동시에 Role 변경 (GUEST → USER)
         User finalUser = guestUser.register(request.getConsents());
 
         return saveUserPort.save(finalUser);
@@ -122,11 +119,13 @@ public class UserService implements LoginUseCase, RegisterUserUseCase {
         return loadUserPort.existsByNickname(nickname);
     }
 
-    private void validateConsents(List<ConsentType> consents) {
-        boolean allRequiredConsentsPresent = consents.containsAll(ConsentType.getRequiredConsents());
 
-        if (!allRequiredConsentsPresent) {
-            throw new AppException(CommonErrorCode.BAD_REQUEST, "필수 이용 약관에 모두 동의해야 합니다.");
+    //비즈니스 로직 단계에서 필수 동의 항목 검증
+    private void validateConsents(Map<ConsentType, Boolean> consents) {
+        for (ConsentType required : ConsentType.getRequiredConsents()) {
+            if (!Boolean.TRUE.equals(consents.get(required))) {
+                throw new AppException(CommonErrorCode.BAD_REQUEST, required.getDescription() + "은(는) 필수 동의 항목입니다.");
+            }
         }
     }
 }
