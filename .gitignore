@@ -42,3 +42,6 @@ application-local.yml
 
 # GCS 서비스 키
 stagemate_gcs.json
+
+# 로컬 환경 시큐리티
+src/main/java/com/example/stagemate/dev/

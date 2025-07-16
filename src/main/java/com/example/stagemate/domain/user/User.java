@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.Map;
 
 @Getter
 @AllArgsConstructor
@@ -24,13 +24,13 @@ public class User {
     private final LocalDate birthdate;
     private final LoginType loginType;
     private final Role role;
-    private final List<ConsentType> consents;
+    private Map<ConsentType, Boolean> consents;
 
-    public static User normalSignUp(String userId, String email, String password, String name, String nickname, LocalDate birthdate, List<ConsentType> consents) {
+    public static User normalSignUp(String userId, String email, String password, String name, String nickname, LocalDate birthdate, Map<ConsentType, Boolean> consents) {
         return new User(null, name, nickname, email, password, userId, null, birthdate, LoginType.NORMAL, Role.USER, consents);
     }
 
-    public static User googleSignUp(String email, String userId, String picture, String name, String nickname, LocalDate birthdate, List<ConsentType> consents) {
+    public static User googleSignUp(String email, String userId, String picture, String name, String nickname, LocalDate birthdate, Map<ConsentType, Boolean> consents) {
         return new User(null, name, nickname, email, null, userId, picture, birthdate, LoginType.GOOGLE, Role.USER, consents);
     }
 
@@ -55,7 +55,7 @@ public class User {
                 .picture(picture)
                 .loginType(LoginType.GOOGLE)
                 .role(Role.GUEST)
-                .consents(List.of()) // No consents for guest
+                .consents(Map.of()) // No consents for guest
                 .build();
     }
 
@@ -77,7 +77,7 @@ public class User {
                 .build();
     }
 
-    public User register(List<ConsentType> consents) {
+    public User register(Map<ConsentType, Boolean> consents) {
         return this.toBuilder()
                 .role(Role.USER)
                 .consents(consents)
