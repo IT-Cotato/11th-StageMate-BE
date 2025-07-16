@@ -35,9 +35,9 @@ public class CommunityPostResponse {
                 post.getAuthor().getNickname(),
                 post.getCreatedAt(),
                 post.getViewCount(),
-                post.getCategory().name(),
-                post.getTradeCategory().toString(),
-                post.getTradeMethod().toString(),
+                post.getCategory().getDescription(),
+                post.getTradeCategory() == null ? null : post.getTradeCategory().getDescription(),
+                post.getTradeMethod() == null ? null : post.getTradeMethod().getDescription(),
                 post.getImages().stream()
                         .map(CommunityImageResponse::from)
                         .toList(),

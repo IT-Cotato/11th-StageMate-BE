@@ -18,7 +18,7 @@ public record CommunityPostListResponse(
         return new CommunityPostListResponse(
                 post.getId(),
                 post.getTitle(),
-                post.getCategory().toString(),
+                post.getCategory().getDescription(),
                 post.getAuthor().getNickname(),
                 post.getCreatedAt(),
                 post.getViewCount(),

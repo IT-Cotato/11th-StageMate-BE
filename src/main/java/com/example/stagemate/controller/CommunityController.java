@@ -21,6 +21,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/communities")
 @RequiredArgsConstructor
@@ -126,7 +128,7 @@ public class CommunityController {
     public ResponseEntity<DataResponse<CommunityPostResponse>> updateCommunityPost(
             @PathVariable Long postId,
             @RequestPart("request") String requestJson,
-            @RequestPart(value = "newImages", required = false)
+            @RequestPart(value = "images", required = false)
             @Parameter(
                     description = "추가할 이미지 파일들",
                     content = @Content(array = @ArraySchema(schema = @Schema(type = "string", format = "binary")))

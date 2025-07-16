@@ -26,6 +26,7 @@ public class CommunityPost {
     private CommunityCategory category;
     @Enumerated(EnumType.STRING)
     private TradeCategory tradeCategory; // 나눔거래일때 카테고리(연극, 뮤지컬)
+    @Enumerated(EnumType.STRING)
     private TradeMethod tradeMethod; // 나눔거래일떄 방법(추첨나눔/판매/선착나눔)
     private String title;
     private String content;
@@ -48,7 +49,7 @@ public class CommunityPost {
     private int scrapCount = 0;
 
     @Builder.Default
-    @OneToMany(mappedBy = "magazine", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "communityPost", cascade = CascadeType.ALL, orphanRemoval = true)
     List<CommunityImage> images = new ArrayList<>();
 
 

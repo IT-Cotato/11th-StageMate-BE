@@ -15,6 +15,8 @@ import com.example.stagemate.repository.community.CommunityScrapRepository;
 import com.example.stagemate.repository.user.UserJpaRepository;
 import com.example.stagemate.service.image.ImageService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,11 +31,13 @@ import java.util.List;
 import static com.example.stagemate.global.exception.CommonErrorCode.NOT_FOUND_USER;
 import static com.example.stagemate.global.exception.community.CommunityErrorCode.COMMUNITY_POST_NOT_AUTHOR;
 import static com.example.stagemate.global.exception.community.CommunityErrorCode.COMMUNITY_POST_NOT_FOUND;
+import static io.opentelemetry.api.internal.ApiUsageLogger.log;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class CommunityService {
+    private static final Logger log = LoggerFactory.getLogger(CommunityService.class);
     private final CommunityRepository communityRepository;
     private final UserJpaRepository userRepository;
     private final ImageService imageService;
@@ -272,49 +276,52 @@ public class CommunityService {
 
     // 기존 올렸던 이미지 순서를 유지하면서 새로운 이미지 추가
     private void updateCommunityPostImage(CommunityPost post, List<Long> remainImageIds, List<MultipartFile> newImages) {
-        List<CommunityImage> existingImages = new ArrayList<>(post.getImages()); // 기존 이미지 복사
+        // null 방어 및 effectively final 유지
+        List<Long> safeImageIdsToRemain = remainImageIds == null ? List.of() : remainImageIds;
 
-        post.getImages().clear(); // 게시글의 이미지 리스트 초기화
+        // 기존 이미지 리스트 복사
+        List<CommunityImage> originalImages = new ArrayList<>(post.getImages());
 
-        // 삭제할 이미지 제거
-        for (CommunityImage image : existingImages) {
-            if (remainImageIds == null || !remainImageIds.contains(image.getId())) {
-                communityImageRepository.delete(image);
-                imageRepository.delete(image.getImage());
-            }
+        // 삭제할 이미지 필터링 (ID 기준)
+        List<CommunityImage> toDelete = originalImages.stream()
+                .filter(img -> !safeImageIdsToRemain.contains(img.getImage().getImageId()))
+                .toList();
+
+        for (CommunityImage img : toDelete) {
+            post.getImages().remove(img);
+            img.setCommunityPost(null);
+            communityImageRepository.delete(img);
+            imageRepository.delete(img.getImage());
         }
 
-        // 유지할 이미지 순서대로 다시 추가
-        List<CommunityImage> remainImages = existingImages.stream()
-                .filter(img -> remainImageIds != null && remainImageIds.contains(img.getId()))
+        // 남은 이미지 필터링 및 정렬
+        List<CommunityImage> remainImages = post.getImages().stream()
+                .filter(img -> safeImageIdsToRemain.contains(img.getImage().getImageId()))
                 .sorted(Comparator.comparingInt(CommunityImage::getSortOrder))
                 .toList();
 
-        // 순서 재설정
+        // 정렬 순서 재지정
         int order = 1;
         for (CommunityImage img : remainImages) {
             img.setSortOrder(order++);
         }
 
-        post.getImages().addAll(remainImages);
-
-        // 새로 추가된 이미지들 처리
-        order = remainImages.size() + 1;
+        // 새 이미지 추가
         if (newImages != null && !newImages.isEmpty()) {
             for (MultipartFile image : newImages) {
                 Image uploadImage = imageService.uploadImage(image);
 
-                CommunityImage newCommunityImage = CommunityImage.builder()
+                CommunityImage newImage = CommunityImage.builder()
                         .communityPost(post)
                         .image(uploadImage)
                         .sortOrder(order++)
                         .build();
-
-                communityImageRepository.save(newCommunityImage);
-                post.getImages().add(newCommunityImage);
+                post.getImages().add(newImage);
+                communityImageRepository.save(newImage);
             }
         }
     }
+
 
 
     public void deleteCommunityPost(Long postId, UserJpaEntity user) {

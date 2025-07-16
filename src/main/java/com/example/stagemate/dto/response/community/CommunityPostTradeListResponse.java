@@ -16,9 +16,9 @@ public record CommunityPostTradeListResponse(
         return new CommunityPostTradeListResponse(
                 post.getId(),
                 post.getTitle(),
-                post.getCategory().toString(),
-                post.getTradeCategory().toString(),
-                post.getTradeMethod().toString(),
+                post.getCategory().getDescription(),
+                post.getTradeCategory().getDescription(),
+                post.getTradeMethod().getDescription(),
                 isScrapped,
                 post.getImages().isEmpty() ? "basic" : post.getImages().get(0).getImage().getImageUrl()
         );

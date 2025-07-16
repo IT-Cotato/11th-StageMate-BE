@@ -2,12 +2,15 @@ package com.example.stagemate.service.magazine;
 
 import com.example.stagemate.domain.image.Image;
 import com.example.stagemate.domain.magazine.*;
+import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.MagazineCreateRequest;
 import com.example.stagemate.dto.response.MagazineListResponse;
 import com.example.stagemate.dto.response.MagazinePagedResponse;
 import com.example.stagemate.dto.response.MagazineResponse;
+import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.magazine.MagazineNotFoundException;
 import com.example.stagemate.repository.*;
+import com.example.stagemate.repository.user.UserJpaRepository;
 import com.example.stagemate.service.image.ImageService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+import static com.example.stagemate.global.exception.CommonErrorCode.NOT_FOUND_USER;
 import static com.example.stagemate.global.exception.magazine.MagazineErrorCode.MAGAZINE_NOT_FOUND;
 
 @Service
@@ -32,6 +36,7 @@ public class MagazineService {
     private final MagazineLikeRepository magazineLikeRepository;
     private final MagazineScrapRepository magazineScrapRepository;
     private final MagazineStatisticsRepository magazineStatisticsRepository;
+    private final UserJpaRepository userRepository;
 
     // 매거진 생성(사진 여러개 포함)
     public MagazineResponse createMagazine(MagazineCreateRequest request, List<MultipartFile> images) {
@@ -114,16 +119,16 @@ public class MagazineService {
         Magazine magazine = magazineRepository.findById(magazineId).orElseThrow(
                 () -> new MagazineNotFoundException(MAGAZINE_NOT_FOUND));
         // 유저 존재하는지 확인
-        // User user = userRepository.findById(userId).orElseThrow(
-        //  () -> new UserNotFoundException(USER_NOT_FOUND));
+        UserJpaEntity user = userRepository.findById(userId).orElseThrow(
+                () -> new AppException(NOT_FOUND_USER));
 
-        if(magazineLikeRepository.existsByUserIdAndMagazineId(userId, magazineId)) {
-            // 이미 좋아요를 누른 경우
+        if(magazineLikeRepository.existsByUserIdAndMagazineId(user.getId(), magazineId)) {
+            // 이미 좋아요를 누른 경
             magazineLikeRepository.deleteByUserIdAndMagazineId(userId, magazineId);
-            magazine.getLikes().removeIf(like -> like.getUserId().equals(userId));
+            magazine.getLikes().removeIf(like -> like.getUser().getId().equals(userId));
         } else {
             // 좋아요를 누르지 않은 경우
-            MagazineLike magazineLike = magazineLikeRepository.save(MagazineLike.of(userId, magazine));
+            MagazineLike magazineLike = magazineLikeRepository.save(MagazineLike.of(user, magazine));
             magazine.getLikes().add(magazineLike);
         }
     }
@@ -134,16 +139,16 @@ public class MagazineService {
         Magazine magazine = magazineRepository.findById(magazineId).orElseThrow(
                 () -> new MagazineNotFoundException(MAGAZINE_NOT_FOUND));
         // 유저 존재하는지 확인
-        // User user = userRepository.findById(userId).orElseThrow(
-        //  () -> new UserNotFoundException(USER_NOT_FOUND));
+        UserJpaEntity user = userRepository.findById(userId).orElseThrow(
+                () -> new AppException(NOT_FOUND_USER));
 
         if(magazineScrapRepository.existsByUserIdAndMagazineId(userId, magazineId)) {
             // 이미 좋아요를 누른 경우
             magazineScrapRepository.deleteByUserIdAndMagazineId(userId, magazineId);
-            magazine.getScraps().removeIf(scrap -> scrap.getUserId().equals(userId));
+            magazine.getScraps().removeIf(scrap -> scrap.getUser().getId().equals(userId));
         } else {
             // 좋아요를 누르지 않은 경우
-            MagazineScrap magazineScrap = magazineScrapRepository.save(MagazineScrap.of(userId, magazine));
+            MagazineScrap magazineScrap = magazineScrapRepository.save(MagazineScrap.of(user, magazine));
             magazine.getScraps().add(magazineScrap);
         }
     }
