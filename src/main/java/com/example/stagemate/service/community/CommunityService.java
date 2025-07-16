@@ -132,13 +132,13 @@ public class CommunityService {
     // 나눔거래
     // 비회원은 전체공개 글만 조회 가능
     // 회원은 전체공개 + 회원공개 글 중 차단한 사람 제외
-    public CommunityPostTradePagedResponse getCommunityTradePosts(UserJpaEntity user, String category, int page, int size) {
+    public CommunityPostTradePagedResponse getCommunityTradePosts(UserJpaEntity user, int page, int size) {
         Pageable pageable = PageRequest.of(page-1, size);
 
         // 비회원은 전체공개 글만 조회 가능
         if (user == null) {
             Page<CommunityPost> communityPosts = communityRepository.findAllByDeletedFalseAndCategoryAndMembersOnlyFalseOrderByCreatedAtDesc(
-                    CommunityCategory.from(category), pageable
+                    CommunityCategory.TRADE, pageable
             );
             boolean isScrapped = false;
             List<CommunityPostTradeListResponse> list = communityPosts.stream()
@@ -156,7 +156,7 @@ public class CommunityService {
             // 회원은 전체공개 + 회원공개 글 중 차단한 사람 제외
             // 차단 로직은 추후 추가
             Page<CommunityPost> communityPosts = communityRepository.findAllByDeletedFalseAndCategoryOrderByCreatedAtDesc(
-                    CommunityCategory.from(category), pageable
+                    CommunityCategory.TRADE, pageable
             );
             List<Long> scrappedPostIdsByUser = communityScrapService.getScrappedPostIdsByUser(user.getId());
             List<CommunityPostTradeListResponse> list = communityPosts.stream()
@@ -207,7 +207,7 @@ public class CommunityService {
     }
 
 
-    public void likeCommunityPost(Long postId, UserJpaEntity user) {
+    public void toggleCommunityPostLike(Long postId, UserJpaEntity user) {
         CommunityPost post = getCommunityPost(postId);
 
         // 유저 존재하는지 확인
@@ -227,7 +227,7 @@ public class CommunityService {
     }
 
 
-    public void scrapCommunityPost(Long postId, UserJpaEntity user) {
+    public void toggleCommunityPostScrap(Long postId, UserJpaEntity user) {
         CommunityPost post = getCommunityPost(postId);
 
         // 유저 존재하는지 확인
