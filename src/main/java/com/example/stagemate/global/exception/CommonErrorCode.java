@@ -16,6 +16,7 @@ public enum CommonErrorCode implements ErrorCode {
     AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 일치하지 않습니다.", "COMMON-007"),
     NOT_FOUND_USER(HttpStatus.NOT_FOUND, "해당 유저를 찾을 수 없습니다.", "COMMON-008"),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "인증이 필요합니다.", "COMMON-009");
+    
 
     private final HttpStatus httpStatus;
     private final String message;
