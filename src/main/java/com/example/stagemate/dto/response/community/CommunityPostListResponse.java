@@ -13,9 +13,10 @@ public record CommunityPostListResponse(
         LocalDateTime createdAt,
         int viewCount,
         int likeCount,
-        int commentCount
+        int commentCount,
+        boolean isLiked // 현재 로그인 사용자가 이 글을 좋아요 눌렀는지 여부
 ) {
-    public static CommunityPostListResponse from(CommunityPost post) {
+    public static CommunityPostListResponse from(CommunityPost post, boolean isLiked) {
         return new CommunityPostListResponse(
                 post.getId(),
                 post.getTitle(),
@@ -24,11 +25,12 @@ public record CommunityPostListResponse(
                 post.getCreatedAt(),
                 post.getViewCount(),
                 post.getLikeCount(),
-                post.getCommentCount()
+                post.getCommentCount(),
+                isLiked
         );
     }
 
-    public static CommunityPostListResponse fromStat(CommunityStatistics stat) {
+    public static CommunityPostListResponse fromStat(CommunityStatistics stat, boolean isLiked) {
         CommunityPost post = stat.getCommunityPost();
         return new CommunityPostListResponse(
                 post.getId(),
@@ -38,7 +40,8 @@ public record CommunityPostListResponse(
                 post.getCreatedAt(),
                 post.getViewCount(),
                 post.getLikeCount(),
-                post.getCommentCount()
+                post.getCommentCount(),
+                isLiked
         );
     }
 }

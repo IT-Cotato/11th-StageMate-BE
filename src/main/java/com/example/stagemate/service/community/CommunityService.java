@@ -44,6 +44,7 @@ public class CommunityService {
     private final CommunityImageRepository communityImageRepository;
     private final CommunityScrapService communityScrapService;
     private final CommunityStatisticsRepository communityStatisticsRepository;
+    private final CommunityLikeService communityLikeService;
 
     // 커뮤니티 게시글 작성, 이미지 업로드
     public CommunityPostResponse createCommunityPost(UserJpaEntity user, CommunityPostCreateRequest request, List<MultipartFile> images) {
@@ -87,17 +88,23 @@ public class CommunityService {
     public CommunityPostPagedResponse getCommunityHotPosts(UserJpaEntity user, int page, int size) {
         Pageable pageable = PageRequest.of(page-1, size);
         Page<CommunityStatistics> communityStatistics;
+        List<CommunityPostListResponse> list;
         // 비회원은 전체공개 글만 조회 가능
         if (user == null) {
             communityStatistics = communityStatisticsRepository.findAllByMembersOnlyFalseOrderByTotalCountDesc(pageable);
+            boolean isLiked = false;
+            list = communityStatistics.stream()
+                    .map(post -> CommunityPostListResponse.fromStat(post, isLiked))
+                    .toList();
         } else {
             // 회원은 전체공개 + 회원공개 글 중 차단한 사람 제외
             // 차단 로직은 추후 추가
             communityStatistics = communityStatisticsRepository.findAllByOrderByTotalCountDesc(pageable);
+            List<Long> likedPostIdsByUser = communityLikeService.getLikedPostIdsByUser(user.getId());
+            list = communityStatistics.stream()
+                    .map(post -> CommunityPostListResponse.fromStat(post, likedPostIdsByUser.contains(post.getId())))
+                    .toList();
         }
-        List<CommunityPostListResponse> list = communityStatistics.stream()
-                .map(CommunityPostListResponse::fromStat)
-                .toList();
 
         return new CommunityPostPagedResponse(
                 list,
@@ -115,40 +122,38 @@ public class CommunityService {
     // 회원은 전체공개 + 회원공개 글 중 차단한 사람 제외
     public CommunityPostPagedResponse getCommunityPosts(UserJpaEntity user, String category, int page, int size) {
         Pageable pageable = PageRequest.of(page-1, size);
-
+        Page<CommunityPost> communityPosts;
+        List<CommunityPostListResponse> list;
         // 비회원은 전체공개 글만 조회 가능
         if (user == null) {
-            Page<CommunityPost> communityPosts = communityRepository.findAllByDeletedFalseAndCategoryAndMembersOnlyFalseOrderByCreatedAtDesc(
+            communityPosts = communityRepository.findAllByDeletedFalseAndCategoryAndMembersOnlyFalseOrderByCreatedAtDesc(
                     CommunityCategory.from(category), pageable
             );
-            List<CommunityPostListResponse> list = communityPosts.stream()
-                    .map(CommunityPostListResponse::from)
+            boolean isLiked = false;
+            list = communityPosts.stream()
+                    .map(post -> CommunityPostListResponse.from(post, isLiked))
                     .toList();
 
-            return new CommunityPostPagedResponse(
-                    list,
-                    communityPosts.getNumber(),
-                    communityPosts.getSize(),
-                    communityPosts.getTotalElements(),
-                    communityPosts.getTotalPages()
-            );
+
         } else {
             // 회원은 전체공개 + 회원공개 글 중 차단한 사람 제외
             // 차단 로직은 추후 추가
-            Page<CommunityPost> communityPosts = communityRepository.findAllByDeletedFalseAndCategoryOrderByCreatedAtDesc(
+            communityPosts = communityRepository.findAllByDeletedFalseAndCategoryOrderByCreatedAtDesc(
                     CommunityCategory.from(category), pageable
             );
-            List<CommunityPostListResponse> list = communityPosts.stream()
-                    .map(CommunityPostListResponse::from)
+            List<Long> likedPostIdsByUser = communityLikeService.getLikedPostIdsByUser(user.getId());
+            list = communityPosts.stream()
+                    .map(post -> CommunityPostListResponse.from(post, likedPostIdsByUser.contains(post.getId())))
                     .toList();
-            return new CommunityPostPagedResponse(
-                    list,
-                    communityPosts.getNumber(),
-                    communityPosts.getSize(),
-                    communityPosts.getTotalElements(),
-                    communityPosts.getTotalPages()
-            );
+
         }
+        return new CommunityPostPagedResponse(
+                list,
+                communityPosts.getNumber(),
+                communityPosts.getSize(),
+                communityPosts.getTotalElements(),
+                communityPosts.getTotalPages()
+        );
     }
 
     // 커뮤니티 게시글 목록 조회(페이징)
@@ -157,42 +162,37 @@ public class CommunityService {
     // 회원은 전체공개 + 회원공개 글 중 차단한 사람 제외
     public CommunityPostTradePagedResponse getCommunityTradePosts(UserJpaEntity user, int page, int size) {
         Pageable pageable = PageRequest.of(page-1, size);
-
+        Page<CommunityPost> communityPosts;
+        List<CommunityPostTradeListResponse> list;
         // 비회원은 전체공개 글만 조회 가능
         if (user == null) {
-            Page<CommunityPost> communityPosts = communityRepository.findAllByDeletedFalseAndCategoryAndMembersOnlyFalseOrderByCreatedAtDesc(
+            communityPosts = communityRepository.findAllByDeletedFalseAndCategoryAndMembersOnlyFalseOrderByCreatedAtDesc(
                     CommunityCategory.TRADE, pageable
             );
             boolean isScrapped = false;
-            List<CommunityPostTradeListResponse> list = communityPosts.stream()
+            list = communityPosts.stream()
                     .map(post -> CommunityPostTradeListResponse.from(post, isScrapped))
                     .toList();
 
-            return new CommunityPostTradePagedResponse(
-                    list,
-                    communityPosts.getNumber(),
-                    communityPosts.getSize(),
-                    communityPosts.getTotalElements(),
-                    communityPosts.getTotalPages()
-            );
         } else {
             // 회원은 전체공개 + 회원공개 글 중 차단한 사람 제외
             // 차단 로직은 추후 추가
-            Page<CommunityPost> communityPosts = communityRepository.findAllByDeletedFalseAndCategoryOrderByCreatedAtDesc(
+            communityPosts = communityRepository.findAllByDeletedFalseAndCategoryOrderByCreatedAtDesc(
                     CommunityCategory.TRADE, pageable
             );
             List<Long> scrappedPostIdsByUser = communityScrapService.getScrappedPostIdsByUser(user.getId());
-            List<CommunityPostTradeListResponse> list = communityPosts.stream()
+            list = communityPosts.stream()
                     .map(post -> CommunityPostTradeListResponse.from(post, scrappedPostIdsByUser.contains(post.getId())))
                     .toList();
-            return new CommunityPostTradePagedResponse(
-                    list,
-                    communityPosts.getNumber(),
-                    communityPosts.getSize(),
-                    communityPosts.getTotalElements(),
-                    communityPosts.getTotalPages()
-            );
+
         }
+        return new CommunityPostTradePagedResponse(
+                list,
+                communityPosts.getNumber(),
+                communityPosts.getSize(),
+                communityPosts.getTotalElements(),
+                communityPosts.getTotalPages()
+        );
     }
 
 
