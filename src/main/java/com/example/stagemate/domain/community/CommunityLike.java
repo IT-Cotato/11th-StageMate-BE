@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table(name = "magazine_like")
+@Table(name = "community_like")
 public class CommunityLike {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

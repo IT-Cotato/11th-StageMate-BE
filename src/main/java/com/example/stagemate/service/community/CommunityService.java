@@ -8,10 +8,7 @@ import com.example.stagemate.dto.request.community.CommunityPostUpdateRequest;
 import com.example.stagemate.dto.response.community.*;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.repository.ImageRepository;
-import com.example.stagemate.repository.community.CommunityImageRepository;
-import com.example.stagemate.repository.community.CommunityLikeRepository;
-import com.example.stagemate.repository.community.CommunityRepository;
-import com.example.stagemate.repository.community.CommunityScrapRepository;
+import com.example.stagemate.repository.community.*;
 import com.example.stagemate.repository.user.UserJpaRepository;
 import com.example.stagemate.service.image.ImageService;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +43,7 @@ public class CommunityService {
     private final CommunityScrapRepository communityScrapRepository;
     private final CommunityImageRepository communityImageRepository;
     private final CommunityScrapService communityScrapService;
+    private final CommunityStatisticsRepository communityStatisticsRepository;
 
     // 커뮤니티 게시글 작성, 이미지 업로드
     public CommunityPostResponse createCommunityPost(UserJpaEntity user, CommunityPostCreateRequest request, List<MultipartFile> images) {
@@ -86,8 +84,29 @@ public class CommunityService {
     // HOT
     // 비회원은 전체공개 글만 조회 가능
     // 회원은 전체공개 + 회원공개 글 중 차단한 사람 제외
-//    public CommunityPostPagedResponse getCommunityHotPosts(UserJpaEntity user, int page, int size) {
-//    }
+    public CommunityPostPagedResponse getCommunityHotPosts(UserJpaEntity user, int page, int size) {
+        Pageable pageable = PageRequest.of(page-1, size);
+        Page<CommunityStatistics> communityStatistics;
+        // 비회원은 전체공개 글만 조회 가능
+        if (user == null) {
+            communityStatistics = communityStatisticsRepository.findAllByMembersOnlyFalseOrderByTotalCountDesc(pageable);
+        } else {
+            // 회원은 전체공개 + 회원공개 글 중 차단한 사람 제외
+            // 차단 로직은 추후 추가
+            communityStatistics = communityStatisticsRepository.findAllByOrderByTotalCountDesc(pageable);
+        }
+        List<CommunityPostListResponse> list = communityStatistics.stream()
+                .map(CommunityPostListResponse::fromStat)
+                .toList();
+
+        return new CommunityPostPagedResponse(
+                list,
+                communityStatistics.getNumber(),
+                communityStatistics.getSize(),
+                communityStatistics.getTotalElements(),
+                communityStatistics.getTotalPages()
+        );
+    }
 
 
     // 커뮤니티 게시글 목록 조회(페이징)

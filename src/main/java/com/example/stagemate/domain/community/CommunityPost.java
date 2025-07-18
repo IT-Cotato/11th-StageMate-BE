@@ -21,6 +21,7 @@ import java.util.List;
 public class CommunityPost {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "community_post_id")
     private Long id;
     @Enumerated(EnumType.STRING)
     private CommunityCategory category;
@@ -33,6 +34,7 @@ public class CommunityPost {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id")
     private UserJpaEntity author;
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
     public boolean membersOnly;
     private boolean sendNotification;

@@ -56,6 +56,21 @@ public class CommunityController {
         return ResponseEntity.ok(DataResponse.from(response));
     }
 
+    @Operation(summary = "HOT 게시글 목록 조회", description = "페이징 기반으로 HOT 게시글을 조회합니다.")
+    @ApiResponse(responseCode = "200", description = "조회 성공")
+    @GetMapping("/hot")
+    public ResponseEntity<DataResponse<CommunityPostPagedResponse>> getCommunityHotPosts(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @CurrentUser UserJpaEntity user
+    ) {
+        CommunityPostPagedResponse response = communityService.getCommunityHotPosts(
+                user, page, size
+        );
+        return ResponseEntity.ok(DataResponse.from(response));
+    }
+
+
     @Operation(summary = "일상/꿀팁 게시글 목록 조회", description = "페이징 기반으로 일상/꿀팁 카테고리 게시글을 조회합니다.")
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @GetMapping

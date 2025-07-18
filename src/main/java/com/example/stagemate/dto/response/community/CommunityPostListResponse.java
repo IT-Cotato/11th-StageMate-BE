@@ -1,6 +1,7 @@
 package com.example.stagemate.dto.response.community;
 
 import com.example.stagemate.domain.community.CommunityPost;
+import com.example.stagemate.domain.community.CommunityStatistics;
 
 import java.time.LocalDateTime;
 
@@ -15,6 +16,20 @@ public record CommunityPostListResponse(
         int commentCount
 ) {
     public static CommunityPostListResponse from(CommunityPost post) {
+        return new CommunityPostListResponse(
+                post.getId(),
+                post.getTitle(),
+                post.getCategory().getDescription(),
+                post.getAuthor().getNickname(),
+                post.getCreatedAt(),
+                post.getViewCount(),
+                post.getLikeCount(),
+                post.getCommentCount()
+        );
+    }
+
+    public static CommunityPostListResponse fromStat(CommunityStatistics stat) {
+        CommunityPost post = stat.getCommunityPost();
         return new CommunityPostListResponse(
                 post.getId(),
                 post.getTitle(),
