@@ -1,4 +1,4 @@
-package com.example.stagemate.domain.magazine;
+package com.example.stagemate.domain.community;
 
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import jakarta.persistence.*;
@@ -12,8 +12,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table(name = "magazine_like")
-public class MagazineLike {
+@Table(name = "community_like")
+public class CommunityLike {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -23,14 +23,14 @@ public class MagazineLike {
     private UserJpaEntity user;
 
     @ManyToOne
-    @JoinColumn(name = "magazine_id")
-    private Magazine magazine;
+    @JoinColumn(name = "community_post_id")
+    private CommunityPost communityPost;
 
-    // of 메서드로 객체 생성
-    public static MagazineLike of(UserJpaEntity user, Magazine magazine) {
-        return MagazineLike.builder()
+
+    public static CommunityLike of(UserJpaEntity user, CommunityPost communityPost) {
+        return CommunityLike.builder()
                 .user(user)
-                .magazine(magazine)
+                .communityPost(communityPost)
                 .build();
     }
 }
