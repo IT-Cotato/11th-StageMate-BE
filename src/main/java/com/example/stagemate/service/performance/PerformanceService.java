@@ -4,7 +4,7 @@ import com.example.stagemate.domain.performance.Performance;
 import com.example.stagemate.domain.performance.PerformanceScrap;
 import com.example.stagemate.domain.performance.PerformanceStatistics;
 import com.example.stagemate.domain.performance.PerformanceStatus;
-import com.example.stagemate.domain.performanceSchedule.PerformanceSchedule;
+import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.response.RecommendedPerformanceResponse;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.performances.PerformanceErrorCode;
@@ -15,12 +15,14 @@ import com.example.stagemate.repository.PerformanceStatisticsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
+@Transactional
 @Service
 public class PerformanceService {
     private final PerformanceRepository performanceRepository;
@@ -34,34 +36,26 @@ public class PerformanceService {
                 .orElseThrow(() -> new AppException(PerformanceErrorCode.NOT_FOUND));
     }
 
-    //공연 스케줄 목록
-    public List<PerformanceSchedule> getPerformanceSchedule(Integer year, Integer month) {
-        //year, month -> LocalDate
-        LocalDate startDate = LocalDate.of(year,month,1);
-        LocalDate endDate = startDate.plusMonths(1).minusDays(1);
-
-        return performanceScheduleRepository.findByScheduleDateBetween(startDate,endDate);
-    }
-
-    //공연 스케줄 목록
-    public List<PerformanceSchedule> getPerformanceSchedule(Integer year,Integer month,Integer day) {
-        //year, month, day -> LocalDate
-        LocalDate date = LocalDate.of(year,month,day);
-
-        return performanceScheduleRepository.findByScheduleDate(date);
-    }
-
-
-
-    public List<Performance> findOngoingPerformances() {
+    public List<Performance> findOngoingOrUpcomingPerformances() {
         // 상영중인 공연 가져오기
-        return performanceRepository.findByPerformanceStatus(PerformanceStatus.ONGOING);
+        return performanceRepository.findByPerformanceStatusIn(List.of(PerformanceStatus.ONGOING, PerformanceStatus.UPCOMING));
     }
 
-    public void createPerformanceScrap(Long performanceId) {
+    public void insertOrDeletePerformanceScrap(UserJpaEntity user, Long performanceId) {
+        boolean isExist = performanceScrapRepository.
+                existsByPerformanceIdAndUserId(performanceId, user.getId());
+
+        //기존에 존재하면 삭제
+        if (isExist) {
+            performanceScrapRepository.deleteByPerformanceIdAndUserId(performanceId, user.getId());
+            return;
+        }
+
+        //기존에 존재하지 않음면 저장
         PerformanceScrap performanceScrap = PerformanceScrap.builder().
                 performance(performanceRepository.findById(performanceId).orElseThrow(() -> new AppException(PerformanceErrorCode.NOT_FOUND)))
-                .userId(1L) //유저 객체 매핑 필요
+                .user(user)
+                .scrapDate(LocalDateTime.now())
                 .build();
 
         performanceScrapRepository.save(performanceScrap);
@@ -77,6 +71,9 @@ public class PerformanceService {
                 .map(stats -> RecommendedPerformanceResponse.from(stats.getPerformance(), stats))
                 .collect(Collectors.toList());
     }
+
+
+
 
 
 }

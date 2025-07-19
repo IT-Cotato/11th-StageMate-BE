@@ -1,5 +1,6 @@
 package com.example.stagemate.domain.performance;
 
+import com.example.stagemate.domain.theater.Theater;
 import com.example.stagemate.dto.data.CrawledPerformanceInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -39,7 +40,9 @@ public class Performance {
 
     private LocalDate endDate; // 종료 날짜
 
-    private String theaterName; // 극장 이름
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "theater_id")
+    private Theater theater; // 극장 이름
 
     private String region; // 지역
 
@@ -77,7 +80,7 @@ public class Performance {
         this.imageUrl = crawled.getImageUrl();
         this.startDate = crawled.getStartDate();
         this.endDate = crawled.getEndDate();
-        this.theaterName = crawled.getTheaterName();
+        this.theater = crawled.getTheater();
         this.region = crawled.getRegion();
         this.performanceType = crawled.getPerformanceType();
         this.performanceStatus = crawled.getPerformanceStatus();
@@ -87,7 +90,7 @@ public class Performance {
 
 
     //crawledPerformanceInfo -> Performance
-    public static Performance from(CrawledPerformanceInfo crawledPerformanceInfo) {
+    public static Performance from(CrawledPerformanceInfo crawledPerformanceInfo, Theater theater) {
         return Performance.builder()
                 .interparkPerformanceId(crawledPerformanceInfo.getInterparkPerformanceId())
                 .performanceName(crawledPerformanceInfo.getPerformanceName())
@@ -95,7 +98,7 @@ public class Performance {
                 .imageUrl(crawledPerformanceInfo.getImageUrl())
                 .startDate(crawledPerformanceInfo.getStartDate())
                 .endDate(crawledPerformanceInfo.getEndDate())
-                .theaterName(crawledPerformanceInfo.getTheaterName())
+                .theater(theater)
                 .region(crawledPerformanceInfo.getRegion())
                 .performanceType(crawledPerformanceInfo.getPerformanceType())
                 .performanceStatus(crawledPerformanceInfo.getPerformanceStatus())
