@@ -1,7 +1,10 @@
 package com.example.stagemate.domain.archive;
 
+import com.example.stagemate.domain.user.UserErrorCode;
+import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.ArchiveCreateRequest;
 import com.example.stagemate.dto.request.ArchiveUpdateRequest;
+import com.example.stagemate.global.exception.AppException;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -37,11 +40,13 @@ public class Archive {
 
     private String theaterName;
 
-    private String userId; // User 매핑 필요
+    @jakarta.persistence.ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
+    @jakarta.persistence.JoinColumn(name = "user_id")
+    private UserJpaEntity user;
 
 
 
-    public static Archive create(ArchiveCreateRequest request) {
+    public static Archive create(ArchiveCreateRequest request, UserJpaEntity user) {
         return Archive.builder()
                 .viewingDate(request.getViewingDate())
                 .casting(request.getCasting())
@@ -50,8 +55,14 @@ public class Archive {
                 .memo(request.getMemo())
                 .imageUrl(request.getImageUrl())
                 .theaterName(request.getTheaterName())
-                .userId(request.getUserId())
+                .user(user)
                 .build();
+    }
+
+    public void validateDeleteOrUpdateBy(UserJpaEntity user) {
+        if (!this.user.getId().equals(user.getId())) {
+            throw new AppException(UserErrorCode.NO_PERMISSION);
+        }
     }
 
     public void update(ArchiveUpdateRequest request) {
