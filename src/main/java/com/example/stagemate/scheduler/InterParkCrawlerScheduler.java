@@ -1,6 +1,5 @@
 package com.example.stagemate.scheduler;
 
-import com.example.stagemate.domain.performance.Performance;
 import com.example.stagemate.dto.data.CrawledPerformanceInfo;
 import com.example.stagemate.service.crawling.InterParkCrawlingService;
 import com.example.stagemate.service.performance.PerformanceCrawlingBatchService;
@@ -50,9 +49,7 @@ public class InterParkCrawlerScheduler {
 
         if (cralledPerformances != null) {
             // 크롤링 데이터와 비교하면서 변경사항이 있으면 업데이트, 기존에 없던 공연이면 삽입
-            performanceBatchService.updateBatch(cralledPerformances.stream()
-                    .map(Performance::from)
-                    .toList());
+            performanceBatchService.updateBatch(cralledPerformances);
         }
     }
 
