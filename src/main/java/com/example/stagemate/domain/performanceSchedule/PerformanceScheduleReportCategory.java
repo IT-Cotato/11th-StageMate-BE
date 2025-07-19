@@ -1,4 +1,4 @@
-package com.example.stagemate.domain.scheduleReport;
+package com.example.stagemate.domain.performanceSchedule;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
@@ -13,17 +13,17 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table(name = "schedule_report_categorys")
-public class ScheduleReportCategory {
+@Table(name = "performance_schedule_report_category")
+public class PerformanceScheduleReportCategory {
     @jakarta.persistence.Id
     @jakarta.persistence.Column(name = "schedule_report_category_id")
     private Long id;
 
     @ManyToOne
     @jakarta.persistence.JoinColumn(name = "schedule_report_id")
-    private ScheduleReport scheduleReport;
+    private PerformanceSchedule performanceSchedule;
 
-    private ScheduleReportCategoryType scheduleReportCategoryType;
+    private PerformanceScheduleReportCategoryType performanceScheduleReportCategoryType;
 
     private int categoryOrder;
 
