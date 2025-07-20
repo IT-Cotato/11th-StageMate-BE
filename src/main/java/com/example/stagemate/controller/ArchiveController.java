@@ -34,9 +34,9 @@ public class ArchiveController {
     public ResponseEntity<DataResponse<ArchiveDetailResponse>> getArchive(
             @PathVariable("archiveId") Long archiveId) {
 
-        Archive archive = archiveService.getArchive(archiveId);
+        ArchiveDetailResponse archiveDetailResponse = archiveService.getArchive(archiveId);
 
-        return ResponseEntity.ok(DataResponse.from(ArchiveDetailResponse.from(archive)));
+        return ResponseEntity.ok(DataResponse.from(archiveDetailResponse));
     }
 
     //월별 공연 아카이빙
@@ -48,11 +48,8 @@ public class ArchiveController {
             @RequestParam("year") Integer year,
             @RequestParam("month") Integer month) {
 
-        List<Archive> archives = archiveService.getArchives(user, year, month);
-        return ResponseEntity.ok(DataResponse.from(archives
-                .stream()
-                .map(ArchiveDetailResponse::from)
-                .collect(Collectors.toList())));
+        List<ArchiveDetailResponse> archiveDetailResponses = archiveService.getArchives(user, year, month);
+        return ResponseEntity.ok(DataResponse.from(archiveDetailResponses));
     }
 
     @Operation(summary = "아카이브 생성", description = "아카이브 생성")

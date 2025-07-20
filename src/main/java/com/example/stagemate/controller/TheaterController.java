@@ -27,18 +27,12 @@ public class TheaterController {
     ) {
 
         if (region != null) {
-            List<Theater> theaters = theaterService.getTheatersByRegion(region);
-            return ResponseEntity.ok(DataResponse.from(theaters
-                            .stream()
-                            .map(TheaterDetailResponse::from)
-                            .collect(Collectors.toList())));
+            List<TheaterDetailResponse> theaterDetailResponses = theaterService.getTheatersByRegion(region);
+            return ResponseEntity.ok(DataResponse.from(theaterDetailResponses));
         }
 
-        List<Theater> theaters = theaterService.getAllTheaters();
-        return ResponseEntity.ok(DataResponse.from(theaters
-                        .stream()
-                        .map(TheaterDetailResponse::from)
-                        .collect(Collectors.toList())));
+        List<TheaterDetailResponse> theaterDetailResponses = theaterService.getAllTheaters();
+        return ResponseEntity.ok(DataResponse.from(theaterDetailResponses));
     }
 
 

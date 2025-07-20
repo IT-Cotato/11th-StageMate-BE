@@ -4,6 +4,7 @@ import com.example.stagemate.domain.archive.Archive;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.ArchiveCreateRequest;
 import com.example.stagemate.dto.request.ArchiveUpdateRequest;
+import com.example.stagemate.dto.response.ArchiveDetailResponse;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.archive.ArchiveErrorCode;
 import com.example.stagemate.repository.ArchiveRepository;
@@ -20,18 +21,25 @@ import java.util.List;
 public class ArchiveService {
     private final ArchiveRepository archiveRepository;
 
-    public Archive getArchive(Long archiveId) {
-        return archiveRepository.findById(archiveId)
+    public ArchiveDetailResponse getArchive(Long archiveId) {
+        Archive archive = archiveRepository.findById(archiveId)
                 .orElseThrow(() -> new AppException(ArchiveErrorCode.NOT_FOUND));
+        return ArchiveDetailResponse.from(archive);
     }
 
-    public List<Archive> getArchives(UserJpaEntity user, Integer year, Integer month) {
+    public List<ArchiveDetailResponse> getArchives(UserJpaEntity user, Integer year, Integer month) {
+
         LocalDate startDate = LocalDate.of(year,month,1);
         LocalDate endDate = startDate.plusMonths(1).minusDays(1);
 
 
         //유저 월별 공연 아카이브 목록을 가져오는 쿼리
-        return archiveRepository.findByUserAndViewingDateBetween(user, startDate, endDate);
+        List<Archive> archive = archiveRepository.findByUserAndViewingDateBetween(user, startDate, endDate);
+
+        return archive
+                .stream()
+                .map(ArchiveDetailResponse::from)
+                .toList();
     }
 
     public Long createArchive(ArchiveCreateRequest archiveCreateRequest, UserJpaEntity user) {
