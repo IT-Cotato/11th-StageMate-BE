@@ -5,6 +5,7 @@ import com.example.stagemate.domain.performance.PerformanceScrap;
 import com.example.stagemate.domain.performance.PerformanceStatistics;
 import com.example.stagemate.domain.performance.PerformanceStatus;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
+import com.example.stagemate.dto.response.PerformanceDetailResponse;
 import com.example.stagemate.dto.response.RecommendedPerformanceResponse;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.performances.PerformanceErrorCode;
@@ -31,14 +32,20 @@ public class PerformanceService {
     private final PerformanceStatisticsRepository performanceStatisticsRepository;
 
     //공연 상세 정보 가져오기
-    public Performance getPerformance(Long performanceId) {
-        return performanceRepository.findById(performanceId)
+    public PerformanceDetailResponse getPerformance(Long performanceId) {
+        Performance performance = performanceRepository.findById(performanceId)
                 .orElseThrow(() -> new AppException(PerformanceErrorCode.NOT_FOUND));
+
+        return PerformanceDetailResponse.from(performance);
     }
 
-    public List<Performance> findOngoingOrUpcomingPerformances() {
+    public List<PerformanceDetailResponse> findOngoingOrUpcomingPerformances() {
         // 상영중인 공연 가져오기
-        return performanceRepository.findByPerformanceStatusIn(List.of(PerformanceStatus.ONGOING, PerformanceStatus.UPCOMING));
+        List<Performance> performances = performanceRepository.findByPerformanceStatusIn(List.of(PerformanceStatus.ONGOING, PerformanceStatus.UPCOMING));
+
+        return performances.stream()
+                .map(PerformanceDetailResponse::from)
+                .collect(Collectors.toList());
     }
 
     public void insertOrDeletePerformanceScrap(UserJpaEntity user, Long performanceId) {
