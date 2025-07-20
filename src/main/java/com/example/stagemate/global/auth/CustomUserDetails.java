@@ -1,7 +1,6 @@
 package com.example.stagemate.global.auth;
 
 import com.example.stagemate.domain.user.User;
-import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;

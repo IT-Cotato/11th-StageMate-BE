@@ -60,12 +60,6 @@ public class UserJpaEntity {
     @Builder.Default
     private List<UserConsent> consents = new ArrayList<>();
 
-    public UserJpaEntity update(String userId, String picture) {
-        this.userId = userId;
-        this.picture = picture;
-
-        return this;
-    }
 
     public User toDomain() {
         Map<ConsentType, Boolean> consentMap = consents.stream()

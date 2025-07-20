@@ -18,6 +18,6 @@ public class ConsentRequestDTO {
             example = "{ \"SERVICE_TERMS\" : true, \"PRIVACY_POLICY\" : true, \"MARKETING\" : false, \"SMS_NOTIFICATION\" : false, \"EMAIL_NOTIFICATION\" : false}"
         )
     @NotEmpty
-    private Map<ConsentType, Boolean> consents;
+    private Map<String, Boolean> consents;
 
 }
