@@ -1,23 +1,26 @@
 package com.example.stagemate.service.user;
 
 import com.example.stagemate.domain.user.User;
-import com.example.stagemate.domain.user.Role;
+import com.example.stagemate.domain.user.entity.RefreshTokenEntity;
 import com.example.stagemate.domain.user.model.ConsentType;
 import com.example.stagemate.domain.user.port.out.LoadUserPort;
 import com.example.stagemate.domain.user.port.out.SaveUserPort;
+import com.example.stagemate.dto.response.TokenResponseDTO;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.CommonErrorCode;
+import com.example.stagemate.repository.user.RefreshTokenRepository;
 import com.example.stagemate.service.user.command.LoginCommand;
 import com.example.stagemate.service.user.command.NormalAgreeCommand;
 import com.example.stagemate.service.user.command.RegisterUserCommand;
 import com.example.stagemate.dto.auth.GuestInfo;
-import com.example.stagemate.dto.request.ConsentRequestDTO;
 import com.example.stagemate.dto.request.OAuth2SignupRequestDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.example.stagemate.global.auth.JwtTokenProvider;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 
@@ -29,6 +32,8 @@ public class UserService implements LoginUseCase, RegisterUserUseCase {
     private final SaveUserPort saveUserPort;
     private final LoadUserPort loadUserPort;
     private final PasswordEncoder passwordEncoder;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Override
     @Transactional
@@ -81,21 +86,9 @@ public class UserService implements LoginUseCase, RegisterUserUseCase {
         saveUserPort.save(updatedGuest);
     }
 
-    @Transactional
-    public User oauthAgreeAndRegister(ConsentRequestDTO request, GuestInfo guestInfo) {
-        validateConsents(request.getConsents());
-
-        User guestUser = loadUserPort.findByEmail(guestInfo.email())
-                .orElseThrow(() -> new AppException(CommonErrorCode.NOT_FOUND_USER));
-
-        // 약관 동의와 동시에 Role 변경 (GUEST → USER)
-        User finalUser = guestUser.register(request.getConsents());
-
-        return saveUserPort.save(finalUser);
-    }
 
     @Override
-    public String login(LoginCommand command) {
+    public TokenResponseDTO login(LoginCommand command) {
         User user = loadUserPort.findByUserId(command.userId())
                 .orElseThrow(() -> new AppException(CommonErrorCode.AUTHENTICATION_FAILED));
 
@@ -103,7 +96,21 @@ public class UserService implements LoginUseCase, RegisterUserUseCase {
             throw new AppException(CommonErrorCode.AUTHENTICATION_FAILED);
         }
 
-        return user.getId().toString();
+        //AccessToken, RefreshToken 발급
+        String accessToken = jwtTokenProvider.createToken(user.getId());
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getId());
+
+        // RefreshToken 저장
+        refreshTokenRepository.save(
+                RefreshTokenEntity.builder()
+                        .userId(user.getId())
+                        .token(refreshToken)
+                        .expiresAt(LocalDateTime.now().plusDays(14))
+                        .build()
+        );
+
+        //응답 DTO로 반환
+        return new TokenResponseDTO(accessToken, refreshToken);
     }
 
     public User findUserById(Long id) {

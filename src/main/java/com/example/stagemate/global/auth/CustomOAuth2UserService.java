@@ -58,11 +58,11 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
 
     private User saveOrUpdate(OAuthAttributes attributes) {
-        log.info("🛠️ saveOrUpdate 진입: email={}", attributes.getEmail());
-        return loadUserPort.findByEmail(attributes.getEmail())
+        log.info("🛠️ saveOrUpdate 진입: oauthId={}", attributes.getUserId());
+        return loadUserPort.findByUserId(attributes.getUserId())
                 .map(user -> saveUserPort.save(user.update(attributes.getUserId(), attributes.getPicture())))
                 .orElseGet(() -> {
-                    log.info("🆕 새로운 유저 생성: email={}", attributes.getEmail());
+                    log.info("🆕 새로운 유저 생성: OauthId={}", attributes.getUserId());
                     String newUserId = generateUniqueUserIdFromEmail(attributes.getEmail()); //수정된 방식
                     User newUser = User.googleGuestSignUp(
                             newUserId,
@@ -76,26 +76,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     }
 
 
-    private String generateUniqueRandomUserId() {
-        String userId;
-        do {
-            userId = generateRandomUserId();
-        } while (loadUserPort.existsByUserId(userId));
-        return userId;
-    }
-
-    private String generateRandomUserId() {
-        int length = 12;
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        java.security.SecureRandom random = new java.security.SecureRandom();
-        StringBuilder sb = new StringBuilder(length);
-        for (int i = 0; i < length; i++) {
-            sb.append(chars.charAt(random.nextInt(chars.length())));
-        }
-        return sb.toString();
-    }
-
-    //구글 계정 이메일 주소에서 UserId 추출
+    //구글 계정 이메일 주소에서 UserId 추출 & UserId가 이미 있을 시 Unique하게 될 때까지 숫자를 붙임
     private String generateUniqueUserIdFromEmail(String email) {
         String baseUserId = email.split("@")[0];
         String finalUserId = baseUserId;

@@ -1,8 +1,5 @@
 package com.example.stagemate.global.auth.dto;
 
-import com.example.stagemate.domain.user.Role;
-import com.example.stagemate.domain.user.entity.UserJpaEntity;
-import com.example.stagemate.domain.user.type.LoginType;
 import lombok.Builder;
 import lombok.Getter;
 

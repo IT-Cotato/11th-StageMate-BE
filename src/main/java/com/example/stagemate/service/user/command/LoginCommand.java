@@ -15,12 +15,5 @@ public record LoginCommand(
         );
     }
 
-    public static LoginCommand fromUser(User user) {
-        return new LoginCommand(
-                user.getUserId(),
-                user.getPassword() // ⚠️ 실제로 필요하면, 또는 null로 처리해도 가능
-        );
-    }
-
 
 }

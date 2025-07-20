@@ -7,6 +7,7 @@ import com.example.stagemate.global.exception.CommonErrorCode;
 import lombok.Builder;
 
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Builder
 public record NormalAgreeCommand(
@@ -14,9 +15,22 @@ public record NormalAgreeCommand(
 ) {
     public static NormalAgreeCommand from(ConsentRequestDTO request) {
 
-        //DTO -> Command 변환 시점에서 필수 입력값 검증
-        Map<ConsentType, Boolean> consents = request.getConsents();
+        // Map<String, Boolean> → Map<ConsentType, Boolean> 수동 변환
+        Map<ConsentType, Boolean> consents = request.getConsents().entrySet().stream()
+                .filter(e -> e.getKey() != null)
+                .collect(Collectors.toMap(
+                        e -> {
+                            try {
+                                return ConsentType.valueOf(e.getKey()); // 문자열 → enum
+                            } catch (IllegalArgumentException ex) {
+                                throw new AppException(CommonErrorCode.INVALID_PARAMETER,
+                                        "알 수 없는 약관 항목입니다: " + e.getKey());
+                            }
+                        },
+                        Map.Entry::getValue
+                ));
 
+        //DTO -> Command 변환 시점에서 필수 입력값 검증
         for (ConsentType required : ConsentType.getRequiredConsents()) {
             if (!Boolean.TRUE.equals(consents.get(required))) {
                 throw new AppException(
@@ -28,7 +42,7 @@ public record NormalAgreeCommand(
 
 
         return NormalAgreeCommand.builder()
-                .consents(request.getConsents())
+                .consents(consents)
                 .build();
     }
 }

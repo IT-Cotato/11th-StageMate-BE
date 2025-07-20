@@ -45,4 +45,10 @@ public class UserPersistenceAdapter implements LoadUserPort, SaveUserPort {
         UserJpaEntity userJpaEntity = UserJpaEntity.from(user);
         return userJpaRepository.save(userJpaEntity).toDomain();
     }
+
+    @Override
+    public Optional<User> findWithConsentsById(Long id) {
+        return userJpaRepository.findWithConsentsById(id)
+                .map(UserJpaEntity::toDomain);
+    }
 }

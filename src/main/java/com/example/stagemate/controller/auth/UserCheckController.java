@@ -1,4 +1,4 @@
-package com.example.stagemate.controller.user;
+package com.example.stagemate.controller.auth;
 
 import com.example.stagemate.service.user.UserService;
 import lombok.RequiredArgsConstructor;
@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/users/check")
+@RequestMapping("/api/v1/check")
 @RequiredArgsConstructor
-public class UserController {
+public class UserCheckController {
 
     private final UserService userService;
 
