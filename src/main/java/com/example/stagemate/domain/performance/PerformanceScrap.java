@@ -1,5 +1,6 @@
 package com.example.stagemate.domain.performance;
 
+import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,9 +20,11 @@ public class PerformanceScrap {
     @Id
     @jakarta.persistence.Column(name = "performance_scrap_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long performanceScrapId;
+    private Long id;
 
-    private Long userId; //user 객체 매핑 필요
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private UserJpaEntity user;
 
     @ManyToOne
     @JoinColumn(name = "performance_id")

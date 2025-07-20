@@ -4,10 +4,11 @@ import com.example.stagemate.domain.performance.Performance;
 import com.example.stagemate.domain.performance.PerformanceStatistics;
 
 public record RecommendedPerformanceResponse(
-        Performance performance,
+        PerformanceDetailResponse performanceDetailResponse,
         Long increasedScrapCount
 ) {
     public static RecommendedPerformanceResponse from(Performance performance, PerformanceStatistics performanceStatistics) {
-        return new RecommendedPerformanceResponse(performance, performanceStatistics.getIncreasedScrapCount());
+        return new RecommendedPerformanceResponse(
+                PerformanceDetailResponse.from(performance), performanceStatistics.getIncreasedScrapCount());
     }
 }
