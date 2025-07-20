@@ -33,10 +33,10 @@ public class PerformanceScheduleController {
             @CurrentUser UserJpaEntity user,
             @PathVariable("performanceScheduleId") Long performanceScheduleId) {
 
-        PerformanceSchedule performanceSchedule = performanceScheduleService.getPerformanceSchedule(performanceScheduleId);
-        boolean isScraped = performanceScheduleService.findIsScraped(performanceScheduleId, user);
+        PerformanceScheduleDetailResponse performanceScheduleDetailResponse =
+                performanceScheduleService.getPerformanceSchedule(user, performanceScheduleId);
 
-        return ResponseEntity.ok(DataResponse.from(PerformanceScheduleDetailResponse.from(performanceSchedule, isScraped)));
+        return ResponseEntity.ok(DataResponse.from(performanceScheduleDetailResponse));
     }
 
     @Operation(summary = "공식스케줄 제보 생성", description = "공식스케줄 제보 생성")
@@ -70,25 +70,8 @@ public class PerformanceScheduleController {
             @CurrentUser UserJpaEntity user,
             @RequestParam("performanceScheduleReportStatus") List<PerformanceScheduleReportStatus> performanceScheduleReportStatus) {
 
-        List<PerformanceSchedule> performanceSchedule =
-                performanceScheduleService.getPerformanceSchedules(performanceScheduleReportStatus);
-
-        List<Boolean> isScraped =
-                performanceSchedule
-                        .stream()
-                        .map(
-                                performanceSchedule1 ->
-                                        performanceScheduleService.findIsScraped(performanceSchedule1.getId(), user))
-                        .toList();
-
-        return ResponseEntity.ok(
-                DataResponse.from(
-                        performanceSchedule.stream()
-                                .map(
-                                        performanceSchedule1 ->
-                                                PerformanceScheduleDetailResponse.from(
-                                                        performanceSchedule1, isScraped.get(performanceSchedule.indexOf(performanceSchedule1))))
-                                .collect(Collectors.toList())));
+        List<PerformanceScheduleDetailResponse> performanceScheduleDetailResponses = performanceScheduleService.getPerformanceSchedules(performanceScheduleReportStatus);
+        return ResponseEntity.ok(DataResponse.from(performanceScheduleDetailResponses));
     }
 
     //공연 스케줄 목록
@@ -101,19 +84,12 @@ public class PerformanceScheduleController {
             @RequestParam("month") Integer month,
             @RequestParam(name = "day", required = false) Integer day) {
 
-        List<PerformanceSchedule> performanceSchedules = day == null ?
-                performanceScheduleService.getPerformanceSchedule(year, month) :
-                performanceScheduleService.getPerformanceSchedule(year, month, day);
+        //유저에게 승인된 공연 스케줄만 return
+        List<PerformanceScheduleDetailResponse> performanceScheduleDetailResponses = day == null ?
+                performanceScheduleService.getPerformanceSchedule(user, year, month, PerformanceScheduleReportStatus.APPROVED) :
+                performanceScheduleService.getPerformanceSchedule(user, year, month, day, PerformanceScheduleReportStatus.APPROVED);
 
-        List<Boolean> isScraped = performanceSchedules.stream()
-                .map(performanceSchedule -> performanceScheduleService.findIsScraped(performanceSchedule.getId(), user))
-                .toList();
-
-
-        return ResponseEntity.ok(DataResponse.from(performanceSchedules
-                .stream()
-                .map(performanceSchedule -> PerformanceScheduleDetailResponse.from(performanceSchedule, isScraped.get(performanceSchedules.indexOf(performanceSchedule))))
-                .collect(Collectors.toList())));
+        return ResponseEntity.ok(DataResponse.from(performanceScheduleDetailResponses));
     }
 
 

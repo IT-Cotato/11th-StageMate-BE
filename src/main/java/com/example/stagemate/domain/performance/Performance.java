@@ -44,8 +44,6 @@ public class Performance {
     @JoinColumn(name = "theater_id")
     private Theater theater; // 극장 이름
 
-    private String region; // 지역
-
     @Builder.Default
     @OneToMany(mappedBy = "performance", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
@@ -81,7 +79,6 @@ public class Performance {
         this.startDate = crawled.getStartDate();
         this.endDate = crawled.getEndDate();
         this.theater = crawled.getTheater();
-        this.region = crawled.getRegion();
         this.performanceType = crawled.getPerformanceType();
         this.performanceStatus = crawled.getPerformanceStatus();
         this.performanceGenre = crawled.getPerformanceGenre();
@@ -99,7 +96,6 @@ public class Performance {
                 .startDate(crawledPerformanceInfo.getStartDate())
                 .endDate(crawledPerformanceInfo.getEndDate())
                 .theater(theater)
-                .region(crawledPerformanceInfo.getRegion())
                 .performanceType(crawledPerformanceInfo.getPerformanceType())
                 .performanceStatus(crawledPerformanceInfo.getPerformanceStatus())
                 .performanceGenre(crawledPerformanceInfo.getPerformanceGenre())

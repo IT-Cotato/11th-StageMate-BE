@@ -3,17 +3,17 @@ package com.example.stagemate.service.performance;
 import com.example.stagemate.domain.performance.Performance;
 import com.example.stagemate.domain.performanceSchedule.PerformanceSchedule;
 import com.example.stagemate.domain.performanceSchedule.PerformanceScheduleErrorCode;
-import com.example.stagemate.domain.performanceSchedule.PerformanceScheduleScrap;
 import com.example.stagemate.domain.performanceSchedule.PerformanceScheduleReportStatus;
+import com.example.stagemate.domain.performanceSchedule.PerformanceScheduleScrap;
 import com.example.stagemate.domain.theater.Theater;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.PerformanceScheduleCreateRequest;
+import com.example.stagemate.dto.response.PerformanceScheduleDetailResponse;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.performances.PerformanceErrorCode;
 import com.example.stagemate.repository.PerformanceRepository;
 import com.example.stagemate.repository.PerformanceScheduleRepository;
 import com.example.stagemate.repository.PerformanceScheduleScrapRepository;
-
 import com.example.stagemate.repository.TheaterRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -53,7 +53,7 @@ public class PerformanceScheduleService {
     }
 
     //스크랩 여부
-    public boolean findIsScraped(Long performanceScheduleId, UserJpaEntity user) {
+    private boolean findIsScraped(Long performanceScheduleId, UserJpaEntity user) {
         if (user == null) {
             return false;
         }
@@ -62,31 +62,63 @@ public class PerformanceScheduleService {
     }
 
     //공연 스케줄 목록
-    public List<PerformanceSchedule> getPerformanceSchedule(Integer year, Integer month) {
+    public List<PerformanceScheduleDetailResponse> getPerformanceSchedule(UserJpaEntity user, Integer year, Integer month,
+                                                            PerformanceScheduleReportStatus performanceScheduleReportStatus) {
         //year, month -> LocalDate
         LocalDate startDate = LocalDate.of(year,month,1);
         LocalDate endDate = startDate.plusMonths(1).minusDays(1);
 
-        return performanceScheduleRepository.findByScheduleDateBetween(startDate,endDate);
+        List<PerformanceSchedule> performanceSchedules =
+                performanceScheduleRepository.findByScheduleDateBetween(startDate,endDate,performanceScheduleReportStatus);
+
+        List<Boolean> isScraped =
+                performanceSchedules.stream().map(performanceSchedule -> findIsScraped(performanceSchedule.getId(), user)).toList();
+
+        return performanceSchedules
+                .stream()
+                .map(performanceSchedule -> PerformanceScheduleDetailResponse.from(performanceSchedule, isScraped.get(performanceSchedules.indexOf(performanceSchedule))))
+                .toList();
     }
 
     //공연 스케줄 목록
-    public List<PerformanceSchedule> getPerformanceSchedule(Integer year,Integer month,Integer day) {
+    public List<PerformanceScheduleDetailResponse> getPerformanceSchedule(UserJpaEntity user, Integer year,Integer month,Integer day,
+                                                            PerformanceScheduleReportStatus performanceScheduleReportStatus) {
         //year, month, day -> LocalDate
         LocalDate date = LocalDate.of(year,month,day);
 
-        return performanceScheduleRepository.findByScheduleDate(date);
+        List<PerformanceSchedule> performanceSchedules =
+                performanceScheduleRepository.findByScheduleDateAndPerformanceScheduleReportStatus(date,performanceScheduleReportStatus);
+
+        List<Boolean> isScraped =
+                performanceSchedules.stream().map(performanceSchedule -> findIsScraped(performanceSchedule.getId(), user)).toList();
+
+        return performanceSchedules
+                .stream()
+                .map(performanceSchedule -> PerformanceScheduleDetailResponse.from(performanceSchedule, isScraped.get(performanceSchedules.indexOf(performanceSchedule))))
+                .toList();
     }
 
     //공연 스케줄 상세 정보
-    public PerformanceSchedule getPerformanceSchedule(Long performanceScheduleId) {
-        return performanceScheduleRepository.findByIdWithPerformanceScheduleReportCategories(performanceScheduleId)
+    public PerformanceScheduleDetailResponse getPerformanceSchedule(UserJpaEntity user, Long performanceScheduleId) {
+        PerformanceSchedule performanceSchedule = performanceScheduleRepository.findById(performanceScheduleId)
                 .orElseThrow(() -> new AppException(PerformanceScheduleErrorCode.NOT_FOUND));
+
+        boolean isScraped = findIsScraped(performanceScheduleId, user);
+
+        return PerformanceScheduleDetailResponse.from(performanceSchedule, isScraped);
     }
 
     //공연 스케줄 상태별 조회
-    public List<PerformanceSchedule> getPerformanceSchedules(List<PerformanceScheduleReportStatus> performanceScheduleReportStatus) {
-        return performanceScheduleRepository.findByScheduleReportStatus(performanceScheduleReportStatus);
+    public List<PerformanceScheduleDetailResponse> getPerformanceSchedules(List<PerformanceScheduleReportStatus> performanceScheduleReportStatus) {
+        List<PerformanceSchedule> performanceSchedules =
+                performanceScheduleRepository.findByScheduleReportStatus(performanceScheduleReportStatus);
+
+        List<Boolean> isScraped =
+                performanceSchedules.stream().map(performanceSchedule -> findIsScraped(performanceSchedule.getId(), null)).toList();
+
+        return performanceSchedules.stream()
+                .map(performanceSchedule -> PerformanceScheduleDetailResponse.from(performanceSchedule, isScraped.get(performanceSchedules.indexOf(performanceSchedule))))
+                .toList();
     }
 
     //공연 스케줄 스크랩 저장 또는 삭제

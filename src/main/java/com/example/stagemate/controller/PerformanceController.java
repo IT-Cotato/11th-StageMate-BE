@@ -29,8 +29,9 @@ public class PerformanceController {
     @ApiResponse(responseCode = "200", description = "공연 상세 정보를 가져옴")
     @GetMapping("/api/v1/performance/{performanceId}")
     public ResponseEntity<DataResponse<PerformanceDetailResponse>> getPerformance(@PathVariable Long performanceId) {
-        Performance performance = performanceService.getPerformance(performanceId);
-        return ResponseEntity.ok(DataResponse.from(PerformanceDetailResponse.from(performance)));
+        PerformanceDetailResponse performanceDetailResponse = performanceService.getPerformance(performanceId);
+
+        return ResponseEntity.ok(DataResponse.from(performanceDetailResponse));
     }
 
     //공연 목록
@@ -38,14 +39,10 @@ public class PerformanceController {
     @ApiResponse(responseCode = "200", description = "공연 목록을 가져옴")
     @GetMapping("/api/v1/performance")
     public ResponseEntity<DataResponse<List<PerformanceDetailResponse>>> getPerformances() {
-        List<Performance> performances = performanceService.findOngoingOrUpcomingPerformances();
+        List<PerformanceDetailResponse> performanceDetailResponses = performanceService.findOngoingOrUpcomingPerformances();
 
-        return ResponseEntity.ok(DataResponse.from(performances
-                .stream()
-                .map(PerformanceDetailResponse::from)
-                .collect(Collectors.toList())));
+        return ResponseEntity.ok(DataResponse.from(performanceDetailResponses));
     }
-
 
 
     //performance 스크랩

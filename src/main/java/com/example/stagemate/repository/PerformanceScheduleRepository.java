@@ -13,10 +13,11 @@ import java.util.Optional;
 
 public interface PerformanceScheduleRepository extends JpaRepository<PerformanceSchedule, Long> {
     PerformanceSchedule findByPerformance_IdAndPerformanceScheduleType(Long performanceId, PerformanceScheduleType type);
-    List<PerformanceSchedule> findByScheduleDate(LocalDate scheduleDate);
+    List<PerformanceSchedule> findByScheduleDateAndPerformanceScheduleReportStatus(LocalDate scheduleDate, PerformanceScheduleReportStatus status);
 
-    @Query("SELECT ps FROM PerformanceSchedule ps JOIN FETCH ps.performance WHERE ps.scheduleDate BETWEEN :startDate AND :endDate")
-    List<PerformanceSchedule> findByScheduleDateBetween(@Param("startDate") LocalDate startDate,@Param("endDate") LocalDate endDate);
+    @Query("SELECT ps FROM PerformanceSchedule ps JOIN FETCH ps.performance " +
+            "WHERE ps.scheduleDate BETWEEN :startDate AND :endDate AND ps.performanceScheduleReportStatus = :status")
+    List<PerformanceSchedule> findByScheduleDateBetween(@Param("startDate") LocalDate startDate,@Param("endDate") LocalDate endDate, @Param("status") PerformanceScheduleReportStatus status);
 
 
     //공연 상태별 조회
