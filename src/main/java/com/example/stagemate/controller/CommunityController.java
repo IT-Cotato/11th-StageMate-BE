@@ -49,7 +49,7 @@ public class CommunityController {
                     content = @Content(array = @ArraySchema(schema = @Schema(type = "string", format = "binary")))
             )
             List<MultipartFile> images,
-            @CurrentUser UserJpaEntity user
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user
     ) throws JsonProcessingException {
         CommunityPostCreateRequest request = objectMapper.readValue(requestJson, CommunityPostCreateRequest.class);
         CommunityPostResponse response = communityService.createCommunityPost(user, request, images);
@@ -62,7 +62,7 @@ public class CommunityController {
     public ResponseEntity<DataResponse<CommunityPostPagedResponse>> getCommunityHotPosts(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
-            @CurrentUser UserJpaEntity user
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user
     ) {
         CommunityPostPagedResponse response = communityService.getCommunityHotPosts(
                 user, page, size
@@ -78,7 +78,7 @@ public class CommunityController {
             @RequestParam String category,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
-            @CurrentUser UserJpaEntity user
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user
     ) {
         CommunityPostPagedResponse response = communityService.getCommunityPosts(
                 user, category, page, size
@@ -92,7 +92,7 @@ public class CommunityController {
     public ResponseEntity<DataResponse<CommunityPostTradePagedResponse>> getCommunityTradePosts(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
-            @CurrentUser UserJpaEntity user
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user
     ) {
         CommunityPostTradePagedResponse response = communityService.getCommunityTradePosts(
                 user, page, size
@@ -107,8 +107,8 @@ public class CommunityController {
     @GetMapping("/{postId}")
     public ResponseEntity<DataResponse<CommunityPostResponse>> getCommunityPostDetail(
             @PathVariable Long postId,
-            @CurrentUser UserJpaEntity user
-    ) {
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user
+    ) throws JsonProcessingException {
         CommunityPostResponse response = communityService.getCommunityPostDetail(
                 postId, user
         );
@@ -120,7 +120,7 @@ public class CommunityController {
     @PostMapping("/{postId}/likes")
     public ResponseEntity<DataResponse<Void>> toggleCommunityPostLike(
             @PathVariable Long postId,
-            @CurrentUser UserJpaEntity user
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user
     ) {
         communityService.toggleCommunityPostLike(postId, user);
         return ResponseEntity.ok(DataResponse.ok());
@@ -131,7 +131,7 @@ public class CommunityController {
     @PostMapping("/{postId}/scraps")
     public ResponseEntity<DataResponse<Void>> toggleCommunityPostScrap(
             @PathVariable Long postId,
-            @CurrentUser UserJpaEntity user
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user
     ) {
         communityService.toggleCommunityPostScrap(postId, user);
         return ResponseEntity.ok(DataResponse.ok());
@@ -149,7 +149,7 @@ public class CommunityController {
                     content = @Content(array = @ArraySchema(schema = @Schema(type = "string", format = "binary")))
             )
             List<MultipartFile> newImages,
-            @CurrentUser UserJpaEntity user
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user
     ) throws JsonProcessingException {
         CommunityPostUpdateRequest request = objectMapper.readValue(requestJson, CommunityPostUpdateRequest.class);
         CommunityPostResponse response = communityService.updateCommunityPost(user, postId, request, newImages);
@@ -161,7 +161,7 @@ public class CommunityController {
     @DeleteMapping("/{postId}")
     public ResponseEntity<DataResponse<Void>> deletePost(
             @PathVariable Long postId,
-            @CurrentUser UserJpaEntity user
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user
     ) {
         communityService.deleteCommunityPost(postId, user);
         return ResponseEntity.ok(DataResponse.ok());
