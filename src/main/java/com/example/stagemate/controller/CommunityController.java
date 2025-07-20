@@ -108,7 +108,7 @@ public class CommunityController {
     public ResponseEntity<DataResponse<CommunityPostResponse>> getCommunityPostDetail(
             @PathVariable Long postId,
             @Parameter(hidden = true) @CurrentUser UserJpaEntity user
-    ) {
+    ) throws JsonProcessingException {
         CommunityPostResponse response = communityService.getCommunityPostDetail(
                 postId, user
         );

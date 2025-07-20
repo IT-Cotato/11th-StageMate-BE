@@ -11,6 +11,9 @@ import com.example.stagemate.repository.ImageRepository;
 import com.example.stagemate.repository.community.*;
 import com.example.stagemate.repository.user.UserJpaRepository;
 import com.example.stagemate.service.image.ImageService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,9 +48,12 @@ public class CommunityService {
     private final CommunityScrapService communityScrapService;
     private final CommunityStatisticsRepository communityStatisticsRepository;
     private final CommunityLikeService communityLikeService;
+    private final ObjectMapper objectMapper;
 
     // 커뮤니티 게시글 작성, 이미지 업로드
-    public CommunityPostResponse createCommunityPost(UserJpaEntity user, CommunityPostCreateRequest request, List<MultipartFile> images) {
+    public CommunityPostResponse createCommunityPost(UserJpaEntity user, CommunityPostCreateRequest request, List<MultipartFile> images) throws JsonProcessingException {
+        // json -> 문자열로 변환
+        String jsonString = objectMapper.writeValueAsString(request.getContent());
         userRepository.findById(user.getId()).orElseThrow(() -> new AppException(NOT_FOUND_USER));
         CommunityCategory communityCategory = CommunityCategory.from(request.getCategory());
         TradeCategory tradeCategory = communityCategory == CommunityCategory.TRADE
@@ -57,7 +63,7 @@ public class CommunityService {
         TradeMethod tradeMethod = communityCategory == CommunityCategory.TRADE
                 ? TradeMethod.from(request.getTradeMethod())
                 : null; // 나눔거래가 아닐 경우 null 처리
-        CommunityPost post = request.toEntity(user, communityCategory, tradeCategory, tradeMethod);
+        CommunityPost post = request.toEntity(user, communityCategory, tradeCategory, tradeMethod, jsonString);
         communityRepository.save(post);
 
         // 이미지가 있다면 업로드 및 연결
@@ -76,9 +82,11 @@ public class CommunityService {
                 post.getImages().add(communityImage);
             }
         }
+        // 역직렬화
+        JsonNode jsonContent = objectMapper.readTree(post.getContent());
 
         // 게시글 작성 시점 사용자는 본인의 스크랩과 좋아요를 누르지 않음
-        return CommunityPostResponse.from(post, false, false);
+        return CommunityPostResponse.from(post, false, false, jsonContent);
     }
 
     // 커뮤니티 게시글 목록 조회(페이징)
@@ -202,7 +210,7 @@ public class CommunityService {
     // 비회원은 전체공개 글만 조회 가능
     // 회원은 전체공개 + 회원공개 글 중 차단한 사람 제외
     // 차단 로직 추후 추가
-    public CommunityPostResponse getCommunityPostDetail(Long postId, UserJpaEntity user) {
+    public CommunityPostResponse getCommunityPostDetail(Long postId, UserJpaEntity user) throws JsonProcessingException {
         CommunityPost post = getCommunityPost(postId);
 
         // 비회원은 전체공개 글만 조회 가능
@@ -225,7 +233,10 @@ public class CommunityService {
             isLiked = communityLikeRepository.existsByUserIdAndCommunityPostId(user.getId(), postId);
         }
 
-        return CommunityPostResponse.from(post, isScrapped, isLiked);
+        // JSON content 파싱
+        JsonNode jsonContent = objectMapper.readTree(post.getContent());
+
+        return CommunityPostResponse.from(post, isScrapped, isLiked, jsonContent);
 
     }
 
@@ -270,7 +281,7 @@ public class CommunityService {
     }
 
 
-    public CommunityPostResponse updateCommunityPost(UserJpaEntity user, Long postId, CommunityPostUpdateRequest request, List<MultipartFile> newImages) {
+    public CommunityPostResponse updateCommunityPost(UserJpaEntity user, Long postId, CommunityPostUpdateRequest request, List<MultipartFile> newImages) throws JsonProcessingException {
         CommunityPost post = communityRepository.findById(postId)
                 .orElseThrow(() -> new AppException(COMMUNITY_POST_NOT_FOUND));
 
@@ -280,7 +291,7 @@ public class CommunityService {
         }
 
         // 게시글 정보 업데이트
-        post.update(request);
+        post.update(request, objectMapper.writeValueAsString(request.getContent()));
 
         // 이미지 업데이트
         updateCommunityPostImage(post, request.getImageIds(), newImages);
@@ -289,7 +300,10 @@ public class CommunityService {
         boolean isScrapped = communityScrapRepository.existsByUserIdAndCommunityPostId(user.getId(), postId);
         boolean isLiked = communityLikeRepository.existsByUserIdAndCommunityPostId(user.getId(), postId);
 
-        return CommunityPostResponse.from(post, isScrapped, isLiked);
+        // 역직렬화
+        JsonNode jsonContent = objectMapper.readTree(post.getContent());
+
+        return CommunityPostResponse.from(post, isScrapped, isLiked, jsonContent);
     }
 
 

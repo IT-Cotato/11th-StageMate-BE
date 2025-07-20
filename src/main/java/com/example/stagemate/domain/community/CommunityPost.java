@@ -2,6 +2,7 @@ package com.example.stagemate.domain.community;
 
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.community.CommunityPostUpdateRequest;
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,6 +31,8 @@ public class CommunityPost {
     @Enumerated(EnumType.STRING)
     private TradeMethod tradeMethod; // 나눔거래일떄 방법(추첨나눔/판매/선착나눔)
     private String title;
+    @Lob
+    @Column(columnDefinition = "TEXT")
     private String content;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id")
@@ -88,10 +91,10 @@ public class CommunityPost {
 
 
     // 나눔거래에서 다른 카테고리로 변경할 경우 고려
-    public void update(CommunityPostUpdateRequest request) {
+    public void update(CommunityPostUpdateRequest request, String jsonContent) {
         CommunityCategory communityCategory = CommunityCategory.from(request.getCategory());
         this.title = request.getTitle();
-        this.content = request.getContent();
+        this.content = jsonContent;
         this.category = communityCategory;
         this.tradeCategory = communityCategory==CommunityCategory.TRADE ? TradeCategory.from(request.getTradeCategory()) : null;
         this.tradeMethod = communityCategory==CommunityCategory.TRADE ? TradeMethod.from(request.getTradeMethod()) : null;
