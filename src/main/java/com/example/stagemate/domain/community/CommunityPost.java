@@ -37,7 +37,6 @@ public class CommunityPost {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     public boolean membersOnly;
-    private boolean sendNotification;
     @Column(name = "is_deleted")
     @Builder.Default
     private boolean deleted = false;
@@ -97,6 +96,5 @@ public class CommunityPost {
         this.tradeCategory = communityCategory==CommunityCategory.TRADE ? TradeCategory.from(request.getTradeCategory()) : null;
         this.tradeMethod = communityCategory==CommunityCategory.TRADE ? TradeMethod.from(request.getTradeMethod()) : null;
         this.membersOnly = request.isMembersOnly();
-        this.sendNotification = request.isSendNotification();
     }
 }
