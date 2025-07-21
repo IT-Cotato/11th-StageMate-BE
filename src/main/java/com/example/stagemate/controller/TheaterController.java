@@ -1,6 +1,5 @@
 package com.example.stagemate.controller;
 
-import com.example.stagemate.domain.theater.Theater;
 import com.example.stagemate.dto.response.TheaterDetailResponse;
 import com.example.stagemate.global.dto.DataResponse;
 import com.example.stagemate.service.theater.TheaterService;
@@ -12,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
