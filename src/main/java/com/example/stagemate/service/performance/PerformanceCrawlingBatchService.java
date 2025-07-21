@@ -4,8 +4,11 @@ import com.example.stagemate.domain.performanceSchedule.PerformanceSchedule;
 import com.example.stagemate.domain.performanceSchedule.PerformanceScheduleType;
 import com.example.stagemate.domain.performance.Performance;
 import com.example.stagemate.domain.performance.PerformanceStatus;
+import com.example.stagemate.domain.theater.Theater;
+import com.example.stagemate.dto.data.CrawledPerformanceInfo;
 import com.example.stagemate.repository.PerformanceRepository;
 import com.example.stagemate.repository.PerformanceScheduleRepository;
+import com.example.stagemate.repository.TheaterRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -14,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -23,6 +26,7 @@ import java.util.stream.Collectors;
 public class PerformanceCrawlingBatchService {
     private final PerformanceRepository performanceRepository;
     private final PerformanceScheduleRepository performanceScheduleRepository;
+    private final TheaterRepository theaterRepository;
 
 
 
@@ -41,7 +45,7 @@ public class PerformanceCrawlingBatchService {
 
     //크롤링해온 공연목록 insert or update
     @Transactional
-    public void updateBatch(List<Performance> crawledPerformances) {
+    public void updateBatch(List<CrawledPerformanceInfo> crawledPerformances) {
         // 상영중, 상영예정 공연 가져오기
         List<Performance> existingPerformances = performanceRepository.findByPerformanceStatusIn(
                 List.of(PerformanceStatus.ONGOING, PerformanceStatus.UPCOMING));
@@ -50,15 +54,20 @@ public class PerformanceCrawlingBatchService {
         Map<String, Performance> existingMap = existingPerformances.stream()
                 .collect(Collectors.toMap(Performance::getInterparkPerformanceId, performance -> performance));
 
-        // 크롤링한 공연 ID 집합
-        Set<String> crawledPerformanceIds = crawledPerformances.stream()
-                .map(Performance::getInterparkPerformanceId)
-                .collect(Collectors.toSet());
 
         int i = 0;
         // 없으면 삽입, 존재하면 바뀐부분 업데이트
-        for (Performance crawledPerformance : crawledPerformances) {
-            String performanceId = crawledPerformance.getInterparkPerformanceId();
+        for (CrawledPerformanceInfo crawledPerformanceInfo : crawledPerformances) {
+
+            Optional<Theater> theater = theaterRepository.findByName(crawledPerformanceInfo.getTheaterName());
+
+            //기존에 없는 극장이면 insert
+            Theater selectedTheater;
+            selectedTheater = theater.orElseGet(
+                    () -> insertTheater(crawledPerformanceInfo.getTheaterName(), crawledPerformanceInfo.getRegion()));
+
+            String performanceId = crawledPerformanceInfo.getInterparkPerformanceId();
+            Performance crawledPerformance = Performance.from(crawledPerformanceInfo, selectedTheater);
 
 
             if (existingMap.containsKey(performanceId)) {
@@ -89,6 +98,15 @@ public class PerformanceCrawlingBatchService {
         // if (!toBeCancelled.isEmpty()) {
         //     performanceRepository.saveAll(toBeCancelled);
         // }
+    }
+
+    private Theater insertTheater(String theaterName, String region) {
+
+         Theater theater = Theater.builder()
+                 .name(theaterName)
+                 .region(region)
+                 .build();
+         return theaterRepository.save(theater);
     }
 
     private PerformanceSchedule createPerformanceStartOrEndSchedule(Performance performance, PerformanceScheduleType scheduleType) {
@@ -124,14 +142,14 @@ public class PerformanceCrawlingBatchService {
         //시작날짜가 변경됐으면 시작 스케줄 업데이트
         if(!existingPerformanceStartSchedule.getScheduleDate().equals(updatedPerformance.getStartDate())) {
             log.info("첫 공연 스케줄 UPDATE 발생 -----------------------------------------------");
-            existingPerformanceStartSchedule.updateDate(updatedPerformance.getStartDate());
+            existingPerformanceStartSchedule.updateDateIfperformanceDateIsChanged(updatedPerformance.getStartDate());
             performanceScheduleRepository.save(existingPerformanceStartSchedule);
         }
 
         //종료날짜가 변경됐면 종료 스케줄 업데이트
         if(!existingPerformanceEndSchedule.getScheduleDate().equals(updatedPerformance.getEndDate())) {
             log.info("마지막 공연 스케줄 UPDATE 발생 -----------------------------------------------");
-            existingPerformanceEndSchedule.updateDate(updatedPerformance.getEndDate());
+            existingPerformanceEndSchedule.updateDateIfperformanceDateIsChanged(updatedPerformance.getEndDate());
             performanceScheduleRepository.save(existingPerformanceEndSchedule);
         }
     }

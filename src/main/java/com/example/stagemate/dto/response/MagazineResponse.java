@@ -2,6 +2,7 @@ package com.example.stagemate.dto.response;
 
 import com.example.stagemate.domain.magazine.Magazine;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public record MagazineResponse(
@@ -11,7 +12,7 @@ public record MagazineResponse(
         String content,
         List<String> imageUrls,
         String category,
-        String createdAt,
+        LocalDateTime createdAt,
         int likeCount,
         int scrapCount
 ) {
@@ -23,7 +24,7 @@ public record MagazineResponse(
                 magazine.getContent(),
                 magazine.getImages().isEmpty() ? List.of("basic") : magazine.getImages().stream().map(image -> image.getImage().getImageUrl()).toList(),
                 magazine.getCategory().name(),
-                magazine.getCreatedAt().toString(),
+                magazine.getCreatedAt(),
                 magazine.getLikes() == null ? 0 : magazine.getLikes().size(),
                 magazine.getScraps() == null ? 0 : magazine.getScraps().size()
             );
