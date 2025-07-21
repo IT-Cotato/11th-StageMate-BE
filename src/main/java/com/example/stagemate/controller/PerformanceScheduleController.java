@@ -1,6 +1,5 @@
 package com.example.stagemate.controller;
 
-import com.example.stagemate.domain.performanceSchedule.PerformanceSchedule;
 import com.example.stagemate.domain.performanceSchedule.PerformanceScheduleReportStatus;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.PerformanceScheduleCreateRequest;
@@ -9,6 +8,7 @@ import com.example.stagemate.global.dto.DataResponse;
 import com.example.stagemate.global.reslover.CurrentUser;
 import com.example.stagemate.service.performance.PerformanceScheduleService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -17,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -30,7 +29,7 @@ public class PerformanceScheduleController {
     @ApiResponse(responseCode = "200", description = "공식일정리포트 상세 정보를 가져옴")
     @GetMapping("/api/v1/performanceSchedule/{performanceScheduleId}")
     public ResponseEntity<DataResponse<PerformanceScheduleDetailResponse>> getPerformanceSchedule(
-            @CurrentUser UserJpaEntity user,
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user,
             @PathVariable("performanceScheduleId") Long performanceScheduleId) {
 
         PerformanceScheduleDetailResponse performanceScheduleDetailResponse =
@@ -43,7 +42,7 @@ public class PerformanceScheduleController {
     @ApiResponse(responseCode = "200", description = "공식스케줄 제보 생성")
     @PostMapping("/api/v1/performanceSchedule")
     public ResponseEntity<DataResponse<Long>> createPerformanceSchedule(
-            @CurrentUser UserJpaEntity user,
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user,
             @Valid @RequestBody PerformanceScheduleCreateRequest performanceScheduleCreateRequest) {
 
         Long performanceScheduleId = performanceScheduleService.createPerformanceSchedule(user, performanceScheduleCreateRequest);
@@ -67,7 +66,6 @@ public class PerformanceScheduleController {
     @ApiResponse(responseCode = "200", description = "공식스케줄리포트 상태별 조회")
     @GetMapping(value = "/api/v1/performanceSchedule", params = "performanceScheduleReportStatus")
     public ResponseEntity<DataResponse<List<PerformanceScheduleDetailResponse>>> getPerformanceSchedules(
-            @CurrentUser UserJpaEntity user,
             @RequestParam("performanceScheduleReportStatus") List<PerformanceScheduleReportStatus> performanceScheduleReportStatus) {
 
         List<PerformanceScheduleDetailResponse> performanceScheduleDetailResponses = performanceScheduleService.getPerformanceSchedules(performanceScheduleReportStatus);
@@ -79,7 +77,7 @@ public class PerformanceScheduleController {
     @ApiResponse(responseCode = "200", description = "공연 스케줄 목록을 가져옴")
     @GetMapping(value = "/api/v1/performanceSchedule", params = {"year", "month"})
     public ResponseEntity<DataResponse<List<PerformanceScheduleDetailResponse>>> getPerformanceSchedules(
-            @CurrentUser UserJpaEntity user,
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user,
             @RequestParam("year") Integer year,
             @RequestParam("month") Integer month,
             @RequestParam(name = "day", required = false) Integer day) {
@@ -98,7 +96,8 @@ public class PerformanceScheduleController {
     @ApiResponse(responseCode = "200", description = "공식 스케줄 스크랩 저장 또는 삭제")
     @PostMapping("/api/v1/performanceSchedule/{performanceScheduleId}")
     public ResponseEntity<DataResponse<?>> insertOrDeletePerformanceScheduleScrap(
-            @CurrentUser UserJpaEntity user, @PathVariable("performanceScheduleId") Long performanceScheduleId) {
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user,
+            @PathVariable("performanceScheduleId") Long performanceScheduleId) {
 
         performanceScheduleService.insertOrDeletePerformanceScheduleScrap(performanceScheduleId, user);
         return ResponseEntity.ok().build();

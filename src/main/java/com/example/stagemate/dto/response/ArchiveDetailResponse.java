@@ -22,7 +22,7 @@ public record ArchiveDetailResponse(
                 .review(archive.getReview())
                 .rating(archive.getRating())
                 .memo(archive.getMemo())
-                .imageUrl(archive.getImageUrl())
+                .imageUrl(archive.getImage().getImageUrl())
                 .theaterName(archive.getTheaterName())
                 .build();
     }

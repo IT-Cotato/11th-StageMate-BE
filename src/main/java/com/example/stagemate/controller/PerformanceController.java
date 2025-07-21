@@ -1,6 +1,5 @@
 package com.example.stagemate.controller;
 
-import com.example.stagemate.domain.performance.Performance;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.response.PerformanceDetailResponse;
 import com.example.stagemate.dto.response.RecommendedPerformanceResponse;
@@ -8,6 +7,7 @@ import com.example.stagemate.global.dto.DataResponse;
 import com.example.stagemate.global.reslover.CurrentUser;
 import com.example.stagemate.service.performance.PerformanceService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @RestController
@@ -50,7 +49,8 @@ public class PerformanceController {
     @ApiResponse(responseCode = "200", description = "공연 스크랩 저장 또는 삭제")
     @PostMapping("/api/v1/performance/{performanceId}")
     public ResponseEntity<DataResponse<?>> insertOrDeletePerformanceScrap(
-            @CurrentUser UserJpaEntity user, @PathVariable("performanceId") Long performanceId) {
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user,
+            @PathVariable("performanceId") Long performanceId) {
 
         performanceService.insertOrDeletePerformanceScrap(user, performanceId);
 
@@ -62,7 +62,7 @@ public class PerformanceController {
     //1시간이내 스크랩이 많이 오른 순으로 추천
     @Operation(summary = "추천 공연", description = "추천 공연 목록을 가져옴")
     @ApiResponse(responseCode = "200", description = "추천 공연 목록을 가져옴")
-    @GetMapping("/api/v1/recommendedPerformance")
+    @GetMapping("/api/v1/performacne/recommend")
     public ResponseEntity<DataResponse<List<RecommendedPerformanceResponse>>> getRecommendPerformance(
             @RequestParam(name = "size", defaultValue = "10") int size) { // 기본 size = 10
 

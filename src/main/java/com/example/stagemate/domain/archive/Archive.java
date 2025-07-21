@@ -1,5 +1,6 @@
 package com.example.stagemate.domain.archive;
 
+import com.example.stagemate.domain.image.Image;
 import com.example.stagemate.domain.user.UserErrorCode;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.ArchiveCreateRequest;
@@ -11,6 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 
@@ -36,9 +38,11 @@ public class Archive {
 
     private String memo;
 
-    private String imageUrl;
-
     private String theaterName;
+
+    @jakarta.persistence.ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
+    @jakarta.persistence.JoinColumn(name = "image_id")
+    private Image image;
 
     @jakarta.persistence.ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
     @jakarta.persistence.JoinColumn(name = "user_id")
@@ -46,15 +50,15 @@ public class Archive {
 
 
 
-    public static Archive create(ArchiveCreateRequest request, UserJpaEntity user) {
+    public static Archive create(ArchiveCreateRequest request, UserJpaEntity user, Image image) {
         return Archive.builder()
                 .viewingDate(request.getViewingDate())
                 .casting(request.getCasting())
                 .review(request.getReview())
                 .rating(request.getRating())
                 .memo(request.getMemo())
-                .imageUrl(request.getImageUrl())
                 .theaterName(request.getTheaterName())
+                .image(image)
                 .user(user)
                 .build();
     }
@@ -65,13 +69,13 @@ public class Archive {
         }
     }
 
-    public void update(ArchiveUpdateRequest request) {
+    public void update(ArchiveUpdateRequest request, Image updatedImage) {
         this.viewingDate = request.getViewingDate();
         this.casting = request.getCasting();
         this.review = request.getReview();
         this.rating = request.getRating();
         this.memo = request.getMemo();
-        this.imageUrl = request.getImageUrl();
+        this.image = updatedImage;
         this.theaterName = request.getTheaterName();
     }
 }
