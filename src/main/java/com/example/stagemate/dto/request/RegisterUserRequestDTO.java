@@ -20,6 +20,9 @@ public record RegisterUserRequestDTO(
         @Pattern(regexp = PASSWORD_REGEX, message = "비밀번호는 영문, 숫자, 특수문자 중 2가지 이상을 조합해주세요.")
         String password,
 
+        @NotBlank(message = "비밀번호 확인을 입력해주세요.")
+        String passwordConfirm,
+
         @NotBlank(message = "이름을 입력해주세요.")
         String name,
 
