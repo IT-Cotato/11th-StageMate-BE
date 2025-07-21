@@ -33,10 +33,28 @@ public class Magazine {
     List<MagazineImage> images = new ArrayList<>();
 
     @Builder.Default
-    @OneToMany(mappedBy = "magazine", cascade = CascadeType.ALL, orphanRemoval = true)
-    List<MagazineLike> likes = new ArrayList<>();
-
+    private int likeCount = 0;
     @Builder.Default
-    @OneToMany(mappedBy = "magazine", cascade = CascadeType.ALL, orphanRemoval = true)
-    List<MagazineScrap> scraps = new ArrayList<>();
+    private int scrapCount = 0;
+
+    public void decrementLikeCount() {
+        if (this.likeCount > 0) {
+            this.likeCount--;
+        }
+    }
+
+    public void incrementLikeCount() {
+        this.likeCount++;
+    }
+
+    public void decrementScrapCount() {
+        if (this.scrapCount > 0) {
+            this.scrapCount--;
+        }
+    }
+
+    public void incrementScrapCount() {
+        this.scrapCount++;
+    }
+
 }

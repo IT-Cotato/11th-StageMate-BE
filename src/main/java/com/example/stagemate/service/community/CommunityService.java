@@ -2,6 +2,7 @@ package com.example.stagemate.service.community;
 
 import com.example.stagemate.domain.community.*;
 import com.example.stagemate.domain.image.Image;
+import com.example.stagemate.domain.magazine.Magazine;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.community.CommunityPostCreateRequest;
 import com.example.stagemate.dto.request.community.CommunityPostUpdateRequest;
@@ -376,6 +377,30 @@ public class CommunityService {
     private CommunityPost getCommunityPost(Long postId) {
         return communityRepository.findById(postId)
                 .orElseThrow(() -> new AppException(COMMUNITY_POST_NOT_FOUND));
+    }
+
+
+    public CommunityPostPagedResponse getMyCommunityScrapList(UserJpaEntity user, int page, int size) {
+        Pageable pageable = PageRequest.of(page-1, size);
+        // 유저 존재하는지 확인
+        if (user == null) {
+            throw new AppException(NOT_FOUND_USER);
+        }
+
+        Page<CommunityPost> communityPosts = communityScrapRepository.findScrappedPostsByUser(user.getId(),pageable);
+        List<Long> likedPostIdsByUser = communityLikeService.getLikedPostIdsByUser(user.getId());
+        List<CommunityPostListResponse> list = communityPosts.stream()
+                .map(post -> CommunityPostListResponse.from(post, likedPostIdsByUser.contains(post.getId())))
+                .toList();
+
+
+        return new CommunityPostPagedResponse(
+                list,
+                communityPosts.getNumber(),
+                communityPosts.getSize(),
+                communityPosts.getTotalElements(),
+                communityPosts.getTotalPages()
+        );
     }
 
 }

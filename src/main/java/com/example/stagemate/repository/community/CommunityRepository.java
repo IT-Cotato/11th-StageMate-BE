@@ -15,4 +15,7 @@ public interface CommunityRepository extends JpaRepository<CommunityPost, Long> 
 
     // 삭제되지 않고 카테고리가 일치하며 멤버 전용이 아닌 커뮤니티 게시글을 최신순으로 조회
     Page<CommunityPost> findAllByDeletedFalseAndCategoryAndMembersOnlyFalseOrderByCreatedAtDesc(CommunityCategory communityCategory, Pageable pageable);
+
+    // 삭제되지 않은 커뮤니티 게시글을 최신순으로 조회
+    Page<CommunityPost> findAllByDeletedFalseOrderByCreatedAtDesc(Pageable pageable);
 }

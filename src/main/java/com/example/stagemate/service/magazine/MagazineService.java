@@ -36,7 +36,7 @@ public class MagazineService {
     private final MagazineLikeRepository magazineLikeRepository;
     private final MagazineScrapRepository magazineScrapRepository;
     private final MagazineStatisticsRepository magazineStatisticsRepository;
-    private final UserJpaRepository userRepository;
+    private final MagazineScrapService magazineScrapService;
 
     // 매거진 생성(사진 여러개 포함)
     public MagazineResponse createMagazine(MagazineCreateRequest request, List<MultipartFile> images) {
@@ -63,27 +63,43 @@ public class MagazineService {
             }
         }
         // 매거진 응답 DTO 생성
-        return MagazineResponse.from(entity);
+        return MagazineResponse.from(entity, false, false);
     }
 
     // 최신 순 매거진 보여주기
-    public List<MagazineListResponse> getLatestMagazines(int size) {
+    public List<MagazineListResponse> getLatestMagazines(int size, UserJpaEntity user) {
         List<Magazine> magazines = magazineRepository.findAllByOrderByCreatedAtDesc();
+        if (user != null) {
+            List<Long> scrappedMagazineIdsByUser = magazineScrapService.getScrappedMagazineIdsByUser(user.getId());
+            return magazines.stream()
+                    .map(m -> MagazineListResponse.from(m, scrappedMagazineIdsByUser.contains(m.getId())))
+                    .limit(size)
+                    .toList();
+        }
         return magazines.stream()
-                .map(MagazineListResponse::from)
+                .map(m -> MagazineListResponse.from(m, false))
                 .limit(size)
                 .toList();
     }
 
 
     // 매거진 목록 조회 (6개씩 페이징)
-    public MagazinePagedResponse getMagazineList(int page, int size) {
+    public MagazinePagedResponse getMagazineList(int page, int size, UserJpaEntity user) {
         Pageable pageable = PageRequest.of(page-1, size);
         Page<Magazine> magazinePage = magazineRepository.findAllByOrderByCreatedAtDesc(pageable);
 
-        List<MagazineListResponse> content = magazinePage.getContent().stream()
-                .map(MagazineListResponse::from)
-                .toList();
+        List<MagazineListResponse> content;
+        if (user != null) {
+            List<Long> scrappedMagazineIdsByUser = magazineScrapService.getScrappedMagazineIdsByUser(user.getId());
+            content = magazinePage.getContent().stream()
+                    .map(m -> MagazineListResponse.from(m, scrappedMagazineIdsByUser.contains(m.getId())))
+                    .toList();
+        }
+        else {
+            content = magazinePage.getContent().stream()
+                    .map(m -> MagazineListResponse.from(m, false))
+                    .toList();
+        }
         return new MagazinePagedResponse(
                 content,
                 magazinePage.getNumber(),
@@ -94,11 +110,16 @@ public class MagazineService {
     }
 
     // 매거진 상세 조회
-    public MagazineResponse getMagazineDetail(Long id) {
+    public MagazineResponse getMagazineDetail(Long id, UserJpaEntity user) {
         Magazine magazine = magazineRepository.findById(id)
                 .orElseThrow(() -> new MagazineNotFoundException(MAGAZINE_NOT_FOUND));
-
-        return MagazineResponse.from(magazine);
+        if(user == null) {
+            // 유저가 없는 경우, 스크랩과 좋아요 정보는 false로 설정
+            return MagazineResponse.from(magazine, false, false);
+        }
+        boolean isScrapped = magazineScrapRepository.existsByUserIdAndMagazineId(user.getId(), magazine.getId());
+        boolean isLiked = magazineLikeRepository.existsByUserIdAndMagazineId(user.getId(), magazine.getId());
+        return MagazineResponse.from(magazine, isScrapped, isLiked);
     }
 
 
@@ -114,54 +135,87 @@ public class MagazineService {
     }
 
     // 매거진 좋아요
-    public void likeMagazine(Long magazineId, Long userId) {
+    public void likeMagazine(Long magazineId, UserJpaEntity user) {
         // 매거진 존재하는지 확인
         Magazine magazine = magazineRepository.findById(magazineId).orElseThrow(
                 () -> new MagazineNotFoundException(MAGAZINE_NOT_FOUND));
         // 유저 존재하는지 확인
-        UserJpaEntity user = userRepository.findById(userId).orElseThrow(
-                () -> new AppException(NOT_FOUND_USER));
+        if (user == null) {
+            throw new AppException(NOT_FOUND_USER);
+        }
 
         if(magazineLikeRepository.existsByUserIdAndMagazineId(user.getId(), magazineId)) {
-            // 이미 좋아요를 누른 경
-            magazineLikeRepository.deleteByUserIdAndMagazineId(userId, magazineId);
-            magazine.getLikes().removeIf(like -> like.getUser().getId().equals(userId));
+            // 이미 좋아요를 누른 경우
+            magazineLikeRepository.deleteByUserIdAndMagazineId(user.getId(), magazineId);
+            magazine.decrementLikeCount();
         } else {
             // 좋아요를 누르지 않은 경우
-            MagazineLike magazineLike = magazineLikeRepository.save(MagazineLike.of(user, magazine));
-            magazine.getLikes().add(magazineLike);
+            magazineLikeRepository.save(MagazineLike.of(user, magazine));
+            magazine.incrementLikeCount();
         }
     }
 
     // 매거진 스크랩
-    public void scrapMagazine(Long magazineId, Long userId) {
+    public void scrapMagazine(Long magazineId, UserJpaEntity user) {
         // 매거진 존재하는지 확인
         Magazine magazine = magazineRepository.findById(magazineId).orElseThrow(
                 () -> new MagazineNotFoundException(MAGAZINE_NOT_FOUND));
         // 유저 존재하는지 확인
-        UserJpaEntity user = userRepository.findById(userId).orElseThrow(
-                () -> new AppException(NOT_FOUND_USER));
+        if (user == null) {
+            throw new AppException(NOT_FOUND_USER);
+        }
 
-        if(magazineScrapRepository.existsByUserIdAndMagazineId(userId, magazineId)) {
+        if(magazineScrapRepository.existsByUserIdAndMagazineId(user.getId(), magazineId)) {
             // 이미 좋아요를 누른 경우
-            magazineScrapRepository.deleteByUserIdAndMagazineId(userId, magazineId);
-            magazine.getScraps().removeIf(scrap -> scrap.getUser().getId().equals(userId));
+            magazineScrapRepository.deleteByUserIdAndMagazineId(user.getId(), magazineId);
+            magazine.decrementScrapCount();
         } else {
             // 좋아요를 누르지 않은 경우
-            MagazineScrap magazineScrap = magazineScrapRepository.save(MagazineScrap.of(user, magazine));
-            magazine.getScraps().add(magazineScrap);
+            magazineScrapRepository.save(MagazineScrap.of(user, magazine));
+            magazine.incrementScrapCount();
         }
     }
 
     // 좋아요 + 스크랩 많은 순 추천 매거진 4개 보여주기
     // 같은 수일 경우, 최신 순으로 정렬
-    public List<MagazineListResponse> getRecommendedMagazines() {
+    public List<MagazineListResponse> getRecommendedMagazines(UserJpaEntity user) {
         // 매거진 통계 정보 가져오기
         List<MagazineStatistics> statistics = magazineStatisticsRepository.findAll();
+        if (user == null) {
+            return statistics.stream()
+                    .map(MagazineStatistics::getMagazine)
+                    .map(m -> MagazineListResponse.from(m, false))
+                    .toList();
+        }
+        List<Long> scrappedMagazineIdsByUser = magazineScrapService.getScrappedMagazineIdsByUser(user.getId());
+
         return statistics.stream()
                 .map(MagazineStatistics::getMagazine)
-                .map(MagazineListResponse::from)
+                .map(m -> MagazineListResponse.from(m, scrappedMagazineIdsByUser.contains(m.getId())))
                 .toList();
 
+    }
+
+    // 내가 스크랩한 매거진
+    // 매거진 목록 조회 (6개씩 페이징)
+    public MagazinePagedResponse getMyMagazineScrapList(int page, int size, UserJpaEntity user) {
+        if(user == null) {
+            throw new AppException(NOT_FOUND_USER);
+        }
+        Pageable pageable = PageRequest.of(page-1, size);
+        Page<Magazine> magazinePage = magazineScrapRepository.findScrappedMagazinesByUser(user.getId(), pageable);
+
+        List<Long> scrappedMagazineIdsByUser = magazineScrapService.getScrappedMagazineIdsByUser(user.getId());
+
+        List<MagazineListResponse> content = magazinePage.getContent().stream()
+                .map(m -> MagazineListResponse.from(m, scrappedMagazineIdsByUser.contains(m.getId())))
+                .toList();
+        return new MagazinePagedResponse(
+                content,
+                magazinePage.getNumber(),
+                magazinePage.getSize(),
+                magazinePage.getTotalElements(),
+                magazinePage.getTotalPages()
+        );
     }
 }

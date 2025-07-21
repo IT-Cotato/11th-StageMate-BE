@@ -14,19 +14,23 @@ public record MagazineResponse(
         String category,
         LocalDateTime createdAt,
         int likeCount,
-        int scrapCount
+        int scrapCount,
+        boolean isScraped,
+        boolean isLiked
 ) {
-    public static MagazineResponse from(Magazine magazine) {
+    public static MagazineResponse from(Magazine magazine, boolean isScraped, boolean isLiked) {
         return new MagazineResponse(
                 magazine.getId(),
                 magazine.getTitle(),
                 magazine.getSubTitle(),
                 magazine.getContent(),
                 magazine.getImages().isEmpty() ? List.of("basic") : magazine.getImages().stream().map(image -> image.getImage().getImageUrl()).toList(),
-                magazine.getCategory().name(),
+                magazine.getCategory().getDescription(),
                 magazine.getCreatedAt(),
-                magazine.getLikes() == null ? 0 : magazine.getLikes().size(),
-                magazine.getScraps() == null ? 0 : magazine.getScraps().size()
+                magazine.getLikeCount(),
+                magazine.getScrapCount(),
+                isScraped,
+                isLiked
             );
     }
 }
