@@ -1,6 +1,7 @@
 package com.example.stagemate.dto.response.community;
 
 import com.example.stagemate.domain.community.CommunityPost;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -12,7 +13,7 @@ import java.util.List;
 public class CommunityPostResponse {
     private Long id;
     String title;
-    String content;
+    JsonNode content;
     String authorName;
     LocalDateTime createdAt;
     int viewCount;
@@ -27,11 +28,11 @@ public class CommunityPostResponse {
     boolean isLiked;
     boolean membersOnly;
 
-    public static CommunityPostResponse from(CommunityPost post, boolean isScrapped, boolean isLiked) {
+    public static CommunityPostResponse from(CommunityPost post, boolean isScrapped, boolean isLiked, JsonNode jsonContent) {
         return new CommunityPostResponse(
                 post.getId(),
                 post.getTitle(),
-                post.getContent(),
+                jsonContent,
                 post.getAuthor().getNickname(),
                 post.getCreatedAt(),
                 post.getViewCount(),
