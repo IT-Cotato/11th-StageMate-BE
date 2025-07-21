@@ -27,8 +27,9 @@ public class CommunityPostResponse {
     boolean isScrapped;
     boolean isLiked;
     boolean membersOnly;
+    List<CommunityCommentResponse> comments; // 댓글 목록
 
-    public static CommunityPostResponse from(CommunityPost post, boolean isScrapped, boolean isLiked, JsonNode jsonContent) {
+    public static CommunityPostResponse from(CommunityPost post, boolean isScrapped, boolean isLiked, JsonNode jsonContent, List<CommunityCommentResponse> commentsList) {
         return new CommunityPostResponse(
                 post.getId(),
                 post.getTitle(),
@@ -47,7 +48,8 @@ public class CommunityPostResponse {
                 post.getScrapCount(),
                 isScrapped,
                 isLiked,
-                post.isMembersOnly()
+                post.isMembersOnly(),
+                commentsList
         );
     }
 }

@@ -61,7 +61,7 @@ public class CommunityPost {
         this.viewCount++;
     }
 
-    public void changeCommentCount() {
+    public void addCommentCount() {
         this.commentCount++;
     }
 

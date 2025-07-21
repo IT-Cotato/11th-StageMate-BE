@@ -100,7 +100,7 @@ public class CommunityController {
         return ResponseEntity.ok(DataResponse.from(response));
     }
 
-    @Operation(summary = "커뮤니티 게시글 상세 조회", description = "게시글 ID로 상세 정보를 조회합니다.")
+    @Operation(summary = "커뮤니티 게시글 상세 조회", description = "게시글 ID로 상세 정보를 조회합니다. 댓글과 대댓글도 함께 조회합니다.")
     @ApiResponse(responseCode = "200", description = "상세 조회 성공")
     @ApiResponse(responseCode = "404", description = "게시글을 찾을 수 없음",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
