@@ -1,6 +1,8 @@
 package com.example.stagemate.service.archive;
 
 import com.example.stagemate.domain.archive.Archive;
+import com.example.stagemate.domain.image.Image;
+import com.example.stagemate.domain.user.UserErrorCode;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.ArchiveCreateRequest;
 import com.example.stagemate.dto.request.ArchiveUpdateRequest;
@@ -8,9 +10,12 @@ import com.example.stagemate.dto.response.ArchiveDetailResponse;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.archive.ArchiveErrorCode;
 import com.example.stagemate.repository.ArchiveRepository;
+import com.example.stagemate.repository.ImageRepository;
+import com.example.stagemate.service.image.ImageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -20,10 +25,17 @@ import java.util.List;
 @Transactional
 public class ArchiveService {
     private final ArchiveRepository archiveRepository;
+    private final ImageService imageService;
+    private final ImageRepository imageRepository;
 
-    public ArchiveDetailResponse getArchive(Long archiveId) {
+    public ArchiveDetailResponse getArchive(UserJpaEntity user, Long archiveId) {
         Archive archive = archiveRepository.findById(archiveId)
                 .orElseThrow(() -> new AppException(ArchiveErrorCode.NOT_FOUND));
+
+        if (!archive.getUser().getId().equals(user.getId())) {
+            throw new AppException(UserErrorCode.NO_PERMISSION);
+        }
+
         return ArchiveDetailResponse.from(archive);
     }
 
@@ -42,8 +54,12 @@ public class ArchiveService {
                 .toList();
     }
 
-    public Long createArchive(ArchiveCreateRequest archiveCreateRequest, UserJpaEntity user) {
-        Archive archive = Archive.create(archiveCreateRequest, user);
+    public Long createArchive(UserJpaEntity user, ArchiveCreateRequest archiveCreateRequest, MultipartFile image) {
+        validateUserIsNull(user);
+
+        Image uploadImage = uploadImageAndSave(image);
+
+        Archive archive = Archive.create(archiveCreateRequest, user, uploadImage);
 
         return archiveRepository.save(archive).getId();
     }
@@ -59,14 +75,31 @@ public class ArchiveService {
         archiveRepository.deleteById(archiveId);
     }
 
-    public void updateArchive(UserJpaEntity user, Long archiveId, ArchiveUpdateRequest archiveUpdateRequest) {
+    public void updateArchive(UserJpaEntity user, Long archiveId, ArchiveUpdateRequest archiveUpdateRequest, MultipartFile image) {
+        validateUserIsNull(user);
+
         Archive archive = archiveRepository.findById(archiveId)
                 .orElseThrow(() -> new AppException(ArchiveErrorCode.NOT_FOUND));
 
         //유저 권한 검증
         archive.validateDeleteOrUpdateBy(user);
 
-        archive.update(archiveUpdateRequest);
+        Image updatedImage = uploadImageAndSave(image);
+
+        archive.update(archiveUpdateRequest, updatedImage);
+    }
+
+    private void validateUserIsNull(UserJpaEntity user) {
+        if (user == null) {
+            throw new AppException(UserErrorCode.NO_PERMISSION);
+        }
+    }
+
+    private Image uploadImageAndSave(MultipartFile image) {
+        Image uploadImage = imageService.uploadImage(image);
+        imageRepository.save(uploadImage);
+
+        return uploadImage;
     }
 
 
