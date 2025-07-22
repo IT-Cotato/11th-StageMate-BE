@@ -5,9 +5,11 @@ import com.example.stagemate.domain.user.entity.RefreshTokenEntity;
 import com.example.stagemate.domain.user.model.ConsentType;
 import com.example.stagemate.domain.user.port.out.LoadUserPort;
 import com.example.stagemate.domain.user.port.out.SaveUserPort;
+import com.example.stagemate.dto.request.RegisterUserRequestDTO;
 import com.example.stagemate.dto.response.TokenResponseDTO;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.CommonErrorCode;
+import com.example.stagemate.global.exception.auth.AuthErrorCode;
 import com.example.stagemate.repository.user.RefreshTokenRepository;
 import com.example.stagemate.service.user.command.LoginCommand;
 import com.example.stagemate.service.user.command.NormalAgreeCommand;
@@ -15,6 +17,7 @@ import com.example.stagemate.service.user.command.RegisterUserCommand;
 import com.example.stagemate.dto.auth.GuestInfo;
 import com.example.stagemate.dto.request.OAuth2SignupRequestDTO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,10 +26,8 @@ import com.example.stagemate.global.auth.JwtTokenProvider;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class UserService implements LoginUseCase, RegisterUserUseCase {
 
     private final SaveUserPort saveUserPort;
@@ -34,6 +35,7 @@ public class UserService implements LoginUseCase, RegisterUserUseCase {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
+
 
     @Override
     @Transactional
@@ -57,6 +59,21 @@ public class UserService implements LoginUseCase, RegisterUserUseCase {
 
         saveUserPort.save(guest);
         return command.userId();
+    }
+
+    @Override
+    @Transactional
+    public void execute(RegisterUserRequestDTO request) {
+        // 비밀번호 일치 검증
+        if (!request.password().equals(request.passwordConfirm())) {
+            throw new AppException(AuthErrorCode.PASSWORD_CONFIRM_NOT_MATCH);
+        }
+
+        // 커맨드 변환
+        RegisterUserCommand command = RegisterUserCommand.from(request);
+
+        // 실제 회원가입 로직
+        normalSignupInfo(command);
     }
 
     @Override
@@ -135,4 +152,5 @@ public class UserService implements LoginUseCase, RegisterUserUseCase {
             }
         }
     }
+
 }

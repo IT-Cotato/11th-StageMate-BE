@@ -12,6 +12,7 @@ import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.auth.AuthErrorCode;
 import com.example.stagemate.global.exception.CommonErrorCode;
 import com.example.stagemate.repository.user.RefreshTokenRepository;
+import com.example.stagemate.service.user.EmailVerificationService;
 import com.example.stagemate.service.user.LoginUseCase;
 import com.example.stagemate.service.user.RegisterUserUseCase;
 import com.example.stagemate.service.user.UserService;
@@ -24,6 +25,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -55,6 +57,7 @@ public class AuthController {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserService userService;
+    private final EmailVerificationService emailVerificationService;
 
     @Operation(summary = "일반 회원가입 - 정보 입력", description = "아이디, 비밀번호 등 기본 정보를 입력받아 임시 저장합니다.")
     @PostMapping("/sign-up/info")
@@ -83,9 +86,25 @@ public class AuthController {
             throw new AppException(CommonErrorCode.BAD_REQUEST, errorMessage);
         }
 
-        RegisterUserCommand command = RegisterUserCommand.from(request);
-        //회원가입 처리
-        String userId = registerUserUseCase.normalSignupInfo(command);
+        // 이메일 인증 여부 확인
+        if (!emailVerificationService.isVerified(request.email())) {
+            throw new AppException(AuthErrorCode.EMAIL_NOT_VERIFIED);
+        }
+
+        // 세션에서 검사한 ID, 닉네임 꺼내기
+        String verifiedUserId = (String) httpRequest.getSession().getAttribute("verified_userId");
+        String verifiedNickname = (String) httpRequest.getSession().getAttribute("verified_nickname");
+
+        // 검사 여부 확인
+        if (!request.userId().equals(verifiedUserId)) {
+            throw new AppException(AuthErrorCode.USERID_NOT_VERIFIED);
+        }
+        if (!request.nickname().equals(verifiedNickname)) {
+            throw new AppException(AuthErrorCode.NICKNAME_NOT_VERIFIED);
+        }
+
+        registerUserUseCase.execute(request);
+        String userId = request.userId();
 
         // 세션 인증용 CustomUserDetails 생성
         User user = User.normalGuestSignUp(

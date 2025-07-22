@@ -56,6 +56,15 @@ public class ExceptionController {
                 ? fieldError.getDefaultMessage() 
                 : "유효하지 않은 요청입니다.";
 
+            // 이메일 형식 오류
+            if ("email".equals(fieldName)) {
+                AuthErrorCode errorCode = AuthErrorCode.INVALID_EMAIL_FORMAT;
+                return ResponseEntity
+                        .status(errorCode.getHttpStatus())
+                        .body(ErrorResponse.of(errorCode, request));
+            }
+
+
             // 아이디 또는 비밀번호 필드 에러인 경우
             if ("userId".equals(fieldName)) {
                 AuthErrorCode errorCode = AuthErrorCode.INVALID_ID_FORMAT;

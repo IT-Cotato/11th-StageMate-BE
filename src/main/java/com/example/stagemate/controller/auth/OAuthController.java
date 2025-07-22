@@ -1,6 +1,8 @@
 package com.example.stagemate.controller.auth;
 
 import com.example.stagemate.dto.request.OAuth2SignupRequestDTO;
+import com.example.stagemate.global.exception.AppException;
+import com.example.stagemate.global.exception.auth.AuthErrorCode;
 import com.example.stagemate.service.user.LoginUseCase;
 import com.example.stagemate.service.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,6 +32,14 @@ public class OAuthController {
     @Operation(summary = "소셜 회원가입 - 정보 입력", description = "소셜 로그인 후, 닉네임, 생년월일 등 추가 정보를 입력받습니다.")
     @PostMapping("/sign-up")
     public ResponseEntity<Void> oAuthSignup(@RequestBody @Valid OAuth2SignupRequestDTO request, HttpServletRequest httpRequest) {
+
+        //닉네임 중복 여부 검사 확인
+        String verifiedNickname = (String) httpRequest.getSession().getAttribute("verified_nickname");
+
+        if (verifiedNickname == null || !verifiedNickname.equals(request.getNickname())) {
+            throw new AppException(AuthErrorCode.NICKNAME_NOT_VERIFIED);
+        }
+
         //user 정보 처리
         userService.oauthSignupInfo(request, request.getGuestInfo());
 
