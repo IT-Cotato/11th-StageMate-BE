@@ -20,7 +20,7 @@ import java.util.List;
 @Builder
 @Table(name = "community_comments")
 public class CommunityComment {
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "community_comment_id")
     private Long id;
 
