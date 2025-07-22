@@ -58,6 +58,8 @@ public class MagazineController {
             @ApiResponse(responseCode = "404", description = "카테고리를 찾을 수 없음 (MAGAZINE-001)",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "500", description = "서버 내부 에러 (COMMON-005)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "인증 필요 (COMMON-009)",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -135,6 +137,8 @@ public class MagazineController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "삭제 성공"),
             @ApiResponse(responseCode = "404", description = "매거진을 찾을 수 없음 (MAGAZINE-002)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "인증 필요 (COMMON-009)",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @DeleteMapping("/{magazineId}")
@@ -153,8 +157,8 @@ public class MagazineController {
             @ApiResponse(responseCode = "200", description = "좋아요 성공"),
             @ApiResponse(responseCode = "404", description = "매거진을 찾을 수 없음 (MAGAZINE-002)",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "404", description = "유저를 찾을 수 없음 (COMMON-008)",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+            @ApiResponse(responseCode = "401", description = "인증 필요 (COMMON-009)",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping("/{magazineId}/likes")
     public ResponseEntity<DataResponse<Void>> likeMagazine(
@@ -170,7 +174,7 @@ public class MagazineController {
             @ApiResponse(responseCode = "200", description = "좋아요 성공"),
             @ApiResponse(responseCode = "404", description = "매거진을 찾을 수 없음 (MAGAZINE-002)",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "404", description = "유저를 찾을 수 없음 (COMMON-008)",
+            @ApiResponse(responseCode = "401", description = "인증 필요 (COMMON-009)",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping("/{magazineId}/scraps")

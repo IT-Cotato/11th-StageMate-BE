@@ -190,9 +190,7 @@ public class ArchiveController {
     @Operation(summary = "내가 스크랩한 매거진 목록 조회 (페이징)", description = "매거진을 페이지 단위로 조회합니다. 페이지는 1부터 시작합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "매거진 목록 페이지 단위 조회 성공"),
-            @ApiResponse(responseCode = "404", description = "매거진을 찾을 수 없음(MAGAZINE-002)",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "404", description = "유저를 찾을 수 없음 (COMMON-008)",
+            @ApiResponse(responseCode = "401", description = "인증 필요 (COMMON-009)",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/api/v1/archive/magazines")
@@ -209,9 +207,7 @@ public class ArchiveController {
     @Operation(summary = "내가 스크랩한 커뮤니티 게시글 목록 조회 (페이징)", description = "커뮤니티 게시글을 페이지 단위로 조회합니다. 페이지는 1부터 시작합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "커뮤니티 게시글 목록 페이지 단위 조회 성공"),
-            @ApiResponse(responseCode = "404", description = "커뮤니티 게시글을 찾을 수 없음(COMMUNITY-002)",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "404", description = "유저를 찾을 수 없음 (COMMON-008)",
+            @ApiResponse(responseCode = "401", description = "인증 필요 (COMMON-009)",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/api/v1/archive/communities")

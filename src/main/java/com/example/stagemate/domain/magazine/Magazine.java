@@ -23,6 +23,8 @@ public class Magazine {
     private Long id;
     private String title;
     private String subTitle;
+    @Lob
+    @Column(columnDefinition = "TEXT")
     private String content;
     private LocalDateTime createdAt;
     @Enumerated(EnumType.STRING)
