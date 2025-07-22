@@ -30,13 +30,11 @@ public class MagazineStatistics {
     LocalDateTime updatedAt;
 
     public static MagazineStatistics of(Magazine magazine) {
-        int likeCount = magazine.getLikes() == null ? 0 : magazine.getLikes().size();
-        int scrapCount = magazine.getScraps() == null ? 0 : magazine.getScraps().size();
         return MagazineStatistics.builder()
                 .magazine(magazine)
-                .likeCount(likeCount)
-                .scrapCount(scrapCount)
-                .totalCount(likeCount + scrapCount)
+                .likeCount(magazine.getLikeCount())
+                .scrapCount(magazine.getScrapCount())
+                .totalCount(magazine.getLikeCount() + magazine.getScrapCount())
                 .updatedAt(LocalDateTime.now())
                 .build();
     }

@@ -7,11 +7,8 @@ import static com.example.stagemate.global.exception.magazine.MagazineErrorCode.
 
 @Getter
 public enum MagazineCategory {
-    EVENT("이벤트"),
-    NEWS("뉴스"),
     MUSICAL("뮤지컬"),
-    PLAY("연극"),
-    ETC("기타");
+    PLAY("연극");
 
     private String description;
 
