@@ -38,6 +38,7 @@ public class CommunityComment {
     @JoinColumn(name = "parent_id")
     private CommunityComment parent;
 
+    @Builder.Default
     private boolean isDeleted = false;
     private LocalDateTime createdAt; // 생성 시간
     private LocalDateTime updatedAt; // 수정 시간
@@ -46,6 +47,7 @@ public class CommunityComment {
     // 대댓글 목록
     @JsonManagedReference
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<CommunityComment> children = new ArrayList<>();
 
     // 내용 수정 + 수정 시간 갱신
