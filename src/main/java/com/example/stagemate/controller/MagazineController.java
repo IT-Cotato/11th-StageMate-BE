@@ -1,12 +1,13 @@
 package com.example.stagemate.controller;
 
-import com.example.stagemate.domain.magazine.MagazineCreateForm;
+import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.MagazineCreateRequest;
 import com.example.stagemate.dto.response.MagazineListResponse;
 import com.example.stagemate.dto.response.MagazinePagedResponse;
 import com.example.stagemate.dto.response.MagazineResponse;
 import com.example.stagemate.global.dto.DataResponse;
 import com.example.stagemate.global.dto.ErrorResponse;
+import com.example.stagemate.global.reslover.CurrentUser;
 import com.example.stagemate.service.magazine.MagazineService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -57,6 +58,8 @@ public class MagazineController {
             @ApiResponse(responseCode = "404", description = "카테고리를 찾을 수 없음 (MAGAZINE-001)",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "500", description = "서버 내부 에러 (COMMON-005)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "인증 필요 (COMMON-009)",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -74,8 +77,8 @@ public class MagazineController {
                             array = @ArraySchema(schema = @Schema(type = "string", format = "binary"))
                     )
             )
-            @RequestPart(value = "images", required = false) List<MultipartFile> images
-
+            @RequestPart(value = "images", required = false) List<MultipartFile> images,
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user
     ) throws JsonProcessingException {
 
         MagazineCreateRequest request = objectMapper.readValue(requestJson, MagazineCreateRequest.class);
@@ -92,8 +95,10 @@ public class MagazineController {
     })
     @GetMapping("/latest")
     public ResponseEntity<DataResponse<List<MagazineListResponse>>> getLatestMagazines(
-            @RequestParam(defaultValue = "4") int size) {
-        List<MagazineListResponse> magazines = magazineService.getLatestMagazines(size);
+            @RequestParam(defaultValue = "4") int size,
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user
+            ) {
+        List<MagazineListResponse> magazines = magazineService.getLatestMagazines(size, user);
         return ResponseEntity.ok(DataResponse.from(magazines));
     }
 
@@ -105,8 +110,10 @@ public class MagazineController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/{magazineId}")
-    public ResponseEntity<DataResponse<MagazineResponse>> getMagazineDetail(@PathVariable Long magazineId) {
-        MagazineResponse magazine = magazineService.getMagazineDetail(magazineId);
+    public ResponseEntity<DataResponse<MagazineResponse>> getMagazineDetail(
+            @PathVariable Long magazineId,
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user) {
+        MagazineResponse magazine = magazineService.getMagazineDetail(magazineId, user);
         return ResponseEntity.ok(DataResponse.from(magazine));
     }
 
@@ -118,9 +125,10 @@ public class MagazineController {
     @GetMapping
     public ResponseEntity<DataResponse<MagazinePagedResponse>> getMagazines(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "6") int size
+            @RequestParam(defaultValue = "6") int size,
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user
     ) {
-        MagazinePagedResponse magazines = magazineService.getMagazineList(page, size);
+        MagazinePagedResponse magazines = magazineService.getMagazineList(page, size, user);
         return ResponseEntity.ok(DataResponse.from(magazines));
     }
 
@@ -129,10 +137,15 @@ public class MagazineController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "삭제 성공"),
             @ApiResponse(responseCode = "404", description = "매거진을 찾을 수 없음 (MAGAZINE-002)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "인증 필요 (COMMON-009)",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @DeleteMapping("/{magazineId}")
-    public ResponseEntity<DataResponse<Void>> deleteMagazine(@PathVariable Long magazineId) {
+    public ResponseEntity<DataResponse<Void>> deleteMagazine(
+            @PathVariable Long magazineId,
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user
+            ) {
         magazineService.deleteMagazine(magazineId);
         return ResponseEntity.ok(DataResponse.ok());
     }
@@ -144,15 +157,14 @@ public class MagazineController {
             @ApiResponse(responseCode = "200", description = "좋아요 성공"),
             @ApiResponse(responseCode = "404", description = "매거진을 찾을 수 없음 (MAGAZINE-002)",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-            // 유저를 찾을 수 없음
-//            @ApiResponse(responseCode = "404", description = "유저를 찾을 수 없음 (USER-001)",
-//                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+            @ApiResponse(responseCode = "401", description = "인증 필요 (COMMON-009)",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping("/{magazineId}/likes")
     public ResponseEntity<DataResponse<Void>> likeMagazine(
             @PathVariable Long magazineId,
-            @RequestParam Long userId) { // 일단 userId를 요청 파라미터로 받음
-        magazineService.likeMagazine(magazineId, userId);
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user) {
+        magazineService.likeMagazine(magazineId, user);
         return ResponseEntity.ok(DataResponse.ok());
     }
 
@@ -162,25 +174,27 @@ public class MagazineController {
             @ApiResponse(responseCode = "200", description = "좋아요 성공"),
             @ApiResponse(responseCode = "404", description = "매거진을 찾을 수 없음 (MAGAZINE-002)",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-            // 유저를 찾을 수 없음
-//            @ApiResponse(responseCode = "404", description = "유저를 찾을 수 없음 (USER-001)",
-//                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+            @ApiResponse(responseCode = "401", description = "인증 필요 (COMMON-009)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping("/{magazineId}/scraps")
     public ResponseEntity<DataResponse<Void>> scrapMagazine(
             @PathVariable Long magazineId,
-            @RequestParam Long userId) { // 일단 userId를 요청 파라미터로 받음
-        magazineService.scrapMagazine(magazineId, userId);
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user) {
+        magazineService.scrapMagazine(magazineId, user);
         return ResponseEntity.ok(DataResponse.ok());
     }
 
     // 좋아요 + 스크랩 많은 순 추천 매거진 4개 보여주기
-    @Operation(summary = "추천 매거진 조회", description = "좋아요와 스크랩의 합이 높은 순으로 매거진 4개를 추천합니다.")
+    @Operation(summary = "추천 매거진 조회", description = "좋아요와 스크랩의 합이 높은 순으로 매거진 4개를 추천합니다. 30분 단위로 업데이트됩니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "추천 매거진 조회 성공"),
     })
     @GetMapping("/recommend")
-    public ResponseEntity<DataResponse<List<MagazineListResponse>>> getRecommendedMagazines() {
-        return ResponseEntity.ok(DataResponse.from(magazineService.getRecommendedMagazines()));
+    public ResponseEntity<DataResponse<List<MagazineListResponse>>> getRecommendedMagazines(
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user
+    ) {
+        List<MagazineListResponse> recommendedMagazines = magazineService.getRecommendedMagazines(user);
+        return ResponseEntity.ok(DataResponse.from(recommendedMagazines));
     }
 }

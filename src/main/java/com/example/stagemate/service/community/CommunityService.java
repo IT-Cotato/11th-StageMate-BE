@@ -2,6 +2,7 @@ package com.example.stagemate.service.community;
 
 import com.example.stagemate.domain.community.*;
 import com.example.stagemate.domain.image.Image;
+import com.example.stagemate.domain.magazine.Magazine;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.community.CommunityPostCreateRequest;
 import com.example.stagemate.dto.request.community.CommunityPostUpdateRequest;
@@ -49,6 +50,7 @@ public class CommunityService {
     private final CommunityStatisticsRepository communityStatisticsRepository;
     private final CommunityLikeService communityLikeService;
     private final ObjectMapper objectMapper;
+    private final CommunityCommentService communityCommentService;
 
     // 커뮤니티 게시글 작성, 이미지 업로드
     public CommunityPostResponse createCommunityPost(UserJpaEntity user, CommunityPostCreateRequest request, List<MultipartFile> images) throws JsonProcessingException {
@@ -86,7 +88,7 @@ public class CommunityService {
         JsonNode jsonContent = objectMapper.readTree(post.getContent());
 
         // 게시글 작성 시점 사용자는 본인의 스크랩과 좋아요를 누르지 않음
-        return CommunityPostResponse.from(post, false, false, jsonContent);
+        return CommunityPostResponse.from(post, false, false, jsonContent, null);
     }
 
     // 커뮤니티 게시글 목록 조회(페이징)
@@ -235,8 +237,9 @@ public class CommunityService {
 
         // JSON content 파싱
         JsonNode jsonContent = objectMapper.readTree(post.getContent());
+        List<CommunityCommentResponse> comments = communityCommentService.getCommentsByPost(post);
 
-        return CommunityPostResponse.from(post, isScrapped, isLiked, jsonContent);
+        return CommunityPostResponse.from(post, isScrapped, isLiked, jsonContent, comments);
 
     }
 
@@ -303,7 +306,9 @@ public class CommunityService {
         // 역직렬화
         JsonNode jsonContent = objectMapper.readTree(post.getContent());
 
-        return CommunityPostResponse.from(post, isScrapped, isLiked, jsonContent);
+        List<CommunityCommentResponse> comments = communityCommentService.getCommentsByPost(post);
+
+        return CommunityPostResponse.from(post, isScrapped, isLiked, jsonContent, comments);
     }
 
 
@@ -372,6 +377,30 @@ public class CommunityService {
     private CommunityPost getCommunityPost(Long postId) {
         return communityRepository.findById(postId)
                 .orElseThrow(() -> new AppException(COMMUNITY_POST_NOT_FOUND));
+    }
+
+
+    public CommunityPostPagedResponse getMyCommunityScrapList(UserJpaEntity user, int page, int size) {
+        Pageable pageable = PageRequest.of(page-1, size);
+        // 유저 존재하는지 확인
+        if (user == null) {
+            throw new AppException(NOT_FOUND_USER);
+        }
+
+        Page<CommunityPost> communityPosts = communityScrapRepository.findScrappedPostsByUser(user.getId(),pageable);
+        List<Long> likedPostIdsByUser = communityLikeService.getLikedPostIdsByUser(user.getId());
+        List<CommunityPostListResponse> list = communityPosts.stream()
+                .map(post -> CommunityPostListResponse.from(post, likedPostIdsByUser.contains(post.getId())))
+                .toList();
+
+
+        return new CommunityPostPagedResponse(
+                list,
+                communityPosts.getNumber(),
+                communityPosts.getSize(),
+                communityPosts.getTotalElements(),
+                communityPosts.getTotalPages()
+        );
     }
 
 }

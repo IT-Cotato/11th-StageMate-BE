@@ -10,15 +10,17 @@ public record MagazineListResponse(
         String title,
         String subTitle,
         String imageUrl, // 맨 처음 이미지만 보이게
-        String category
+        String category,
+        boolean isScraped
 ) {
-    public static MagazineListResponse from(Magazine magazine) {
+    public static MagazineListResponse from(Magazine magazine, boolean isScraped) {
         return new MagazineListResponse(
                 magazine.getId(),
                 magazine.getTitle(),
                 magazine.getSubTitle(),
                 magazine.getImages().isEmpty() ? "basic" : magazine.getImages().get(0).getImage().getImageUrl(),
-                magazine.getCategory().name()
+                magazine.getCategory().getDescription(),
+                isScraped
         );
     }
 }
