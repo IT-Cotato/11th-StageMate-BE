@@ -28,3 +28,8 @@ jobs:
           chmod 600 private_key.pem
           scp -i private_key.pem build/libs/*.jar $EC2_USER@$EC2_HOST:/home/$EC2_USER/
           ssh -i private_key.pem $EC2_USER@$EC2_HOST "nohup java -jar /home/$EC2_USER/*.jar > output.log 2>&1 &"
+          
+      - name: Clean up private key
+        run: rm -f private_key.pem
+
+
