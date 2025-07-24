@@ -15,6 +15,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -32,6 +33,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         User user = oAuth2User.getUser();
 
         if (user.getRole() == Role.USER) {
+
             // 회원가입이 완료된 유저 → JWT 발급 + 프론트로 이동
             String accessToken = jwtTokenProvider.createToken(user.getId());
 
@@ -46,6 +48,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         } else {
             // 가입되지 않은 유저(GUEST) -> 세션에 GuestInfo 저장하고 약관 동의 페이지로 리다이렉트
             GuestInfo guestInfo = new GuestInfo(
+                    user.getUserId(),
                     user.getName(),
                     user.getEmail(),
                     user.getPicture()
