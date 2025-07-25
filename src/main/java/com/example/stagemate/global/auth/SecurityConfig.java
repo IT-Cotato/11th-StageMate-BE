@@ -24,7 +24,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
-//@Profile("!local")
+@Profile("!local")
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
@@ -39,14 +39,17 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() { 
+    public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
         configuration.addAllowedOrigin("http://localhost:3000");
+        configuration.addAllowedOrigin("http://localhost:5173");      // ✅ 추가
+        configuration.addAllowedOrigin("http://34.49.53.76");         // ✅ 추가
+        configuration.setAllowCredentials(true);                      // ✅ true이면 origin은 * 사용 금지
         configuration.addAllowedHeader("*");
-        configuration.addAllowedMethod("*");
-        configuration.setAllowCredentials(true);
+        configuration.addAllowedMethod("*"); // 또는 GET, POST, PUT, DELETE, OPTIONS
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
@@ -95,4 +98,6 @@ public class SecurityConfig {
 
         return http.build();
     }
+
+
 }
