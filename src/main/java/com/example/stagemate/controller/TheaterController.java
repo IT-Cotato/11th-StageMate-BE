@@ -3,6 +3,7 @@ package com.example.stagemate.controller;
 import com.example.stagemate.dto.response.TheaterDetailResponse;
 import com.example.stagemate.global.dto.DataResponse;
 import com.example.stagemate.service.theater.TheaterService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,7 @@ public class TheaterController {
     private final TheaterService theaterService;
 
 
+    @Operation(summary = "공연장 목록", description = "공연장 목록을 가져옴, region은 선택")
     @GetMapping("/api/v1/theaters")
     public ResponseEntity<DataResponse<List<TheaterDetailResponse>>> getTheaters(
             @RequestParam(name = "region", required = false) String region

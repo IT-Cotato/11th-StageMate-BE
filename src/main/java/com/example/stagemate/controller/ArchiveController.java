@@ -142,7 +142,7 @@ public class ArchiveController {
         """
 )
     @ApiResponse(responseCode = "200", description = "아카이브 변경")
-    @PatchMapping(value = "/api/v1/archive/{archiveId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "/api/v1/archive/{archiveId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<DataResponse<?>> updateArchive(
             @Parameter(hidden = true) @CurrentUser UserJpaEntity user,
             @PathVariable Long archiveId,

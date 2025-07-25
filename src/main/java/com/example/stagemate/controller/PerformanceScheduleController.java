@@ -51,7 +51,7 @@ public class PerformanceScheduleController {
 
     @Operation(summary = "공식스케줄 상태 변경", description = "공식스케줄 상태 변경, 관리자가 PENDING 상태인 공식스케줄 제보를 APPROVED, REJECTED 상태로 바꾸는 용도")
     @ApiResponse(responseCode = "200", description = "공식스케줄리포트 상태 변경")
-    @PatchMapping("/api/v1/performanceSchedule/{performanceScheduleId}")
+    @PutMapping("/api/v1/performanceSchedule/{performanceScheduleId}")
     public ResponseEntity<DataResponse<?>> changePerformanceScheduleStatus(
             @PathVariable("performanceScheduleId") Long performanceScheduleId,
             @RequestParam("performanceScheduleReportStatus") PerformanceScheduleReportStatus performanceScheduleReportStatus) {
@@ -94,7 +94,7 @@ public class PerformanceScheduleController {
     //공식 스케줄 스크랩하기
     @Operation(summary = "공식 스케줄 스크랩 저장 또는 삭제", description = "공식 스케줄 스크랩 저장 또는 삭제")
     @ApiResponse(responseCode = "200", description = "공식 스케줄 스크랩 저장 또는 삭제")
-    @PostMapping("/api/v1/performanceSchedule/{performanceScheduleId}")
+    @PostMapping("/api/v1/performanceSchedule/{performanceScheduleId}/scrap")
     public ResponseEntity<DataResponse<?>> insertOrDeletePerformanceScheduleScrap(
             @Parameter(hidden = true) @CurrentUser UserJpaEntity user,
             @PathVariable("performanceScheduleId") Long performanceScheduleId) {
