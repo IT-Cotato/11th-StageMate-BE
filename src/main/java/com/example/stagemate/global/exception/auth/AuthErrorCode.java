@@ -24,6 +24,8 @@ public enum AuthErrorCode implements ErrorCode {
     DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "이미 사용 중인 닉네임입니다.", "AUTH-017"),
 
 
+
+
     // RefreshToken 관련 오류들
     TOKEN_MISSING(HttpStatus.FORBIDDEN, "유효하지 않은 토큰입니다.", "AUTH-004"),
     TOKEN_NOT_FOUND(HttpStatus.FORBIDDEN, "유효하지 않은 토큰입니다.", "AUTH-005"),

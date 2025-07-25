@@ -63,7 +63,7 @@ public class UserService implements LoginUseCase, RegisterUserUseCase {
 
     @Override
     @Transactional
-    public void execute(RegisterUserRequestDTO request) {
+    public User execute(RegisterUserRequestDTO request) {
         // 비밀번호 일치 검증
         if (!request.password().equals(request.passwordConfirm())) {
             throw new AppException(AuthErrorCode.PASSWORD_CONFIRM_NOT_MATCH);
@@ -72,8 +72,12 @@ public class UserService implements LoginUseCase, RegisterUserUseCase {
         // 커맨드 변환
         RegisterUserCommand command = RegisterUserCommand.from(request);
 
-        // 실제 회원가입 로직
-        normalSignupInfo(command);
+        // userId 저장
+        String userId = normalSignupInfo(command);
+
+        // userId로 다시 조회해서 User 반환
+        return loadUserPort.findByUserId(userId)
+                .orElseThrow(() -> new AppException(CommonErrorCode.NOT_FOUND_USER));
     }
 
     @Override
@@ -90,7 +94,7 @@ public class UserService implements LoginUseCase, RegisterUserUseCase {
     }
 
     @Transactional
-    public void oauthSignupInfo(OAuth2SignupRequestDTO request, GuestInfo guestInfo) {
+    public User oauthSignupInfo(OAuth2SignupRequestDTO request, GuestInfo guestInfo) {
         if (loadUserPort.existsByNickname(request.getNickname())) {
             throw new AppException(CommonErrorCode.RESOURCE_CONFLICT, "이미 사용 중인 닉네임입니다.");
         }
@@ -101,6 +105,8 @@ public class UserService implements LoginUseCase, RegisterUserUseCase {
         User updatedGuest = guestUser.updateGuestInfo(request.getNickname(), request.getBirthdate());
 
         saveUserPort.save(updatedGuest);
+
+        return updatedGuest;
     }
 
 

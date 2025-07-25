@@ -87,5 +87,6 @@ public class ExceptionController {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ErrorResponse.of(CommonErrorCode.BAD_REQUEST, request));
+
     }
 }
