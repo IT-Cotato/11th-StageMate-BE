@@ -10,8 +10,8 @@ import java.util.Map;
 @Getter
 public class ConsentRequestDTO {
 
-    @Schema(description = "일반 가입자의 경우 userId 필수, OAuth 가입자의 경우 생략")
-    private String userId;
+    @Schema(description = "회원가입 임시 식별자", example = "e1432a5f-89a0-4f1e-85a7-7a91b2be14e9")
+    private String tempUserKey;
 
     @Schema(
             description = "동의한 약관 목록 (ConsentType: true/false)",
