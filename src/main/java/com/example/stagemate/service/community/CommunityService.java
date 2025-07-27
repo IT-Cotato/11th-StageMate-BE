@@ -2,7 +2,6 @@ package com.example.stagemate.service.community;
 
 import com.example.stagemate.domain.community.*;
 import com.example.stagemate.domain.image.Image;
-import com.example.stagemate.domain.magazine.Magazine;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.community.CommunityPostCreateRequest;
 import com.example.stagemate.dto.request.community.CommunityPostUpdateRequest;
@@ -415,9 +414,9 @@ public class CommunityService {
             throw new AppException(REPORT_REASON_NOT_FOUND);
         }
 
-        ReportTargetType targetType;
+        TargetType targetType;
         try {
-            targetType = ReportTargetType.valueOf(targetTypeRaw);
+            targetType = TargetType.valueOf(targetTypeRaw);
         } catch (IllegalArgumentException e) {
             throw new AppException(REPORT_TARGET_TYPE_INVALID);
         }

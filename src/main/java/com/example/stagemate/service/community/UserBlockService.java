@@ -1,0 +1,109 @@
+package com.example.stagemate.service.community;
+
+import com.example.stagemate.domain.community.CommunityComment;
+import com.example.stagemate.domain.community.CommunityPost;
+import com.example.stagemate.domain.community.TargetType;
+import com.example.stagemate.domain.community.UserBlock;
+import com.example.stagemate.domain.user.entity.UserJpaEntity;
+import com.example.stagemate.dto.response.community.UserBlockListResponse;
+import com.example.stagemate.dto.response.community.UserBlockPagedResponse;
+import com.example.stagemate.global.exception.AppException;
+import com.example.stagemate.repository.community.CommunityCommentRepository;
+import com.example.stagemate.repository.community.CommunityRepository;
+import com.example.stagemate.repository.community.UserBlockRepository;
+import com.example.stagemate.repository.user.UserJpaRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+import static com.example.stagemate.global.exception.CommonErrorCode.NOT_FOUND_USER;
+import static com.example.stagemate.global.exception.CommonErrorCode.UNAUTHORIZED;
+import static com.example.stagemate.global.exception.community.CommunityErrorCode.*;
+
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class UserBlockService {
+
+    private final UserBlockRepository userBlockRepository;
+    private final CommunityRepository communityRepository;
+    private final CommunityCommentRepository commentRepository;
+    private final UserJpaRepository userRepository;
+
+    public void blockUser(UserJpaEntity user, Long targetId, String targetTypeRaw) {
+        TargetType targetType;
+        try {
+            targetType = TargetType.valueOf(targetTypeRaw);
+        } catch (IllegalArgumentException e) {
+            throw new AppException(REPORT_TARGET_TYPE_INVALID);
+        }
+
+        UserJpaEntity targetUser;
+        userRepository.findById(user.getId())
+                .orElseThrow(() -> new AppException(NOT_FOUND_USER));
+
+        // 게시글/댓글 작성자 추출
+        switch (targetType) {
+            case POST -> {
+                CommunityPost communityPost = communityRepository.findById(targetId)
+                        .orElseThrow(() -> new AppException(COMMUNITY_POST_NOT_FOUND));
+                targetUser = communityPost.getAuthor();
+            }
+            case COMMENT -> {
+                CommunityComment communityComment = commentRepository.findById(targetId)
+                        .orElseThrow(() -> new AppException(COMMUNITY_COMMENT_NOT_FOUND));
+                targetUser = communityComment.getUser();
+            }
+            default -> throw new AppException(REPORT_TARGET_TYPE_INVALID);
+        }
+
+        // 본인 차단 방지
+        if (user.getId().equals(targetUser.getId())) {
+            throw new AppException(INVALID_BLOCK_SELF);
+        }
+
+        // 중복 차단 방지
+        boolean alreadyBlocked = userBlockRepository.existsByBlockerIdAndBlockedId(user.getId(), targetUser.getId());
+        if (alreadyBlocked) {
+            throw new AppException(USER_ALREADY_BLOCKED);
+        }
+
+        UserBlock userBlock = UserBlock.of(user, targetUser);
+        userBlockRepository.save(userBlock);
+    }
+
+
+    public void unblockUser(UserJpaEntity user, Long blockedUserId) {
+        userRepository.findById(user.getId())
+                .orElseThrow(() -> new AppException(NOT_FOUND_USER));
+
+        UserJpaEntity blockedUser = userRepository.findById(blockedUserId)
+                .orElseThrow(() -> new AppException(NOT_FOUND_USER));
+
+        userBlockRepository.deleteByBlockerIdAndBlockedId(user.getId(), blockedUser.getId());
+    }
+
+
+    public UserBlockPagedResponse getBlockedUsers(UserJpaEntity user, int page, int size) {
+        Pageable pageable = PageRequest.of(page-1, size);
+        userRepository.findById(user.getId())
+                .orElseThrow(() -> new AppException(NOT_FOUND_USER));
+
+        Page<UserBlock> allByBlockerId = userBlockRepository.findAllByBlockerId(user.getId(), pageable);
+        List<UserBlockListResponse> list = allByBlockerId
+                .stream()
+                .map(UserBlockListResponse::from)
+                .toList();
+        return UserBlockPagedResponse.from(
+                list,
+                allByBlockerId
+        );
+
+    }
+}
+

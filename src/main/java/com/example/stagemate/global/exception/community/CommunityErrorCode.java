@@ -20,6 +20,8 @@ public enum CommunityErrorCode implements ErrorCode {
     REPORT_REASON_NOT_FOUND(HttpStatus.BAD_REQUEST, "신고 사유가 올바르지 않습니다.", "COMMUNITY-009"),
     COMMUNITY_REPORT_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "이미 신고한 게시글입니다.", "COMMUNITY-010"),
     REPORT_TARGET_TYPE_INVALID(HttpStatus.BAD_REQUEST, "신고 대상 타입이 올바르지 않습니다.", "COMMUNITY-011"),
+    INVALID_BLOCK_SELF(HttpStatus.BAD_REQUEST, "자신을 차단할 수 없습니다.", "COMMUNITY-012"),
+    USER_ALREADY_BLOCKED(HttpStatus.BAD_REQUEST, "이미 차단한 사용자입니다.", "COMMUNITY-013")
     ;
 
     private final HttpStatus httpStatus;

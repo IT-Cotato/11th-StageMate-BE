@@ -28,7 +28,7 @@ public class CommunityReport {
     private UserJpaEntity reporter;
 
     @Enumerated(EnumType.STRING)
-    private ReportTargetType targetType; // 게시글 또는 댓글
+    private TargetType targetType; // 게시글 또는 댓글
 
     private Long targetId;  // 게시글 ID 또는 댓글 ID
 
@@ -37,7 +37,7 @@ public class CommunityReport {
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    public static CommunityReport of(UserJpaEntity user, ReportTargetType targetType, Long targetId, ReportReason reason) {
+    public static CommunityReport of(UserJpaEntity user, TargetType targetType, Long targetId, ReportReason reason) {
         return CommunityReport.builder()
                 .reporter(user)
                 .targetType(targetType)

@@ -40,17 +40,17 @@ public class ReportController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "신고 성공"),
-            @ApiResponse(responseCode = "401", description = "인증 필요 (COMMON-009)",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "400", description = """
                         - 잘못된 신고 사유 (COMMUNITY-009)
                         - 잘못된 대상 타입 (COMMUNITY-011)
                         - 이미 신고한 대상 (COMMUNITY-010)
                     """),
+            @ApiResponse(responseCode = "401", description = "인증 필요 (COMMON-009)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "404", description = """
                         - 게시글을 찾을 수 없음 (COMMUNITY-002)
                         - 댓글을 찾을 수 없음 (COMMUNITY-006)
-                        - 사용자를 찾을 수 없음 (COMMUNITY-012)
+                        - 사용자를 찾을 수 없음 (COMMON-008)
                     """)
     })
     @SecurityRequirement(name = "bearerAuth")
