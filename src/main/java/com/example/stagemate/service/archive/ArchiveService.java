@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -96,10 +97,9 @@ public class ArchiveService {
     }
 
     private Image uploadImageAndSave(MultipartFile image) {
-        Image uploadImage = imageService.uploadImage(image);
-        imageRepository.save(uploadImage);
-
-        return uploadImage;
+        return Optional.ofNullable(image)
+                .map(imageService::uploadImage)
+                .orElse(null);
     }
 
 
