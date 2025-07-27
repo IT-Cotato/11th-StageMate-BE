@@ -14,4 +14,5 @@ public class CommunityPostUpdateRequest {
     private String tradeMethod; // 추첨나눔, 판매, 선착나눔
     private boolean membersOnly;
     private List<Long> imageIds; // 삭제하지 않은 기존 이미지 ID 목록
+    private boolean sendNotification;
 }

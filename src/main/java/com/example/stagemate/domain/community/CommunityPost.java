@@ -52,6 +52,8 @@ public class CommunityPost {
     @Builder.Default
     private int scrapCount = 0;
 
+    private boolean sendNotification;
+
     @Builder.Default
     @OneToMany(mappedBy = "communityPost", cascade = CascadeType.ALL, orphanRemoval = true)
     List<CommunityImage> images = new ArrayList<>();
@@ -99,5 +101,6 @@ public class CommunityPost {
         this.tradeCategory = communityCategory==CommunityCategory.TRADE ? TradeCategory.from(request.getTradeCategory()) : null;
         this.tradeMethod = communityCategory==CommunityCategory.TRADE ? TradeMethod.from(request.getTradeMethod()) : null;
         this.membersOnly = request.isMembersOnly();
+        this.sendNotification = request.isSendNotification();
     }
 }

@@ -18,6 +18,7 @@ public class CommunityPostCreateRequest {
     private String tradeCategory; // 뮤지컬, 연극
     private String tradeMethod; // 추첨나눔, 판매, 선착나눔
     private boolean membersOnly;
+    private boolean sendNotification;
 
     public CommunityPost toEntity(UserJpaEntity user, CommunityCategory communityCategory, TradeCategory tradeCategory, TradeMethod tradeMethod, String jsonString) {
         return CommunityPost.builder()
@@ -28,6 +29,7 @@ public class CommunityPostCreateRequest {
                 .content(jsonString)
                 .author(user)
                 .membersOnly(membersOnly)
+                .sendNotification(sendNotification)
 //                .isDeleted(false)
 //                .viewCount(0)
 //                .commentCount(0)
