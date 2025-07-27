@@ -167,6 +167,4 @@ public class CommunityController {
         return ResponseEntity.ok(DataResponse.ok());
     }
 
-
-
 }

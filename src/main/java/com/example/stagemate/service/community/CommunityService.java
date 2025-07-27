@@ -30,8 +30,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import static com.example.stagemate.global.exception.CommonErrorCode.NOT_FOUND_USER;
-import static com.example.stagemate.global.exception.community.CommunityErrorCode.COMMUNITY_POST_NOT_AUTHOR;
-import static com.example.stagemate.global.exception.community.CommunityErrorCode.COMMUNITY_POST_NOT_FOUND;
+import static com.example.stagemate.global.exception.community.CommunityErrorCode.*;
 import static io.opentelemetry.api.internal.ApiUsageLogger.log;
 
 @Service
@@ -51,6 +50,8 @@ public class CommunityService {
     private final CommunityLikeService communityLikeService;
     private final ObjectMapper objectMapper;
     private final CommunityCommentService communityCommentService;
+    private final CommunityReportRepository communityReportRepository;
+    private final CommunityCommentRepository communityCommentRepository;
 
     // 커뮤니티 게시글 작성, 이미지 업로드
     public CommunityPostResponse createCommunityPost(UserJpaEntity user, CommunityPostCreateRequest request, List<MultipartFile> images) throws JsonProcessingException {
@@ -401,6 +402,46 @@ public class CommunityService {
                 communityPosts.getTotalElements(),
                 communityPosts.getTotalPages()
         );
+    }
+
+
+    // 커뮤니티 게시글/댓글 신고
+    @Transactional
+    public void reportCommunityPost(UserJpaEntity user, Long targetId, String targetTypeRaw, String reasonRaw ) {
+        ReportReason reason;
+        try {
+            reason = ReportReason.valueOf(reasonRaw);
+        } catch (IllegalArgumentException e) {
+            throw new AppException(REPORT_REASON_NOT_FOUND);
+        }
+
+        ReportTargetType targetType;
+        try {
+            targetType = ReportTargetType.valueOf(targetTypeRaw);
+        } catch (IllegalArgumentException e) {
+            throw new AppException(REPORT_TARGET_TYPE_INVALID);
+        }
+
+        switch (targetType) {
+            case POST -> communityRepository.findById(targetId)
+                    .orElseThrow(() -> new AppException(COMMUNITY_POST_NOT_FOUND));
+            case COMMENT -> communityCommentRepository.findById(targetId)
+                    .orElseThrow(() -> new AppException(COMMUNITY_COMMENT_NOT_FOUND));
+        }
+
+        userRepository.findById(user.getId())
+                .orElseThrow(() -> new AppException(NOT_FOUND_USER));
+
+        // 중복 신고 방지
+        boolean alreadyReported = communityReportRepository.existsByReporterIdAndTargetTypeAndTargetId(
+                user.getId(), targetType, targetId
+        );
+        if (alreadyReported) {
+            throw new AppException(COMMUNITY_REPORT_ALREADY_EXISTS);
+        }
+
+        CommunityReport report = CommunityReport.of(user, targetType, targetId, reason);
+        communityReportRepository.save(report);
     }
 
 }
