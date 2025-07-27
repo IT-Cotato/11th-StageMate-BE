@@ -28,6 +28,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UserService implements LoginUseCase, RegisterUserUseCase {
 
     private final SaveUserPort saveUserPort;
@@ -38,7 +39,6 @@ public class UserService implements LoginUseCase, RegisterUserUseCase {
 
 
     @Override
-    @Transactional
     public String normalSignupInfo(RegisterUserCommand command) {
         if (loadUserPort.existsByUserId(command.userId())) {
             throw new AppException(CommonErrorCode.RESOURCE_CONFLICT, "이미 사용 중인 아이디입니다.");
@@ -62,7 +62,6 @@ public class UserService implements LoginUseCase, RegisterUserUseCase {
     }
 
     @Override
-    @Transactional
     public User execute(RegisterUserRequestDTO request) {
         // 비밀번호 일치 검증
         if (!request.password().equals(request.passwordConfirm())) {
@@ -81,7 +80,6 @@ public class UserService implements LoginUseCase, RegisterUserUseCase {
     }
 
     @Override
-    @Transactional
     public User normalAgreeAndRegister(NormalAgreeCommand command, String userId) {
         validateConsents(command.consents());
 
@@ -93,7 +91,6 @@ public class UserService implements LoginUseCase, RegisterUserUseCase {
         return saveUserPort.save(finalUser);
     }
 
-    @Transactional
     public User oauthSignupInfo(OAuth2SignupRequestDTO request, GuestInfo guestInfo) {
         if (loadUserPort.existsByNickname(request.getNickname())) {
             throw new AppException(CommonErrorCode.RESOURCE_CONFLICT, "이미 사용 중인 닉네임입니다.");
