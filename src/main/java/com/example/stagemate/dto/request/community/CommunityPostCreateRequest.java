@@ -5,10 +5,13 @@ import com.example.stagemate.domain.community.CommunityPost;
 import com.example.stagemate.domain.community.TradeCategory;
 import com.example.stagemate.domain.community.TradeMethod;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
+import com.example.stagemate.global.exception.AppException;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+
+import static com.example.stagemate.global.exception.community.CommunityErrorCode.COMMUNITY_POST_CREATE_INVALID_INPUT;
 
 @Getter
 public class CommunityPostCreateRequest {
@@ -30,11 +33,18 @@ public class CommunityPostCreateRequest {
                 .author(user)
                 .membersOnly(membersOnly)
                 .sendNotification(sendNotification)
-//                .isDeleted(false)
-//                .viewCount(0)
-//                .commentCount(0)
                 .createdAt(LocalDateTime.now())
                 .build();
     }
 
+    public void validate() {
+        if (isBlank(title) || content == null || isBlank(category)
+                || ("나눔거래".equals(category) && (isBlank(tradeCategory) || isBlank(tradeMethod)))) {
+            throw new AppException(COMMUNITY_POST_CREATE_INVALID_INPUT);
+        }
+    }
+
+    private boolean isBlank(String str) {
+        return str == null || str.trim().isEmpty();
+    }
 }

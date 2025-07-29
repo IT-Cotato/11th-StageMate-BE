@@ -27,8 +27,7 @@ public class CommunityCommentController {
     private final CommunityCommentService communityCommentService;
 
 
-    @Operation(summary = "댓글 등록", description = "해당 게시글에 댓글 또는 대댓글을 등록합니다. parentId가 있으면 대댓글입니다.")
-    @ApiResponse(responseCode = "201", description = "등록 성공")
+    @Operation(summary = "댓글 등록", description = "해당 게시글에 댓글 또는 대댓글을 등록합니다. 댓글인 경우 parentId에 null을 넣고, 대댓글은 parentId에 댓글 Id를 넣습니다.")
     @PostMapping("/{postId}")
     public ResponseEntity<DataResponse<Void>> createComment(
             @PathVariable Long postId,
@@ -47,7 +46,7 @@ public class CommunityCommentController {
             @RequestBody CommunityCommentUpdateRequest request,
             @Parameter(hidden = true) @CurrentUser UserJpaEntity user
     ) {
-        communityCommentService.updateComment(user, commentId, request.content());
+        communityCommentService.updateComment(user, commentId, request);
         return ResponseEntity.ok(DataResponse.ok());
     }
 

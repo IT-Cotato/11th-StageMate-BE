@@ -27,6 +27,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.example.stagemate.global.exception.CommonErrorCode.NOT_FOUND_USER;
 import static com.example.stagemate.global.exception.community.CommunityErrorCode.*;
@@ -51,6 +53,7 @@ public class CommunityService {
     private final CommunityCommentService communityCommentService;
     private final CommunityReportRepository communityReportRepository;
     private final CommunityCommentRepository communityCommentRepository;
+    private final UserBlockRepository userBlockRepository;
 
     // 커뮤니티 게시글 작성, 이미지 업로드
     public CommunityPostResponse createCommunityPost(UserJpaEntity user, CommunityPostCreateRequest request, List<MultipartFile> images) throws JsonProcessingException {
@@ -108,11 +111,23 @@ public class CommunityService {
                     .toList();
         } else {
             // 회원은 전체공개 + 회원공개 글 중 차단한 사람 제외
-            // 차단 로직은 추후 추가
             communityStatistics = communityStatisticsRepository.findAllByOrderByTotalCountDesc(pageable);
             List<Long> likedPostIdsByUser = communityLikeService.getLikedPostIdsByUser(user.getId());
+
+            Set<Long> blockedUserIds = userBlockRepository.findAllByBlockerId(user.getId())
+                    .stream()
+                    .map(block -> block.getBlocked().getId())
+                    .collect(Collectors.toSet());
+
             list = communityStatistics.stream()
-                    .map(post -> CommunityPostListResponse.fromStat(post, likedPostIdsByUser.contains(post.getId())))
+                    .map(stat -> {
+                        boolean isBlocked = blockedUserIds.contains(stat.getCommunityPost().getAuthor().getId());
+                        if (isBlocked) {
+                            return CommunityPostListResponse.maskedStat(stat, likedPostIdsByUser.contains(stat.getId())); // 마스킹된 응답 생성
+                        } else {
+                            return CommunityPostListResponse.fromStat(stat, likedPostIdsByUser.contains(stat.getId()));
+                        }
+                    })
                     .toList();
         }
 
@@ -147,15 +162,24 @@ public class CommunityService {
 
         } else {
             // 회원은 전체공개 + 회원공개 글 중 차단한 사람 제외
-            // 차단 로직은 추후 추가
             communityPosts = communityRepository.findAllByDeletedFalseAndCategoryOrderByCreatedAtDesc(
                     CommunityCategory.from(category), pageable
             );
             List<Long> likedPostIdsByUser = communityLikeService.getLikedPostIdsByUser(user.getId());
-            list = communityPosts.stream()
-                    .map(post -> CommunityPostListResponse.from(post, likedPostIdsByUser.contains(post.getId())))
-                    .toList();
+            Set<Long> blockedUserIds = userBlockRepository.findAllByBlockerId(user.getId()).stream()
+                    .map(block -> block.getBlocked().getId())
+                    .collect(Collectors.toSet());
 
+            list = communityPosts.stream()
+                    .map(post -> {
+                        boolean isBlocked = blockedUserIds.contains(post.getAuthor().getId());
+                        if (isBlocked) {
+                            return CommunityPostListResponse.masked(post, likedPostIdsByUser.contains(post.getId()));
+                        } else {
+                            return CommunityPostListResponse.from(post, likedPostIdsByUser.contains(post.getId()));
+                        }
+                    })
+                    .toList();
         }
         return new CommunityPostPagedResponse(
                 list,
@@ -186,15 +210,23 @@ public class CommunityService {
 
         } else {
             // 회원은 전체공개 + 회원공개 글 중 차단한 사람 제외
-            // 차단 로직은 추후 추가
             communityPosts = communityRepository.findAllByDeletedFalseAndCategoryOrderByCreatedAtDesc(
                     CommunityCategory.TRADE, pageable
             );
-            List<Long> scrappedPostIdsByUser = communityScrapService.getScrappedPostIdsByUser(user.getId());
+            List<Long> scrappedPostIds = communityScrapService.getScrappedPostIdsByUser(user.getId());
+            Set<Long> blockedUserIds = userBlockRepository.findAllByBlockerId(user.getId()).stream()
+                    .map(block -> block.getBlocked().getId())
+                    .collect(Collectors.toSet());
             list = communityPosts.stream()
-                    .map(post -> CommunityPostTradeListResponse.from(post, scrappedPostIdsByUser.contains(post.getId())))
+                    .map(post -> {
+                        boolean isBlocked = blockedUserIds.contains(post.getAuthor().getId());
+                        if (isBlocked) {
+                            return CommunityPostTradeListResponse.masked(post, scrappedPostIds.contains(post.getId()));
+                        } else {
+                            return CommunityPostTradeListResponse.from(post, scrappedPostIds.contains(post.getId()));
+                        }
+                    })
                     .toList();
-
         }
         return new CommunityPostTradePagedResponse(
                 list,
@@ -211,13 +243,17 @@ public class CommunityService {
     // viewCount++;
     // 비회원은 전체공개 글만 조회 가능
     // 회원은 전체공개 + 회원공개 글 중 차단한 사람 제외
-    // 차단 로직 추후 추가
     public CommunityPostResponse getCommunityPostDetail(Long postId, UserJpaEntity user) throws JsonProcessingException {
         CommunityPost post = getCommunityPost(postId);
 
         // 비회원은 전체공개 글만 조회 가능
         if (user == null && post.isMembersOnly()) {
             throw new AppException(NOT_FOUND_USER);
+        }
+
+        // 회원일 때 차단한 사람의 게시글
+        if (user != null && userBlockRepository.existsByBlockerIdAndBlockedId(user.getId(), post.getAuthor().getId())) {
+            throw new AppException(COMMUNITY_BLOCKED_AUTHOR);
         }
 
         // 게시글 조회수 증가
@@ -237,7 +273,8 @@ public class CommunityService {
 
         // JSON content 파싱
         JsonNode jsonContent = objectMapper.readTree(post.getContent());
-        List<CommunityCommentResponse> comments = communityCommentService.getCommentsByPost(post);
+        List<CommunityCommentResponse> comments = communityCommentService.getCommentsByPost(post, user);
+
 
         return CommunityPostResponse.from(post, isScrapped, isLiked, jsonContent, comments);
 
@@ -306,7 +343,7 @@ public class CommunityService {
         // 역직렬화
         JsonNode jsonContent = objectMapper.readTree(post.getContent());
 
-        List<CommunityCommentResponse> comments = communityCommentService.getCommentsByPost(post);
+        List<CommunityCommentResponse> comments = communityCommentService.getCommentsByPost(post, user);
 
         return CommunityPostResponse.from(post, isScrapped, isLiked, jsonContent, comments);
     }
@@ -373,10 +410,13 @@ public class CommunityService {
         post.changeIsDeleted();
     }
 
-    // 게시글 작성자와 요청한 사용자가 일치하는지 확인
+
     private CommunityPost getCommunityPost(Long postId) {
-        return communityRepository.findById(postId)
+        CommunityPost post = communityRepository.findById(postId)
                 .orElseThrow(() -> new AppException(COMMUNITY_POST_NOT_FOUND));
+        if(post.isDeleted())
+            throw new AppException(COMMUNITY_POST_NOT_FOUND);
+        return post;
     }
 
 
