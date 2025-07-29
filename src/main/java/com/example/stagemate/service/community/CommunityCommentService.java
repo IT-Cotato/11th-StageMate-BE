@@ -42,6 +42,7 @@ public class CommunityCommentService {
         request.validate();
         CommunityPost post = communityRepository.findById(postId)
                 .orElseThrow(() -> new AppException(COMMUNITY_POST_NOT_FOUND));
+        if (post.isDeleted()) throw new AppException(COMMUNITY_POST_NOT_FOUND);
 
         CommunityComment parent = null;
         if (request.parentId() != null) {
@@ -60,6 +61,8 @@ public class CommunityCommentService {
         request.validate();
         CommunityComment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new AppException(COMMUNITY_COMMENT_NOT_FOUND));
+        if(comment.isDeleted())
+            throw new AppException(COMMUNITY_COMMENT_NOT_FOUND);
         if (comment.getUser() != user) throw new AppException(COMMUNITY_COMMENT_NOT_AUTHOR);
         comment.updateContent(request.content());
     }
@@ -67,6 +70,8 @@ public class CommunityCommentService {
     public void deleteComment(UserJpaEntity user, Long commentId) {
         CommunityComment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new AppException(COMMUNITY_COMMENT_NOT_FOUND));
+        if(comment.isDeleted())
+            throw new AppException(COMMUNITY_COMMENT_NOT_FOUND);
         if (comment.getUser() != user) throw new AppException(COMMUNITY_COMMENT_NOT_AUTHOR);
         comment.deleteComment();
     }

@@ -248,7 +248,7 @@ public class CommunityService {
 
         // 비회원은 전체공개 글만 조회 가능
         if (user == null && post.isMembersOnly()) {
-            throw new AppException(NOT_FOUND_USER);
+            throw new AppException(MEMBERS_ONLY_POST);
         }
 
         // 회원일 때 차단한 사람의 게시글
@@ -284,11 +284,6 @@ public class CommunityService {
     public void toggleCommunityPostLike(Long postId, UserJpaEntity user) {
         CommunityPost post = getCommunityPost(postId);
 
-        // 유저 존재하는지 확인
-        if (user == null) {
-            throw new AppException(NOT_FOUND_USER);
-        }
-
         if(communityLikeRepository.existsByUserIdAndCommunityPostId(user.getId(), postId)) {
             // 이미 좋아요를 누른 경우, 좋아요 취소
             communityLikeRepository.deleteByUserIdAndCommunityPostId(user.getId(), postId);
@@ -303,11 +298,6 @@ public class CommunityService {
 
     public void toggleCommunityPostScrap(Long postId, UserJpaEntity user) {
         CommunityPost post = getCommunityPost(postId);
-
-        // 유저 존재하는지 확인
-        if (user == null) {
-            throw new AppException(NOT_FOUND_USER);
-        }
 
         if (communityScrapRepository.existsByUserIdAndCommunityPostId(user.getId(), postId)) {
             // 이미 스크랩한 경우, 스크랩 취소

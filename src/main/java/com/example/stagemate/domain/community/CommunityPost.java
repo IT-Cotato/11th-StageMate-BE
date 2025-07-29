@@ -40,7 +40,6 @@ public class CommunityPost {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     public boolean membersOnly;
-    @Column(name = "is_deleted")
     @Builder.Default
     private boolean deleted = false;
     @Builder.Default
