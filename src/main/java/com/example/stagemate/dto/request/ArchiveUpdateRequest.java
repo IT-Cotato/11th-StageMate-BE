@@ -12,6 +12,8 @@ import java.time.LocalDate;
 @Getter
 @NoArgsConstructor
 public class ArchiveUpdateRequest {
+    private String title;
+
     @NotNull(message = "viewingDate cannot be null")
     private LocalDate viewingDate;
 

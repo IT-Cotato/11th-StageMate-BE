@@ -1,6 +1,6 @@
 package com.example.stagemate.service.performance;
 
-import com.example.stagemate.repository.PerformanceStatisticsRepository;
+import com.example.stagemate.repository.performance.PerformanceStatisticsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

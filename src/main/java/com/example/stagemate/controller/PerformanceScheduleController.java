@@ -61,16 +61,16 @@ public class PerformanceScheduleController {
     }
 
 
-    @Operation(summary = "공식스케줄 상태별 조회",
-            description = "공식스케줄리포트 상태별 조회, 주로 관리자가 PENDING 상태인 공식스케줄리포트를 확인하는 용도")
-    @ApiResponse(responseCode = "200", description = "공식스케줄리포트 상태별 조회")
-    @GetMapping(value = "/api/v1/performanceSchedule", params = "performanceScheduleReportStatus")
-    public ResponseEntity<DataResponse<List<PerformanceScheduleDetailResponse>>> getPerformanceSchedules(
-            @RequestParam("performanceScheduleReportStatus") List<PerformanceScheduleReportStatus> performanceScheduleReportStatus) {
-
-        List<PerformanceScheduleDetailResponse> performanceScheduleDetailResponses = performanceScheduleService.getPerformanceSchedules(performanceScheduleReportStatus);
-        return ResponseEntity.ok(DataResponse.from(performanceScheduleDetailResponses));
-    }
+//    @Operation(summary = "공식스케줄 상태별 조회",
+//            description = "공식스케줄리포트 상태별 조회, 주로 관리자가 PENDING 상태인 공식스케줄리포트를 확인하는 용도")
+//    @ApiResponse(responseCode = "200", description = "공식스케줄리포트 상태별 조회")
+//    @GetMapping(value = "/api/v1/performanceSchedule", params = "performanceScheduleReportStatus")
+//    public ResponseEntity<DataResponse<List<PerformanceScheduleDetailResponse>>> getPerformanceSchedules(
+//            @RequestParam("performanceScheduleReportStatus") List<PerformanceScheduleReportStatus> performanceScheduleReportStatus) {
+//
+//        List<PerformanceScheduleDetailResponse> performanceScheduleDetailResponses = performanceScheduleService.getPerformanceSchedules(performanceScheduleReportStatus);
+//        return ResponseEntity.ok(DataResponse.from(performanceScheduleDetailResponses));
+//    }
 
     //공연 스케줄 목록
     @Operation(summary = "공연 스케줄 목록", description = "공연 스케줄 목록을 가져옴")

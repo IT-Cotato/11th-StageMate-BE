@@ -13,6 +13,8 @@ import java.time.LocalDate;
 @Getter
 @NoArgsConstructor
 public class ArchiveCreateRequest {
+    private String title;
+
     private LocalDate viewingDate;
 
     private String casting;
@@ -28,7 +30,7 @@ public class ArchiveCreateRequest {
 
     public void validate() {
         //모두 not null
-        if (viewingDate == null || casting == null || review == null || theaterName == null || rating == null || memo == null) {
+        if (viewingDate == null || casting == null || review == null || theaterName == null || rating == null || memo == null || title == null) {
             throw new IllegalArgumentException("All fields must be not null.");
         }
 

@@ -77,7 +77,7 @@ public class PerformanceController {
     //1시간이내 스크랩이 많이 오른 순으로 추천
     @Operation(summary = "추천 공연", description = "추천 공연 목록을 가져옴")
     @ApiResponse(responseCode = "200", description = "추천 공연 목록을 가져옴")
-    @GetMapping("/api/v1/performacne/recommend")
+    @GetMapping("/api/v1/performance/recommend")
     public ResponseEntity<DataResponse<List<RecommendedPerformanceResponse>>> getRecommendPerformance(
             @RequestParam(name = "size", defaultValue = "10") int size) { // 기본 size = 10
 
