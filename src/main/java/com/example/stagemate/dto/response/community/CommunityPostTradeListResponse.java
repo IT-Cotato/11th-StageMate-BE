@@ -23,4 +23,16 @@ public record CommunityPostTradeListResponse(
                 post.getImages().isEmpty() ? "basic" : post.getImages().get(0).getImage().getImageUrl()
         );
     }
+
+    public static CommunityPostTradeListResponse masked(CommunityPost post, boolean isScrapped) {
+        return new CommunityPostTradeListResponse(
+                post.getId(),
+                "차단한 사용자의 게시물입니다.",
+                post.getCategory().getDescription(),
+                post.getTradeCategory().getDescription(),
+                post.getTradeMethod().getDescription(),
+                isScrapped,
+                post.getImages().isEmpty() ? "basic" : post.getImages().get(0).getImage().getImageUrl()
+        );
+    }
 }

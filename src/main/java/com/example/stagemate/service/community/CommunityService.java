@@ -2,7 +2,6 @@ package com.example.stagemate.service.community;
 
 import com.example.stagemate.domain.community.*;
 import com.example.stagemate.domain.image.Image;
-import com.example.stagemate.domain.magazine.Magazine;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.community.CommunityPostCreateRequest;
 import com.example.stagemate.dto.request.community.CommunityPostUpdateRequest;
@@ -28,10 +27,11 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.example.stagemate.global.exception.CommonErrorCode.NOT_FOUND_USER;
-import static com.example.stagemate.global.exception.community.CommunityErrorCode.COMMUNITY_POST_NOT_AUTHOR;
-import static com.example.stagemate.global.exception.community.CommunityErrorCode.COMMUNITY_POST_NOT_FOUND;
+import static com.example.stagemate.global.exception.community.CommunityErrorCode.*;
 import static io.opentelemetry.api.internal.ApiUsageLogger.log;
 
 @Service
@@ -51,6 +51,9 @@ public class CommunityService {
     private final CommunityLikeService communityLikeService;
     private final ObjectMapper objectMapper;
     private final CommunityCommentService communityCommentService;
+    private final CommunityReportRepository communityReportRepository;
+    private final CommunityCommentRepository communityCommentRepository;
+    private final UserBlockRepository userBlockRepository;
 
     // 커뮤니티 게시글 작성, 이미지 업로드
     public CommunityPostResponse createCommunityPost(UserJpaEntity user, CommunityPostCreateRequest request, List<MultipartFile> images) throws JsonProcessingException {
@@ -108,11 +111,23 @@ public class CommunityService {
                     .toList();
         } else {
             // 회원은 전체공개 + 회원공개 글 중 차단한 사람 제외
-            // 차단 로직은 추후 추가
             communityStatistics = communityStatisticsRepository.findAllByOrderByTotalCountDesc(pageable);
             List<Long> likedPostIdsByUser = communityLikeService.getLikedPostIdsByUser(user.getId());
+
+            Set<Long> blockedUserIds = userBlockRepository.findAllByBlockerId(user.getId())
+                    .stream()
+                    .map(block -> block.getBlocked().getId())
+                    .collect(Collectors.toSet());
+
             list = communityStatistics.stream()
-                    .map(post -> CommunityPostListResponse.fromStat(post, likedPostIdsByUser.contains(post.getId())))
+                    .map(stat -> {
+                        boolean isBlocked = blockedUserIds.contains(stat.getCommunityPost().getAuthor().getId());
+                        if (isBlocked) {
+                            return CommunityPostListResponse.maskedStat(stat, likedPostIdsByUser.contains(stat.getId())); // 마스킹된 응답 생성
+                        } else {
+                            return CommunityPostListResponse.fromStat(stat, likedPostIdsByUser.contains(stat.getId()));
+                        }
+                    })
                     .toList();
         }
 
@@ -147,15 +162,24 @@ public class CommunityService {
 
         } else {
             // 회원은 전체공개 + 회원공개 글 중 차단한 사람 제외
-            // 차단 로직은 추후 추가
             communityPosts = communityRepository.findAllByDeletedFalseAndCategoryOrderByCreatedAtDesc(
                     CommunityCategory.from(category), pageable
             );
             List<Long> likedPostIdsByUser = communityLikeService.getLikedPostIdsByUser(user.getId());
-            list = communityPosts.stream()
-                    .map(post -> CommunityPostListResponse.from(post, likedPostIdsByUser.contains(post.getId())))
-                    .toList();
+            Set<Long> blockedUserIds = userBlockRepository.findAllByBlockerId(user.getId()).stream()
+                    .map(block -> block.getBlocked().getId())
+                    .collect(Collectors.toSet());
 
+            list = communityPosts.stream()
+                    .map(post -> {
+                        boolean isBlocked = blockedUserIds.contains(post.getAuthor().getId());
+                        if (isBlocked) {
+                            return CommunityPostListResponse.masked(post, likedPostIdsByUser.contains(post.getId()));
+                        } else {
+                            return CommunityPostListResponse.from(post, likedPostIdsByUser.contains(post.getId()));
+                        }
+                    })
+                    .toList();
         }
         return new CommunityPostPagedResponse(
                 list,
@@ -186,15 +210,23 @@ public class CommunityService {
 
         } else {
             // 회원은 전체공개 + 회원공개 글 중 차단한 사람 제외
-            // 차단 로직은 추후 추가
             communityPosts = communityRepository.findAllByDeletedFalseAndCategoryOrderByCreatedAtDesc(
                     CommunityCategory.TRADE, pageable
             );
-            List<Long> scrappedPostIdsByUser = communityScrapService.getScrappedPostIdsByUser(user.getId());
+            List<Long> scrappedPostIds = communityScrapService.getScrappedPostIdsByUser(user.getId());
+            Set<Long> blockedUserIds = userBlockRepository.findAllByBlockerId(user.getId()).stream()
+                    .map(block -> block.getBlocked().getId())
+                    .collect(Collectors.toSet());
             list = communityPosts.stream()
-                    .map(post -> CommunityPostTradeListResponse.from(post, scrappedPostIdsByUser.contains(post.getId())))
+                    .map(post -> {
+                        boolean isBlocked = blockedUserIds.contains(post.getAuthor().getId());
+                        if (isBlocked) {
+                            return CommunityPostTradeListResponse.masked(post, scrappedPostIds.contains(post.getId()));
+                        } else {
+                            return CommunityPostTradeListResponse.from(post, scrappedPostIds.contains(post.getId()));
+                        }
+                    })
                     .toList();
-
         }
         return new CommunityPostTradePagedResponse(
                 list,
@@ -211,13 +243,17 @@ public class CommunityService {
     // viewCount++;
     // 비회원은 전체공개 글만 조회 가능
     // 회원은 전체공개 + 회원공개 글 중 차단한 사람 제외
-    // 차단 로직 추후 추가
     public CommunityPostResponse getCommunityPostDetail(Long postId, UserJpaEntity user) throws JsonProcessingException {
         CommunityPost post = getCommunityPost(postId);
 
         // 비회원은 전체공개 글만 조회 가능
         if (user == null && post.isMembersOnly()) {
-            throw new AppException(NOT_FOUND_USER);
+            throw new AppException(MEMBERS_ONLY_POST);
+        }
+
+        // 회원일 때 차단한 사람의 게시글
+        if (user != null && userBlockRepository.existsByBlockerIdAndBlockedId(user.getId(), post.getAuthor().getId())) {
+            throw new AppException(COMMUNITY_BLOCKED_AUTHOR);
         }
 
         // 게시글 조회수 증가
@@ -237,7 +273,8 @@ public class CommunityService {
 
         // JSON content 파싱
         JsonNode jsonContent = objectMapper.readTree(post.getContent());
-        List<CommunityCommentResponse> comments = communityCommentService.getCommentsByPost(post);
+        List<CommunityCommentResponse> comments = communityCommentService.getCommentsByPost(post, user);
+
 
         return CommunityPostResponse.from(post, isScrapped, isLiked, jsonContent, comments);
 
@@ -246,11 +283,6 @@ public class CommunityService {
 
     public void toggleCommunityPostLike(Long postId, UserJpaEntity user) {
         CommunityPost post = getCommunityPost(postId);
-
-        // 유저 존재하는지 확인
-        if (user == null) {
-            throw new AppException(NOT_FOUND_USER);
-        }
 
         if(communityLikeRepository.existsByUserIdAndCommunityPostId(user.getId(), postId)) {
             // 이미 좋아요를 누른 경우, 좋아요 취소
@@ -266,11 +298,6 @@ public class CommunityService {
 
     public void toggleCommunityPostScrap(Long postId, UserJpaEntity user) {
         CommunityPost post = getCommunityPost(postId);
-
-        // 유저 존재하는지 확인
-        if (user == null) {
-            throw new AppException(NOT_FOUND_USER);
-        }
 
         if (communityScrapRepository.existsByUserIdAndCommunityPostId(user.getId(), postId)) {
             // 이미 스크랩한 경우, 스크랩 취소
@@ -306,7 +333,7 @@ public class CommunityService {
         // 역직렬화
         JsonNode jsonContent = objectMapper.readTree(post.getContent());
 
-        List<CommunityCommentResponse> comments = communityCommentService.getCommentsByPost(post);
+        List<CommunityCommentResponse> comments = communityCommentService.getCommentsByPost(post, user);
 
         return CommunityPostResponse.from(post, isScrapped, isLiked, jsonContent, comments);
     }
@@ -373,10 +400,13 @@ public class CommunityService {
         post.changeIsDeleted();
     }
 
-    // 게시글 작성자와 요청한 사용자가 일치하는지 확인
+
     private CommunityPost getCommunityPost(Long postId) {
-        return communityRepository.findById(postId)
+        CommunityPost post = communityRepository.findById(postId)
                 .orElseThrow(() -> new AppException(COMMUNITY_POST_NOT_FOUND));
+        if(post.isDeleted())
+            throw new AppException(COMMUNITY_POST_NOT_FOUND);
+        return post;
     }
 
 
@@ -401,6 +431,46 @@ public class CommunityService {
                 communityPosts.getTotalElements(),
                 communityPosts.getTotalPages()
         );
+    }
+
+
+    // 커뮤니티 게시글/댓글 신고
+    @Transactional
+    public void reportCommunityPost(UserJpaEntity user, Long targetId, String targetTypeRaw, String reasonRaw ) {
+        ReportReason reason;
+        try {
+            reason = ReportReason.valueOf(reasonRaw);
+        } catch (IllegalArgumentException e) {
+            throw new AppException(REPORT_REASON_NOT_FOUND);
+        }
+
+        TargetType targetType;
+        try {
+            targetType = TargetType.valueOf(targetTypeRaw);
+        } catch (IllegalArgumentException e) {
+            throw new AppException(REPORT_TARGET_TYPE_INVALID);
+        }
+
+        switch (targetType) {
+            case POST -> communityRepository.findById(targetId)
+                    .orElseThrow(() -> new AppException(COMMUNITY_POST_NOT_FOUND));
+            case COMMENT -> communityCommentRepository.findById(targetId)
+                    .orElseThrow(() -> new AppException(COMMUNITY_COMMENT_NOT_FOUND));
+        }
+
+        userRepository.findById(user.getId())
+                .orElseThrow(() -> new AppException(NOT_FOUND_USER));
+
+        // 중복 신고 방지
+        boolean alreadyReported = communityReportRepository.existsByReporterIdAndTargetTypeAndTargetId(
+                user.getId(), targetType, targetId
+        );
+        if (alreadyReported) {
+            throw new AppException(COMMUNITY_REPORT_ALREADY_EXISTS);
+        }
+
+        CommunityReport report = CommunityReport.of(user, targetType, targetId, reason);
+        communityReportRepository.save(report);
     }
 
 }

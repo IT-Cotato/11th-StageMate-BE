@@ -5,6 +5,7 @@ import com.example.stagemate.domain.community.CommunityComment;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 public record CommunityCommentResponse(
         Long id,
@@ -14,15 +15,15 @@ public record CommunityCommentResponse(
         boolean isEdited, // 수정 여부
         List<CommunityCommentResponse> children
 ) {
-    public CommunityCommentResponse(CommunityComment comment) {
+    public CommunityCommentResponse(CommunityComment comment, Set<Long> blockedUserIds) {
         this(
                 comment.getId(),
                 comment.getUser().getNickname(),  // user 닉네임 or 이름
                 formatTime(comment.getCreatedAt()),
-                comment.isDeleted() ? "[삭제된 댓글입니다]" : comment.getContent(),
+                resolveContent(comment, blockedUserIds),
                 !comment.getCreatedAt().equals(comment.getUpdatedAt()),
                 comment.getChildren().stream()
-                        .map(CommunityCommentResponse::new)
+                        .map(child -> new CommunityCommentResponse(child, blockedUserIds))
                         .toList()
         );
     }
@@ -36,6 +37,17 @@ public record CommunityCommentResponse(
         else if (minutes < 60) return minutes + "분 전";
         else if (hours < 24) return hours + "시간 전";
         else return createdAt.toLocalDate().toString(); // 2025-07-21
+    }
+
+    private static String resolveContent(CommunityComment comment, Set<Long> blockedUserIds) {
+        // 댓글을 보여줄 때 차단을 삭제된 것보다 우선순위로 처리
+        if (blockedUserIds.contains(comment.getUser().getId())) {
+            return "[차단한 사용자의 댓글입니다]";
+        }
+        if (comment.isDeleted()) {
+            return "[삭제된 댓글입니다]";
+        }
+        return comment.getContent();
     }
 }
 
