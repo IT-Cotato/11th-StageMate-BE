@@ -18,4 +18,8 @@ public interface CommunityRepository extends JpaRepository<CommunityPost, Long> 
 
     // 삭제되지 않은 커뮤니티 게시글을 최신순으로 조회
     Page<CommunityPost> findAllByDeletedFalseOrderByCreatedAtDesc(Pageable pageable);
+
+    // 내가 작성한 삭제되지 않은 게시글 조회
+    Page<CommunityPost> findAllByAuthorIdAndDeletedFalse(Long authorId, Pageable pageable);
+
 }
