@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
@@ -110,16 +111,20 @@ public class ArchiveService {
     //월별 평점 top
     public List<ArchiveRankingResponse> getTopRatingArchives(int year, int month, int size) {
         Pageable pageable = PageRequest.of(0, size);
-        Page<Archive> archives = archiveRepository.findTopRatedArchives
-                (LocalDate.of(year, month, 1), LocalDate.of(year, month, 31), pageable);
+
+        // 월 시작일과 마지막 일 계산
+        LocalDate startDate = LocalDate.of(year, month, 1);
+        LocalDate endDate = YearMonth.of(year, month).atEndOfMonth();
+
+        Page<Archive> archives = archiveRepository.findTopRatedArchives(startDate, endDate, pageable);
 
         List<Archive> archiveList = archives.getContent();
 
-        //from에 ArchiveRankingResponse.from(archive, ranking)
         return IntStream.range(0, archiveList.size())
                 .mapToObj(i -> ArchiveRankingResponse.from(archiveList.get(i), i + 1))
                 .toList();
     }
+
 
 
 }
