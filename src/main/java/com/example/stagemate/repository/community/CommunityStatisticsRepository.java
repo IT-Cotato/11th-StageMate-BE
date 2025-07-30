@@ -21,6 +21,7 @@ public interface CommunityStatisticsRepository extends JpaRepository<CommunitySt
            members_only
     FROM community_posts
     WHERE created_at >= CURRENT_TIMESTAMP - INTERVAL 24 HOUR
+        AND deleted = false
     """, nativeQuery = true)
     void updateCommunityStatistics();
 

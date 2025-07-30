@@ -4,8 +4,8 @@ import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.ArchiveCreateRequest;
 import com.example.stagemate.dto.request.ArchiveUpdateRequest;
 import com.example.stagemate.dto.response.ArchiveDetailResponse;
+import com.example.stagemate.dto.response.ArchiveRankingResponse;
 import com.example.stagemate.global.dto.DataResponse;
-import com.example.stagemate.global.dto.ErrorResponse;
 import com.example.stagemate.global.reslover.CurrentUser;
 import com.example.stagemate.service.archive.ArchiveService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -142,7 +142,7 @@ public class ArchiveController {
         """
 )
     @ApiResponse(responseCode = "200", description = "아카이브 변경")
-    @PatchMapping(value = "/api/v1/archive/{archiveId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "/api/v1/archive/{archiveId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<DataResponse<?>> updateArchive(
             @Parameter(hidden = true) @CurrentUser UserJpaEntity user,
             @PathVariable Long archiveId,
@@ -162,21 +162,20 @@ public class ArchiveController {
         return ResponseEntity.ok(DataResponse.ok());
     }
 
-//    //월별 공연 평점 TOP
-//    @Operation(summary = "월별 공연 평점 TOP", description = "월별 공연 평점 TOP 목록을 가져옴")
-//    @ApiResponse(responseCode = "200", description = "월별 공연 평점 TOP 목록을 가져옴")
-//    @GetMapping("/api/v1/archives")
-//    public ResponseEntity<DataResponse<Page<Archive>>> getTopRatingArchives(
-//            @RequestParam Integer year,
-//            @RequestParam Integer month,
-//            @RequestParam Integer size) {
-//        Pageable pageable = PageRequest.of(0, size);
-//
-//
-//        Page<Archive> archives = archiveService.getTopRatingArchives(year, month, pageable);
-//
-//        return ResponseEntity.ok(DataResponse.from(archives));
-//    }
+    //월별 공연 평점 TOP
+    @Operation(summary = "월별 공연 평점 TOP", description = "월별 공연 평점 TOP 목록을 가져옴")
+    @ApiResponse(responseCode = "200", description = "월별 공연 평점 TOP 목록을 가져옴")
+    @GetMapping("/api/v1/archives/top-rating")
+    public ResponseEntity<DataResponse<List<ArchiveRankingResponse>>> getTopRatingArchives(
+            @RequestParam Integer year,
+            @RequestParam Integer month,
+            @RequestParam Integer size) {
+
+
+        List<ArchiveRankingResponse> archives = archiveService.getTopRatingArchives(year, month, size);
+
+        return ResponseEntity.ok(DataResponse.from(archives));
+    }
 
 
 }

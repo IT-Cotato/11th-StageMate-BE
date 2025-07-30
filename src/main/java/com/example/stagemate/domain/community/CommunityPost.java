@@ -40,7 +40,6 @@ public class CommunityPost {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     public boolean membersOnly;
-    @Column(name = "is_deleted")
     @Builder.Default
     private boolean deleted = false;
     @Builder.Default
@@ -51,6 +50,8 @@ public class CommunityPost {
     private int likeCount = 0;
     @Builder.Default
     private int scrapCount = 0;
+
+    private boolean sendNotification;
 
     @Builder.Default
     @OneToMany(mappedBy = "communityPost", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -99,5 +100,6 @@ public class CommunityPost {
         this.tradeCategory = communityCategory==CommunityCategory.TRADE ? TradeCategory.from(request.getTradeCategory()) : null;
         this.tradeMethod = communityCategory==CommunityCategory.TRADE ? TradeMethod.from(request.getTradeMethod()) : null;
         this.membersOnly = request.isMembersOnly();
+        this.sendNotification = request.isSendNotification();
     }
 }

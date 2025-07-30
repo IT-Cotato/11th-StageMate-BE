@@ -1,5 +1,7 @@
 package com.example.stagemate.controller;
 
+import com.example.stagemate.domain.performance.PerformanceGenre;
+import com.example.stagemate.domain.performance.PerformanceType;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.response.PerformanceDetailResponse;
 import com.example.stagemate.dto.response.RecommendedPerformanceResponse;
@@ -11,11 +13,13 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -37,8 +41,19 @@ public class PerformanceController {
     @Operation(summary = "공연 목록", description = "공연 목록을 가져옴")
     @ApiResponse(responseCode = "200", description = "공연 목록을 가져옴")
     @GetMapping("/api/v1/performance")
-    public ResponseEntity<DataResponse<List<PerformanceDetailResponse>>> getPerformances() {
-        List<PerformanceDetailResponse> performanceDetailResponses = performanceService.findOngoingOrUpcomingPerformances();
+    public ResponseEntity<DataResponse<Page<PerformanceDetailResponse>>> getPerformances(
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "performanceType", required = false) PerformanceType performanceType,
+            @RequestParam(name = "performanceGenre", required = false) PerformanceGenre performanceGenre,
+            @RequestParam(name = "region", required = false) List<String> region,
+            @RequestParam(name = "date", required = false) LocalDate date
+            ) {
+
+        Pageable pageable = PageRequest.of(page - 1, size);
+
+        Page<PerformanceDetailResponse> performanceDetailResponses =
+                performanceService.findFillteredPerformances(performanceType, performanceGenre, region, date, pageable);
 
         return ResponseEntity.ok(DataResponse.from(performanceDetailResponses));
     }
@@ -62,7 +77,7 @@ public class PerformanceController {
     //1시간이내 스크랩이 많이 오른 순으로 추천
     @Operation(summary = "추천 공연", description = "추천 공연 목록을 가져옴")
     @ApiResponse(responseCode = "200", description = "추천 공연 목록을 가져옴")
-    @GetMapping("/api/v1/performacne/recommend")
+    @GetMapping("/api/v1/performance/recommend")
     public ResponseEntity<DataResponse<List<RecommendedPerformanceResponse>>> getRecommendPerformance(
             @RequestParam(name = "size", defaultValue = "10") int size) { // 기본 size = 10
 

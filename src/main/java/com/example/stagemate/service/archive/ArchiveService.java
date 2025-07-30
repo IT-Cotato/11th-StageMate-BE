@@ -7,18 +7,24 @@ import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.ArchiveCreateRequest;
 import com.example.stagemate.dto.request.ArchiveUpdateRequest;
 import com.example.stagemate.dto.response.ArchiveDetailResponse;
+import com.example.stagemate.dto.response.ArchiveRankingResponse;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.archive.ArchiveErrorCode;
 import com.example.stagemate.repository.ArchiveRepository;
 import com.example.stagemate.repository.ImageRepository;
 import com.example.stagemate.service.image.ImageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.IntStream;
 
 @RequiredArgsConstructor
 @Service
@@ -96,10 +102,23 @@ public class ArchiveService {
     }
 
     private Image uploadImageAndSave(MultipartFile image) {
-        Image uploadImage = imageService.uploadImage(image);
-        imageRepository.save(uploadImage);
+        return Optional.ofNullable(image)
+                .map(imageService::uploadImage)
+                .orElse(null);
+    }
 
-        return uploadImage;
+    //월별 평점 top
+    public List<ArchiveRankingResponse> getTopRatingArchives(int year, int month, int size) {
+        Pageable pageable = PageRequest.of(0, size);
+        Page<Archive> archives = archiveRepository.findTopRatedArchives
+                (LocalDate.of(year, month, 1), LocalDate.of(year, month, 31), pageable);
+
+        List<Archive> archiveList = archives.getContent();
+
+        //from에 ArchiveRankingResponse.from(archive, ranking)
+        return IntStream.range(0, archiveList.size())
+                .mapToObj(i -> ArchiveRankingResponse.from(archiveList.get(i), i + 1))
+                .toList();
     }
 
 

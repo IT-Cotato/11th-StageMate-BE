@@ -28,6 +28,8 @@ public class Archive {
     @jakarta.persistence.Column(name = "archive_id")
     private Long id;
 
+    private String title;
+
     private LocalDate viewingDate;
 
     private String casting;
@@ -52,6 +54,7 @@ public class Archive {
 
     public static Archive create(ArchiveCreateRequest request, UserJpaEntity user, Image image) {
         return Archive.builder()
+                .title(request.getTitle())
                 .viewingDate(request.getViewingDate())
                 .casting(request.getCasting())
                 .review(request.getReview())
@@ -70,6 +73,7 @@ public class Archive {
     }
 
     public void update(ArchiveUpdateRequest request, Image updatedImage) {
+        this.title = request.getTitle();
         this.viewingDate = request.getViewingDate();
         this.casting = request.getCasting();
         this.review = request.getReview();
