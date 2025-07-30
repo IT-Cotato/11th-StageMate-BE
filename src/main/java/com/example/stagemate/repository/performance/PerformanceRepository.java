@@ -1,4 +1,4 @@
-package com.example.stagemate.repository;
+package com.example.stagemate.repository.performance;
 
 import com.example.stagemate.domain.performance.Performance;
 import com.example.stagemate.domain.performance.PerformanceGenre;

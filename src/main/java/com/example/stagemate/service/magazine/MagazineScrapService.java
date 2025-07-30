@@ -1,6 +1,6 @@
 package com.example.stagemate.service.magazine;
 
-import com.example.stagemate.repository.MagazineScrapRepository;
+import com.example.stagemate.repository.magazine.MagazineScrapRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

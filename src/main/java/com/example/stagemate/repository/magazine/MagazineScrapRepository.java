@@ -1,13 +1,11 @@
-package com.example.stagemate.repository;
+package com.example.stagemate.repository.magazine;
 
 import com.example.stagemate.domain.magazine.Magazine;
 import com.example.stagemate.domain.magazine.MagazineScrap;
-import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
