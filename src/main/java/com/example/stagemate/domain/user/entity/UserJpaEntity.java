@@ -5,7 +5,7 @@ import com.example.stagemate.domain.user.User;
 
 import com.example.stagemate.domain.user.model.ConsentType;
 import com.example.stagemate.domain.user.model.UserConsent;
-import com.example.stagemate.domain.user.type.LoginType;
+import com.example.stagemate.domain.user.LoginType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -55,6 +55,10 @@ public class UserJpaEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     private Role role;
+
+    @Column(name = "profile_image_url")
+    private String profileImageUrl;
+
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
@@ -118,5 +122,9 @@ public class UserJpaEntity {
         this.consents.clear();
         this.consents.addAll(consents);
         consents.forEach(consent -> consent.setUser(this));
+    }
+
+    public void changePassword(String encodedPassword) {
+        this.password = encodedPassword;
     }
 }

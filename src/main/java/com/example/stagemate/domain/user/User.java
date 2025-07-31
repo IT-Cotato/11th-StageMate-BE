@@ -1,7 +1,6 @@
 package com.example.stagemate.domain.user;
 
 import com.example.stagemate.domain.user.model.ConsentType;
-import com.example.stagemate.domain.user.type.LoginType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -25,14 +24,7 @@ public class User {
     private final LoginType loginType;
     private final Role role;
     private Map<ConsentType, Boolean> consents;
-
-    public static User normalSignUp(String userId, String email, String password, String name, String nickname, LocalDate birthdate, Map<ConsentType, Boolean> consents) {
-        return new User(null, name, nickname, email, password, userId, null, birthdate, LoginType.NORMAL, Role.USER, consents);
-    }
-
-    public static User googleSignUp(String email, String userId, String picture, String name, String nickname, LocalDate birthdate, Map<ConsentType, Boolean> consents) {
-        return new User(null, name, nickname, email, null, userId, picture, birthdate, LoginType.GOOGLE, Role.USER, consents);
-    }
+    private String profileImageUrl;
 
     public static User normalGuestSignUp(String userId, String email, String password, String name, String nickname, LocalDate birthdate) {
         return User.builder()
@@ -82,5 +74,10 @@ public class User {
                 .role(Role.USER)
                 .consents(consents)
                 .build();
+    }
+
+    //프로필 이미지 업데이트
+    public void updateProfileImage(String imageUrl) {
+        this.profileImageUrl = imageUrl;
     }
 }
