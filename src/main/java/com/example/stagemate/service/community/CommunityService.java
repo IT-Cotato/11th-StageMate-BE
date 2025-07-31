@@ -15,11 +15,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.checkerframework.checker.units.qual.C;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -316,9 +318,8 @@ public class CommunityService {
                 .orElseThrow(() -> new AppException(COMMUNITY_POST_NOT_FOUND));
 
         // 게시글 작성자와 요청한 사용자가 일치하는지 확인
-        if (post.getAuthor() != user) {
+        if (!post.getAuthor().getId().equals(user.getId()))
             throw new AppException(COMMUNITY_POST_NOT_AUTHOR);
-        }
 
         // 게시글 정보 업데이트
         post.update(request, objectMapper.writeValueAsString(request.getContent()));
@@ -392,9 +393,8 @@ public class CommunityService {
     public void deleteCommunityPost(Long postId, UserJpaEntity user) {
         CommunityPost post = getCommunityPost(postId);
         // 게시글 작성자와 요청한 사용자가 일치하는지 확인
-        if (post.getAuthor() != user) {
+        if (!post.getAuthor().getId().equals(user.getId()))
             throw new AppException(COMMUNITY_POST_NOT_AUTHOR);
-        }
 
         // soft delete 처리
         post.changeIsDeleted();
@@ -432,6 +432,32 @@ public class CommunityService {
                 communityPosts.getTotalPages()
         );
     }
+
+    // 내가 작성한 커뮤니티 게시글 목록 조회(페이징)
+    public CommunityPostPagedResponse getMyCommunityPosts(UserJpaEntity user, int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<CommunityPost> posts = communityRepository.findAllByAuthorIdAndDeletedFalse(user.getId(), pageable);
+        List<Long> likedPostIdsByUser = communityLikeService.getLikedPostIdsByUser(user.getId());
+        List<CommunityPostListResponse> list = posts.stream()
+                .map(post -> CommunityPostListResponse.from(post, likedPostIdsByUser.contains(post.getId())))
+                .toList();
+
+        return new CommunityPostPagedResponse(list, posts.getNumber(), posts.getSize(), posts.getTotalElements(), posts.getTotalPages());
+    }
+
+    // 내가 댓글 단 커뮤니티 게시글 목록 조회(페이징)
+    public CommunityPostPagedResponse getCommentedCommunityPosts(UserJpaEntity user, int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<CommunityPost> posts = communityCommentRepository.findDistinctPostsByWriterId(user.getId(), pageable);
+        List<Long> likedPostIdsByUser = communityLikeService.getLikedPostIdsByUser(user.getId());
+        List<CommunityPostListResponse> list = posts.stream()
+                .map(post -> CommunityPostListResponse.from(post, likedPostIdsByUser.contains(post.getId())))
+                .toList();
+
+        return new CommunityPostPagedResponse(list, posts.getNumber(), posts.getSize(), posts.getTotalElements(), posts.getTotalPages());
+    }
+
+
 
 
     // 커뮤니티 게시글/댓글 신고

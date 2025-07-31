@@ -1,4 +1,4 @@
-package com.example.stagemate.domain.user.type;
+package com.example.stagemate.domain.user;
 
 
 public enum LoginType {

@@ -63,7 +63,8 @@ public class CommunityCommentService {
                 .orElseThrow(() -> new AppException(COMMUNITY_COMMENT_NOT_FOUND));
         if(comment.isDeleted())
             throw new AppException(COMMUNITY_COMMENT_NOT_FOUND);
-        if (comment.getUser() != user) throw new AppException(COMMUNITY_COMMENT_NOT_AUTHOR);
+        if (!comment.getUser().getId().equals(user.getId()))
+            throw new AppException(COMMUNITY_COMMENT_NOT_AUTHOR);
         comment.updateContent(request.content());
     }
 
@@ -72,7 +73,8 @@ public class CommunityCommentService {
                 .orElseThrow(() -> new AppException(COMMUNITY_COMMENT_NOT_FOUND));
         if(comment.isDeleted())
             throw new AppException(COMMUNITY_COMMENT_NOT_FOUND);
-        if (comment.getUser() != user) throw new AppException(COMMUNITY_COMMENT_NOT_AUTHOR);
+        if (!comment.getUser().getId().equals(user.getId()))
+            throw new AppException(COMMUNITY_COMMENT_NOT_AUTHOR);
         comment.deleteComment();
     }
 }

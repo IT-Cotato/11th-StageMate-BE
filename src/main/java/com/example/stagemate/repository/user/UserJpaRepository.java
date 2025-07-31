@@ -12,11 +12,14 @@ import org.springframework.data.jpa.repository.EntityGraph;
 public interface UserJpaRepository extends JpaRepository<UserJpaEntity, Long> {
     Optional<UserJpaEntity> findByEmail(String email);
 
+    @EntityGraph(attributePaths = {"consents"})
     Optional<UserJpaEntity> findByUserId(String userId);
 
     boolean existsByUserId(String userId);
 
     boolean existsByNickname(String nickname);
+
+    boolean existsByEmail(String email);
 
     @EntityGraph(attributePaths = {"consents"})
     Optional<UserJpaEntity> findWithConsentsById(Long id);

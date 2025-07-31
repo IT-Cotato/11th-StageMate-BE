@@ -2,6 +2,7 @@ package com.example.stagemate.controller.auth;
 
 import com.example.stagemate.domain.user.User;
 import com.example.stagemate.domain.user.entity.RefreshTokenEntity;
+import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.domain.user.model.ConsentType;
 import com.example.stagemate.dto.request.LoginRequestDTO;
 import com.example.stagemate.dto.request.RegisterUserRequestDTO;
@@ -11,11 +12,13 @@ import com.example.stagemate.global.dto.DataResponse;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.auth.AuthErrorCode;
 import com.example.stagemate.global.exception.CommonErrorCode;
+import com.example.stagemate.global.reslover.CurrentUser;
 import com.example.stagemate.global.util.SignUpConsentTempStore;
 import com.example.stagemate.repository.user.RefreshTokenRepository;
 import com.example.stagemate.service.user.*;
 import com.example.stagemate.service.user.command.LoginCommand;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,10 +27,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -50,6 +50,8 @@ public class AuthController {
     private final EmailVerificationService emailVerificationService;
     private final ConsentService consentService;
     private final SignUpConsentTempStore signUpConsentTempStore;
+    private final AuthTokenService authTokenService;
+
     private static final String SESSION_VERIFIED_USER_ID = "verified_userId";
     private static final String SESSION_VERIFIED_NICKNAME = "verified_nickname";
     private static final String SESSION_TEMP_USER_KEY = "tempUserKey";
@@ -125,19 +127,8 @@ public class AuthController {
         signUpConsentTempStore.deleteForNormal(tempUserKey);
 
         // JWT 발급
-        String accessToken = jwtTokenProvider.createToken(user.getId());
-        String refreshToken = jwtTokenProvider.createRefreshToken(user.getId());
+        TokenResponseDTO tokenResponse = authTokenService.generateTokensAndSave(user.getId());
 
-        refreshTokenRepository.save(
-                RefreshTokenEntity.builder()
-                        .userId(user.getId())
-                        .token(refreshToken)
-                        .expiresAt(LocalDateTime.now().plusDays(14))
-                        .build()
-        );
-
-
-        TokenResponseDTO tokenResponse = new TokenResponseDTO(accessToken, refreshToken);
         return ResponseEntity.ok(DataResponse.from(tokenResponse));
     }
 
@@ -210,5 +201,20 @@ public class AuthController {
 
         return ResponseEntity.ok(DataResponse.from(response));
     }
+
+
+    @Operation(summary = "회원 탈퇴", description = "로그인된 사용자가 본인의 계정을 탈퇴합니다.", security = @SecurityRequirement(name = "bearerAuth"))
+    @DeleteMapping("/withdraw")
+    public ResponseEntity<DataResponse<Void>> withdraw(
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user) {
+
+        if (user == null) {
+            throw new AppException(CommonErrorCode.UNAUTHORIZED);
+        }
+
+        userService.withdraw(user.getId());
+        return ResponseEntity.ok(DataResponse.ok());
+    }
+
 
 }

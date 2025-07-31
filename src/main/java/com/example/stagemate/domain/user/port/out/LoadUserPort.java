@@ -10,6 +10,7 @@ public interface LoadUserPort {
     Optional<User> findById(Long id);
     boolean existsByUserId(String userId);
     boolean existsByNickname(String nickname);
+    boolean existsByEmail(String email);
 
     Optional<User> findWithConsentsById(Long id);
 }
