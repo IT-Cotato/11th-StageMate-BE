@@ -316,9 +316,8 @@ public class CommunityService {
                 .orElseThrow(() -> new AppException(COMMUNITY_POST_NOT_FOUND));
 
         // 게시글 작성자와 요청한 사용자가 일치하는지 확인
-        if (post.getAuthor() != user) {
+        if (!post.getAuthor().getId().equals(user.getId()))
             throw new AppException(COMMUNITY_POST_NOT_AUTHOR);
-        }
 
         // 게시글 정보 업데이트
         post.update(request, objectMapper.writeValueAsString(request.getContent()));
@@ -392,9 +391,8 @@ public class CommunityService {
     public void deleteCommunityPost(Long postId, UserJpaEntity user) {
         CommunityPost post = getCommunityPost(postId);
         // 게시글 작성자와 요청한 사용자가 일치하는지 확인
-        if (post.getAuthor() != user) {
+        if (!post.getAuthor().getId().equals(user.getId()))
             throw new AppException(COMMUNITY_POST_NOT_AUTHOR);
-        }
 
         // soft delete 처리
         post.changeIsDeleted();
