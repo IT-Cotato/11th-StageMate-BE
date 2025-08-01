@@ -6,9 +6,9 @@ import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.domain.user.model.ConsentType;
 import com.example.stagemate.domain.user.port.out.LoadUserPort;
 import com.example.stagemate.domain.user.port.out.SaveUserPort;
-import com.example.stagemate.dto.request.RegisterUserRequestDTO;
+import com.example.stagemate.dto.request.RegisterUserRequest;
 import com.example.stagemate.dto.response.AccountInfoResponse;
-import com.example.stagemate.dto.response.TokenResponseDTO;
+import com.example.stagemate.dto.response.TokenResponse;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.CommonErrorCode;
 import com.example.stagemate.global.exception.auth.AuthErrorCode;
@@ -18,9 +18,8 @@ import com.example.stagemate.service.user.command.LoginCommand;
 import com.example.stagemate.service.user.command.NormalAgreeCommand;
 import com.example.stagemate.service.user.command.RegisterUserCommand;
 import com.example.stagemate.dto.auth.GuestInfo;
-import com.example.stagemate.dto.request.OAuth2SignupRequestDTO;
+import com.example.stagemate.dto.request.OAuth2SignupRequest;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,7 +65,7 @@ public class UserService implements LoginUseCase, RegisterUserUseCase {
     }
 
     @Override
-    public User execute(RegisterUserRequestDTO request) {
+    public User execute(RegisterUserRequest request) {
         // 비밀번호 일치 검증
         if (!request.password().equals(request.passwordConfirm())) {
             throw new AppException(AuthErrorCode.PASSWORD_CONFIRM_NOT_MATCH);
@@ -95,7 +94,7 @@ public class UserService implements LoginUseCase, RegisterUserUseCase {
         return saveUserPort.save(finalUser);
     }
 
-    public User oauthSignupInfo(OAuth2SignupRequestDTO request, GuestInfo guestInfo) {
+    public User oauthSignupInfo(OAuth2SignupRequest request, GuestInfo guestInfo) {
         if (loadUserPort.existsByNickname(request.getNickname())) {
             throw new AppException(CommonErrorCode.RESOURCE_CONFLICT, "이미 사용 중인 닉네임입니다.");
         }
@@ -112,7 +111,7 @@ public class UserService implements LoginUseCase, RegisterUserUseCase {
 
 
     @Override
-    public TokenResponseDTO login(LoginCommand command) {
+    public TokenResponse login(LoginCommand command) {
         User user = loadUserPort.findByUserId(command.userId())
                 .orElseThrow(() -> new AppException(CommonErrorCode.AUTHENTICATION_FAILED));
 
@@ -134,7 +133,7 @@ public class UserService implements LoginUseCase, RegisterUserUseCase {
         );
 
         //응답 DTO로 반환
-        return new TokenResponseDTO(accessToken, refreshToken);
+        return new TokenResponse(accessToken, refreshToken);
     }
 
     public User findUserById(Long id) {

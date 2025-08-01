@@ -4,16 +4,13 @@ import com.example.stagemate.domain.user.User;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.domain.user.model.ConsentType;
 import com.example.stagemate.domain.user.model.UserConsent;
-import com.example.stagemate.dto.request.RegisterUserRequestDTO;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.CommonErrorCode;
-import com.example.stagemate.global.util.SignUpConsentTempStore;
 import com.example.stagemate.repository.user.UserConsentRepository;
 import com.example.stagemate.repository.user.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

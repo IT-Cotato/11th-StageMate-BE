@@ -1,16 +1,14 @@
 package com.example.stagemate.controller.auth;
 
-import com.example.stagemate.dto.request.EmailVerificationRequestDTO;
-import com.example.stagemate.dto.request.EmailVerificationVerifyDTO;
+import com.example.stagemate.dto.request.EmailVerificationRequest;
+import com.example.stagemate.dto.request.EmailVerificationVerify;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.CommonErrorCode;
 import com.example.stagemate.service.user.EmailVerificationService;
 import com.example.stagemate.service.user.MailService;
-import com.example.stagemate.service.user.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.MailSender;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,7 +23,7 @@ public class MailController {
     private final MailService mailService;
 
     @PostMapping("/send-code")
-    public ResponseEntity<?> sendCode(@Valid @RequestBody EmailVerificationRequestDTO request) {
+    public ResponseEntity<?> sendCode(@Valid @RequestBody EmailVerificationRequest request) {
 
         // 이메일 중복 체크
         if (mailService.checkEmailExists(request.getEmail())) {
@@ -38,7 +36,7 @@ public class MailController {
     }
 
     @PostMapping("/verify-code")
-    public ResponseEntity<?> verifyCode(@RequestBody EmailVerificationVerifyDTO request) {
+    public ResponseEntity<?> verifyCode(@RequestBody EmailVerificationVerify request) {
         emailVerificationService.verifyCode(request.getEmail(), request.getCode());
         return ResponseEntity.ok().build();
     }
