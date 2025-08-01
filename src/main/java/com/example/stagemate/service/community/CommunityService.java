@@ -11,6 +11,7 @@ import com.example.stagemate.repository.ImageRepository;
 import com.example.stagemate.repository.community.*;
 import com.example.stagemate.repository.user.UserJpaRepository;
 import com.example.stagemate.service.image.ImageService;
+import com.example.stagemate.service.search.SearchService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -54,6 +55,7 @@ public class CommunityService {
     private final CommunityReportRepository communityReportRepository;
     private final CommunityCommentRepository communityCommentRepository;
     private final UserBlockRepository userBlockRepository;
+    private final SearchService searchService;
 
     // 커뮤니티 게시글 작성, 이미지 업로드
     public CommunityPostResponse createCommunityPost(UserJpaEntity user, CommunityPostCreateRequest request, List<MultipartFile> images) throws JsonProcessingException {
@@ -87,6 +89,14 @@ public class CommunityService {
                 post.getImages().add(communityImage);
             }
         }
+
+        // 엘라스틱 서치에 저장
+        try {
+            searchService.saveFromCommunity(post);
+        } catch (Exception e) {
+            log.warn("엘라스틱서치 인덱싱 실패: {}", e.getMessage());
+        }
+
         // 역직렬화
         JsonNode jsonContent = objectMapper.readTree(post.getContent());
 
@@ -325,6 +335,13 @@ public class CommunityService {
         // 이미지 업데이트
         updateCommunityPostImage(post, request.getImageIds(), newImages);
 
+        // 엘라스틱 서치에 저장
+        try {
+            searchService.saveFromCommunity(post);
+        } catch (Exception e) {
+            log.warn("엘라스틱서치 인덱싱 실패: {}", e.getMessage());
+        }
+
         // 스크랩, 좋아요 여부 확인
         boolean isScrapped = communityScrapRepository.existsByUserIdAndCommunityPostId(user.getId(), postId);
         boolean isLiked = communityLikeRepository.existsByUserIdAndCommunityPostId(user.getId(), postId);
@@ -396,6 +413,12 @@ public class CommunityService {
 
         // soft delete 처리
         post.changeIsDeleted();
+
+        try {
+            searchService.deleteFromCommunity(post.getId());
+        } catch (Exception e) {
+            log.warn("엘라스틱서치 삭제 실패: {}", e.getMessage());
+        }
     }
 
 
