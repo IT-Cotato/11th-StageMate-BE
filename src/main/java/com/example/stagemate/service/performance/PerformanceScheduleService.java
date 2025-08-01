@@ -6,6 +6,7 @@ import com.example.stagemate.domain.performanceSchedule.PerformanceScheduleError
 import com.example.stagemate.domain.performanceSchedule.PerformanceScheduleReportStatus;
 import com.example.stagemate.domain.performanceSchedule.PerformanceScheduleScrap;
 import com.example.stagemate.domain.theater.Theater;
+import com.example.stagemate.domain.theater.TheaterErrorCode;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.PerformanceScheduleCreateRequest;
 import com.example.stagemate.dto.response.PerformanceScheduleDetailResponse;
@@ -45,9 +46,10 @@ public class PerformanceScheduleService {
                 .orElseThrow(() -> new AppException(PerformanceErrorCode.NOT_FOUND));
 
         Theater theater = theaterRepository.findById(performanceScheduleCreateRequest.getTheaterId())
-                .orElseThrow(() -> new AppException(PerformanceErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new AppException(TheaterErrorCode.THEATER_NOT_FOUND));
 
-        PerformanceSchedule performanceSchedule = PerformanceSchedule.createPerformanceSchedule(user, performanceScheduleCreateRequest, performance);
+        PerformanceSchedule performanceSchedule =
+                PerformanceSchedule.createPerformanceSchedule(user, performanceScheduleCreateRequest, performance, theater);
 
         return performanceScheduleRepository.save(performanceSchedule).getId();
     }
