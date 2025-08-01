@@ -1,11 +1,12 @@
 package com.example.stagemate.controller;
 
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
+import com.example.stagemate.dto.request.chat.ReportChatRequest;
 import com.example.stagemate.dto.request.community.ReportCommunityRequest;
 import com.example.stagemate.global.dto.DataResponse;
 import com.example.stagemate.global.dto.ErrorResponse;
 import com.example.stagemate.global.reslover.CurrentUser;
-import com.example.stagemate.service.community.CommunityService;
+import com.example.stagemate.service.report.ReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -17,7 +18,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
@@ -26,14 +30,14 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "ReportController", description = "신고 관련 API")
 public class ReportController {
 
-    private final CommunityService communityService;
+    private final ReportService reportService;
 
-    // 커뮤니티 게시글/댓글 신고
+    // 커뮤니티 게시글/댓글신고, 채팅신고
     @Operation(
             summary = "커뮤니티 게시글/댓글 신고",
             description = """
-        게시글 또는 댓글을 신고합니다.<br>
-        targetId는 신고할 게시글 또는 댓글의 ID,targetType은 POST 또는 COMMENT 중 하나여야 하며,<br>
+        게시글 또는 댓글 신고합니다.<br>
+        targetId는 신고할 게시글, 댓글 targetType은 POST, COMMENT 중 하나여야 하며,<br>
         reason은 BAIT, LEAK_IMPERSONATION_FRAUD, COMMERCIAL_AD, ILLEGAL_CONTENT, OBSCENE, ABUSE 중 하나입니다.<br>
         """
     )
@@ -53,12 +57,38 @@ public class ReportController {
                     """, content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @SecurityRequirement(name = "bearerAuth")
-    @PostMapping
+    @PostMapping("/community")
     public ResponseEntity<DataResponse<Void>> reportCommunityContent(
             @RequestBody ReportCommunityRequest request,
             @Parameter(hidden = true) @CurrentUser UserJpaEntity user
     ) {
-        communityService.reportCommunityPost(user, request.getTargetId(), request.getTargetType(), request.getReason());
+        reportService.reportCommunityPost(user, request.getTargetId(), request.getTargetType(), request.getReason());
         return ResponseEntity.ok(DataResponse.ok());
     }
+
+
+
+    @Operation(
+            summary = "채팅 신고",
+            description = """
+        채팅을 신고합니다.<br>
+        chatId는 신고할 채팅 중 하나여야 하며,<br>
+        reason은 BAIT, LEAK_IMPERSONATION_FRAUD, COMMERCIAL_AD, ILLEGAL_CONTENT, OBSCENE, ABUSE 중 하나입니다.<br>
+        """
+    )
+    @ApiResponses(
+            @ApiResponse(responseCode = "200", description = "신고 성공")
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    @PostMapping("/chat")
+    public ResponseEntity<DataResponse<Void>> reportChat(
+            @RequestBody ReportChatRequest request,
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user
+    ) {
+
+        reportService.reportChat(user, request.chatId(), request.reason());
+        return ResponseEntity.ok(DataResponse.ok());
+    }
+
+
 }

@@ -1,6 +1,8 @@
 package com.example.stagemate.domain.community;
 
-import lombok.Getter;
+import com.example.stagemate.global.exception.AppException;
+
+import static com.example.stagemate.global.exception.community.CommunityErrorCode.REPORT_REASON_NOT_FOUND;
 
 public enum ReportReason {
     BAIT("낚시 / 놀림 / 도배"),
@@ -18,5 +20,13 @@ public enum ReportReason {
 
     public String getDescription() {
         return description;
+    }
+
+    public static ReportReason fromString(String name) {
+        try {
+            return ReportReason.valueOf(name);
+        } catch (IllegalArgumentException e) {
+            throw new AppException(REPORT_REASON_NOT_FOUND);
+        }
     }
 }
