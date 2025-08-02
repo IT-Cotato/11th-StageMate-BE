@@ -2,8 +2,8 @@ package com.example.stagemate.controller;
 
 import com.example.stagemate.domain.performance.PerformanceGenre;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
-import com.example.stagemate.dto.response.PerformanceDetailResponse;
 import com.example.stagemate.dto.response.community.CommunityPostListResponse;
+import com.example.stagemate.dto.response.performance.PerformanceDetailResponse;
 import com.example.stagemate.dto.response.search.PopularKeywordResponse;
 import com.example.stagemate.global.dto.DataResponse;
 import com.example.stagemate.global.reslover.CurrentUser;

@@ -30,6 +30,7 @@ public class ChatReport {
     @Enumerated(EnumType.STRING)
     private ReportReason reason;
 
+    @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public static ChatReport of(UserJpaEntity user, String chatId, ReportReason reason) {

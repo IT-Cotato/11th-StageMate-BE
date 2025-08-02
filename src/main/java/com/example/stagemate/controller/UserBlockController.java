@@ -4,7 +4,6 @@ import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.community.UserBlockRequest;
 import com.example.stagemate.dto.response.community.UserBlockListResponse;
 import com.example.stagemate.dto.response.UserBlockStatusResponse;
-import com.example.stagemate.dto.response.community.UserBlockPagedResponse;
 import com.example.stagemate.global.dto.DataResponse;
 import com.example.stagemate.global.dto.ErrorResponse;
 import com.example.stagemate.global.dto.PagedResponse;

@@ -14,7 +14,7 @@ public record PagedResponse<T>(
     public static <T, E> PagedResponse<T> from(List<T> list, Page<E> page) {
         return new PagedResponse<>(
                 list,
-                page.getNumber(),
+                page.getNumber() + 1,
                 page.getSize(),
                 page.getTotalElements(),
                 page.getTotalPages()
