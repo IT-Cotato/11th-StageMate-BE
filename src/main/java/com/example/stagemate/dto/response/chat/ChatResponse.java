@@ -1,4 +1,4 @@
-package com.example.stagemate.dto.response;
+package com.example.stagemate.dto.response.chat;
 
 import com.example.stagemate.domain.chat.Chat;
 

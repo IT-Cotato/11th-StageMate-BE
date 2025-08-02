@@ -1,6 +1,6 @@
 package com.example.stagemate.controller.chat;
 
-import com.example.stagemate.dto.response.ChatRoomResponse;
+import com.example.stagemate.dto.response.chat.ChatRoomResponse;
 import com.example.stagemate.global.dto.DataResponse;
 import com.example.stagemate.service.chat.ChatRoomService;
 import lombok.RequiredArgsConstructor;

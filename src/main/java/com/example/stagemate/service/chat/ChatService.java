@@ -1,13 +1,8 @@
 package com.example.stagemate.service.chat;
 
 import com.example.stagemate.domain.chat.Chat;
-import com.example.stagemate.domain.chat.ChatErrorCode;
-import com.example.stagemate.domain.community.ReportReason;
-import com.example.stagemate.domain.community.TargetType;
-import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.chat.ChatRequest;
-import com.example.stagemate.dto.response.ChatResponse;
-import com.example.stagemate.global.exception.AppException;
+import com.example.stagemate.dto.response.chat.ChatResponse;
 import com.example.stagemate.redis.RedisMessagePublisher;
 import com.example.stagemate.repository.chat.ChatRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
-
-import static com.example.stagemate.global.exception.community.CommunityErrorCode.COMMUNITY_REPORT_ALREADY_EXISTS;
 
 @Service
 @RequiredArgsConstructor

@@ -9,7 +9,7 @@ import com.example.stagemate.domain.theater.Theater;
 import com.example.stagemate.domain.theater.TheaterErrorCode;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.PerformanceScheduleCreateRequest;
-import com.example.stagemate.dto.response.PerformanceScheduleDetailResponse;
+import com.example.stagemate.dto.response.performance.PerformanceScheduleDetailResponse;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.performances.PerformanceErrorCode;
 import com.example.stagemate.repository.performance.PerformanceRepository;

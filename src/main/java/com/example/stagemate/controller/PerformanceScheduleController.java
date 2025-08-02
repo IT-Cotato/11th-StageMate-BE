@@ -3,7 +3,7 @@ package com.example.stagemate.controller;
 import com.example.stagemate.domain.performanceSchedule.PerformanceScheduleReportStatus;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.PerformanceScheduleCreateRequest;
-import com.example.stagemate.dto.response.PerformanceScheduleDetailResponse;
+import com.example.stagemate.dto.response.performance.PerformanceScheduleDetailResponse;
 import com.example.stagemate.global.dto.DataResponse;
 import com.example.stagemate.global.reslover.CurrentUser;
 import com.example.stagemate.service.performance.PerformanceScheduleService;

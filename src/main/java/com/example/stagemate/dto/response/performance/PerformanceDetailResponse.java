@@ -1,8 +1,6 @@
-package com.example.stagemate.dto.response;
+package com.example.stagemate.dto.response.performance;
 
 import com.example.stagemate.domain.performance.PerformanceType;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 
 public record PerformanceDetailResponse(String performanceName, String url, String startDate, String endDate,

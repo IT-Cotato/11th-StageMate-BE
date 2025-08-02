@@ -1,7 +1,7 @@
 package com.example.stagemate.service.chat;
 
 import com.example.stagemate.domain.chat.ChatRoom;
-import com.example.stagemate.dto.response.ChatRoomResponse;
+import com.example.stagemate.dto.response.chat.ChatRoomResponse;
 import com.example.stagemate.repository.chat.ChatRoomRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
