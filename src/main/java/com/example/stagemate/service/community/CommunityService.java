@@ -15,7 +15,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.checkerframework.checker.units.qual.C;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -34,7 +33,6 @@ import java.util.stream.Collectors;
 
 import static com.example.stagemate.global.exception.CommonErrorCode.NOT_FOUND_USER;
 import static com.example.stagemate.global.exception.community.CommunityErrorCode.*;
-import static io.opentelemetry.api.internal.ApiUsageLogger.log;
 
 @Service
 @RequiredArgsConstructor
@@ -459,44 +457,5 @@ public class CommunityService {
 
 
 
-
-    // 커뮤니티 게시글/댓글 신고
-    @Transactional
-    public void reportCommunityPost(UserJpaEntity user, Long targetId, String targetTypeRaw, String reasonRaw ) {
-        ReportReason reason;
-        try {
-            reason = ReportReason.valueOf(reasonRaw);
-        } catch (IllegalArgumentException e) {
-            throw new AppException(REPORT_REASON_NOT_FOUND);
-        }
-
-        TargetType targetType;
-        try {
-            targetType = TargetType.valueOf(targetTypeRaw);
-        } catch (IllegalArgumentException e) {
-            throw new AppException(REPORT_TARGET_TYPE_INVALID);
-        }
-
-        switch (targetType) {
-            case POST -> communityRepository.findById(targetId)
-                    .orElseThrow(() -> new AppException(COMMUNITY_POST_NOT_FOUND));
-            case COMMENT -> communityCommentRepository.findById(targetId)
-                    .orElseThrow(() -> new AppException(COMMUNITY_COMMENT_NOT_FOUND));
-        }
-
-        userRepository.findById(user.getId())
-                .orElseThrow(() -> new AppException(NOT_FOUND_USER));
-
-        // 중복 신고 방지
-        boolean alreadyReported = communityReportRepository.existsByReporterIdAndTargetTypeAndTargetId(
-                user.getId(), targetType, targetId
-        );
-        if (alreadyReported) {
-            throw new AppException(COMMUNITY_REPORT_ALREADY_EXISTS);
-        }
-
-        CommunityReport report = CommunityReport.of(user, targetType, targetId, reason);
-        communityReportRepository.save(report);
-    }
 
 }

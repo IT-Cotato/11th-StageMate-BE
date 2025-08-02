@@ -1,5 +1,6 @@
-package com.example.stagemate.domain.community;
+package com.example.stagemate.domain.chat;
 
+import com.example.stagemate.domain.community.ReportReason;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -10,15 +11,12 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "chat_reports")
 @Getter
-@AllArgsConstructor
-@NoArgsConstructor
 @Builder
-@Table(name = "community_reports", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"reporter_id", "targetType", "targetId"})
-})
-public class CommunityReport {
-
+@NoArgsConstructor
+@AllArgsConstructor
+public class ChatReport {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -27,26 +25,19 @@ public class CommunityReport {
     @JoinColumn(name = "reporter_id")
     private UserJpaEntity reporter;
 
-    @Enumerated(EnumType.STRING)
-    private TargetType targetType; // 게시글 또는 댓글
-
-    private Long targetId;  // 게시글 ID 또는 댓글 ID
+    private String chatId;
 
     @Enumerated(EnumType.STRING)
     private ReportReason reason;
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    public static CommunityReport of(UserJpaEntity user, TargetType targetType, Long targetId, ReportReason reason) {
-        return CommunityReport.builder()
+    public static ChatReport of(UserJpaEntity user, String chatId, ReportReason reason) {
+        return ChatReport.builder()
                 .reporter(user)
-                .targetType(targetType)
-                .targetId(targetId)
+                .chatId(chatId)
                 .reason(reason)
                 .createdAt(LocalDateTime.now())
                 .build();
     }
-    
-
 }
-

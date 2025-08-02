@@ -2,8 +2,8 @@ package com.example.stagemate.service.performance;
 
 import com.example.stagemate.domain.performance.*;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
-import com.example.stagemate.dto.response.PerformanceDetailResponse;
-import com.example.stagemate.dto.response.RecommendedPerformanceResponse;
+import com.example.stagemate.dto.response.performance.PerformanceDetailResponse;
+import com.example.stagemate.dto.response.performance.RecommendedPerformanceResponse;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.performances.PerformanceErrorCode;
 import com.example.stagemate.repository.performance.PerformanceRepository;

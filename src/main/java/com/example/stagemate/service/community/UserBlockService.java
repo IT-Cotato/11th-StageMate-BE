@@ -5,6 +5,7 @@ import com.example.stagemate.domain.community.CommunityPost;
 import com.example.stagemate.domain.community.TargetType;
 import com.example.stagemate.domain.community.UserBlock;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
+import com.example.stagemate.dto.response.UserBlockStatusResponse;
 import com.example.stagemate.dto.response.community.UserBlockListResponse;
 import com.example.stagemate.dto.response.community.UserBlockPagedResponse;
 import com.example.stagemate.global.exception.AppException;
@@ -19,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.stagemate.global.exception.CommonErrorCode.NOT_FOUND_USER;
@@ -104,6 +106,23 @@ public class UserBlockService {
                 allByBlockerId
         );
 
+    }
+
+    //현재 사용자 기준으로 userIds중에 차단된 사용자가 있는지 확인
+    public List<UserBlockStatusResponse> checkBlockedUser(UserJpaEntity user, List<Long> userIds) {
+        List<Long> blokedUserIds = userBlockRepository.findBlockedUserIds(user.getId(), userIds);
+
+        List<UserBlockStatusResponse> result = new ArrayList<>();
+
+        for (Long id : userIds) {
+            if (blokedUserIds.contains(id)) {
+                result.add(new UserBlockStatusResponse(id, true));
+            } else {
+                result.add(new UserBlockStatusResponse(id, false));
+            }
+        }
+
+        return result;
     }
 }
 
