@@ -36,6 +36,7 @@ public class SearchService {
     private final CommunityLikeService communityLikeService;
     private final UserBlockRepository userBlockRepository;
     private final PerformanceRepository performanceRepository;
+    private final KeywordService keywordService;
 
     public void save(SearchDocument doc) {
         template.save(doc);
@@ -48,7 +49,7 @@ public class SearchService {
                 post.getTitle(),
                 post.getContent(),
                 null,
-                null,
+                post.getCreatedAt().toLocalDate(),
                 null
         );
         save(doc);
@@ -60,6 +61,9 @@ public class SearchService {
 
 
     public List<CommunityPostListResponse> searchCommunityPosts(String keyword, UserJpaEntity user) {
+
+        // redis에 저장
+        keywordService.record(keyword);
 
         NativeQuery query = NativeQuery.builder()
                 .withQuery(q -> q
@@ -79,7 +83,7 @@ public class SearchService {
                         )
                 )
                 .withSort(SortOptions.of(s -> s.score(sc -> sc.order(SortOrder.Desc)))) // 유사도 순
-                .withSort(SortOptions.of(s -> s.field(f -> f.field("date").order(SortOrder.Desc)))) // 최신순
+                .withSort(SortOptions.of(s -> s.field(f -> f.field("startDate").order(SortOrder.Desc)))) // 최신순
                 .build();
 
 

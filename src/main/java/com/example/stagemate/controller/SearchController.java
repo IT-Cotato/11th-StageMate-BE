@@ -4,9 +4,10 @@ import com.example.stagemate.domain.performance.PerformanceGenre;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.response.PerformanceDetailResponse;
 import com.example.stagemate.dto.response.community.CommunityPostListResponse;
+import com.example.stagemate.dto.response.search.PopularKeywordResponse;
 import com.example.stagemate.global.dto.DataResponse;
 import com.example.stagemate.global.reslover.CurrentUser;
-import com.example.stagemate.service.search.SearchIndexInitializerService;
+import com.example.stagemate.service.search.KeywordService;
 import com.example.stagemate.service.search.SearchService;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,7 @@ import java.util.List;
 public class SearchController {
 
     private final SearchService searchService;
-    private final SearchIndexInitializerService indexService;
+    private final KeywordService keywordService;
 
 
     @GetMapping("/community")
@@ -43,6 +44,11 @@ public class SearchController {
             @RequestParam(name = "date", required = false) LocalDate localDate
             ) {
         return ResponseEntity.ok(DataResponse.from(searchService.searchPerformances(keyword, performanceGenre, localDate)));
+    }
+
+    @GetMapping("/popular")
+    public ResponseEntity<DataResponse<PopularKeywordResponse>> getPopular() {
+        return ResponseEntity.ok(DataResponse.from(keywordService.getTop10()));
     }
 
 
