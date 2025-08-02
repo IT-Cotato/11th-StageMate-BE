@@ -16,7 +16,7 @@ public class ChatWriteController {
     private final ChatService chatService;
 
 
-    @MessageMapping("api/v1/chat-room/chat")
+    @MessageMapping("/chat-room/chat")
     public void sendGroupChat(ChatRequest chatRequest) {
         log.info("chatRequest: {}", chatRequest.toString());
         chatService.sendGroupChat(chatRequest);

@@ -93,6 +93,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/theaters"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/v1/chat-room"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
