@@ -2,6 +2,7 @@ package com.example.stagemate.global.auth;
 
 import com.example.stagemate.domain.user.User;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
@@ -21,7 +22,9 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.emptyList();
+        return Collections.singletonList(
+                new SimpleGrantedAuthority(user.getRole().getKey()) // ex: "ROLE_ADMIN"
+        );
     }
 
     @Override

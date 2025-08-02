@@ -24,6 +24,8 @@ public enum AuthErrorCode implements ErrorCode {
     DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "이미 사용 중인 닉네임입니다.", "AUTH-017"),
     INVALID_CURRENT_PASSWORD(HttpStatus.UNAUTHORIZED, "현재 비밀번호가 일치하지 않습니다.", "AUTH-018"),
     SAME_AS_OLD_PASSWORD(HttpStatus.BAD_REQUEST, "기존과 동일한 비밀번호는 사용할 수 없습니다.", "AUTH-019"),
+    NO_ADMIN_PRIVILEGES(HttpStatus.FORBIDDEN, "운영자 권한이 필요합니다.", "AUTH-020"),
+
 
 
 

@@ -1,7 +1,7 @@
 package com.example.stagemate.controller.auth;
 
 import com.example.stagemate.dto.auth.GuestInfo;
-import com.example.stagemate.dto.request.ConsentRequestDTO;
+import com.example.stagemate.dto.request.ConsentRequest;
 import com.example.stagemate.global.dto.DataResponse;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.CommonErrorCode;
@@ -27,7 +27,7 @@ public class OAuthAgreeController {
 
     @PostMapping("/agree")
     public ResponseEntity<DataResponse<Void>> agreeToTermsForOAuthUser(
-            @RequestBody @Valid ConsentRequestDTO request,
+            @RequestBody @Valid ConsentRequest request,
             HttpServletRequest httpRequest
     ) {
         HttpSession session = httpRequest.getSession(false);

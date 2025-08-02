@@ -3,8 +3,8 @@ package com.example.stagemate.controller.auth;
 import com.example.stagemate.domain.user.User;
 import com.example.stagemate.domain.user.entity.RefreshTokenEntity;
 import com.example.stagemate.domain.user.model.ConsentType;
-import com.example.stagemate.dto.request.OAuth2SignupRequestDTO;
-import com.example.stagemate.dto.response.TokenResponseDTO;
+import com.example.stagemate.dto.request.OAuth2SignupRequest;
+import com.example.stagemate.dto.response.TokenResponse;
 import com.example.stagemate.global.auth.JwtTokenProvider;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.CommonErrorCode;
@@ -44,7 +44,7 @@ public class OAuthController {
 
     @Operation(summary = "소셜 회원가입 - 정보 입력", description = "소셜 로그인 후, 닉네임, 생년월일 등 추가 정보를 입력받습니다.")
     @PostMapping("/sign-up")
-    public ResponseEntity<TokenResponseDTO> oAuthSignup(@RequestBody @Valid OAuth2SignupRequestDTO request, HttpServletRequest httpRequest) {
+    public ResponseEntity<TokenResponse> oAuthSignup(@RequestBody @Valid OAuth2SignupRequest request, HttpServletRequest httpRequest) {
 
         //닉네임 중복 여부 검사 확인
         String verifiedNickname = (String) httpRequest.getSession().getAttribute("verified_nickname");
@@ -89,7 +89,7 @@ public class OAuthController {
                         .build()
         );
 
-        return ResponseEntity.ok(new TokenResponseDTO(accessToken, refreshToken));
+        return ResponseEntity.ok(new TokenResponse(accessToken, refreshToken));
 
     }
 

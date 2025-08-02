@@ -1,7 +1,7 @@
 package com.example.stagemate.service.user.command;
 
 import com.example.stagemate.domain.user.model.ConsentType;
-import com.example.stagemate.dto.request.ConsentRequestDTO;
+import com.example.stagemate.dto.request.ConsentRequest;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.CommonErrorCode;
 import lombok.Builder;
@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 public record NormalAgreeCommand(
         Map<ConsentType, Boolean> consents
 ) {
-    public static NormalAgreeCommand from(ConsentRequestDTO request) {
+    public static NormalAgreeCommand from(ConsentRequest request) {
 
         // Map<String, Boolean> → Map<ConsentType, Boolean> 수동 변환
         Map<ConsentType, Boolean> consents = request.getConsents().entrySet().stream()

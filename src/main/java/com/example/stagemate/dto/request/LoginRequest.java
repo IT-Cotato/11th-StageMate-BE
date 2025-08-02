@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 
 import static com.example.stagemate.global.util.ValidationConstants.*;
 
-public record LoginRequestDTO(
+public record LoginRequest(
 
         @NotBlank
         @Size(min = USER_ID_MIN_LENGTH, max = USER_ID_MAX_LENGTH, message = USER_ID_LENGTH_MESSAGE)

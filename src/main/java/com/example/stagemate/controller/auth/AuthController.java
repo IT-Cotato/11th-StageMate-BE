@@ -4,9 +4,9 @@ import com.example.stagemate.domain.user.User;
 import com.example.stagemate.domain.user.entity.RefreshTokenEntity;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.domain.user.model.ConsentType;
-import com.example.stagemate.dto.request.LoginRequestDTO;
-import com.example.stagemate.dto.request.RegisterUserRequestDTO;
-import com.example.stagemate.dto.response.TokenResponseDTO;
+import com.example.stagemate.dto.request.LoginRequest;
+import com.example.stagemate.dto.request.RegisterUserRequest;
+import com.example.stagemate.dto.response.TokenResponse;
 import com.example.stagemate.global.auth.JwtTokenProvider;
 import com.example.stagemate.global.dto.DataResponse;
 import com.example.stagemate.global.exception.AppException;
@@ -58,8 +58,8 @@ public class AuthController {
 
     @Operation(summary = "일반 회원가입 - 정보 입력", description = "아이디, 비밀번호 등 기본 정보를 입력받아 임시 저장합니다.")
     @PostMapping("/sign-up/info")
-    public ResponseEntity<DataResponse<TokenResponseDTO>> signUpInfo(
-            @Valid @RequestBody RegisterUserRequestDTO request,
+    public ResponseEntity<DataResponse<TokenResponse>> signUpInfo(
+            @Valid @RequestBody RegisterUserRequest request,
             BindingResult bindingResult,
             HttpServletRequest httpRequest) {
 
@@ -127,15 +127,15 @@ public class AuthController {
         signUpConsentTempStore.deleteForNormal(tempUserKey);
 
         // JWT 발급
-        TokenResponseDTO tokenResponse = authTokenService.generateTokensAndSave(user.getId());
+        TokenResponse tokenResponse = authTokenService.generateTokensAndSave(user.getId());
 
         return ResponseEntity.ok(DataResponse.from(tokenResponse));
     }
 
     @PostMapping("/login")
-    ResponseEntity<DataResponse<TokenResponseDTO>> login(final @Valid @RequestBody LoginRequestDTO request) {
+    ResponseEntity<DataResponse<TokenResponse>> login(final @Valid @RequestBody LoginRequest request) {
         LoginCommand command = LoginCommand.from(request);
-        TokenResponseDTO tokens = loginUseCase.login(command);
+        TokenResponse tokens = loginUseCase.login(command);
 
         return ResponseEntity.ok(DataResponse.from(tokens));
     }
@@ -160,7 +160,7 @@ public class AuthController {
 
     @Operation(summary = "AccessToken 재발급", description = "RefreshToken을 검증하여 새로운 AccessToken을 발급합니다.", security = @SecurityRequirement(name = "bearerAuth"))
     @PostMapping("/reissue")
-    public ResponseEntity<DataResponse<TokenResponseDTO>> reissue(HttpServletRequest request) {
+    public ResponseEntity<DataResponse<TokenResponse>> reissue(HttpServletRequest request) {
         // 1. RefreshToken 추출
         String refreshToken = jwtTokenProvider.extractToken(request);
         if (refreshToken == null) {
@@ -197,7 +197,7 @@ public class AuthController {
         String newAccessToken = jwtTokenProvider.createToken(user.getId());
 
         // 8. 응답 DTO 구성
-        TokenResponseDTO response = new TokenResponseDTO(newAccessToken, refreshToken);
+        TokenResponse response = new TokenResponse(newAccessToken, refreshToken);
 
         return ResponseEntity.ok(DataResponse.from(response));
     }

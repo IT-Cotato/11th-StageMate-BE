@@ -1,6 +1,6 @@
 package com.example.stagemate.service.user.command;
 
-import com.example.stagemate.dto.request.RegisterUserRequestDTO;
+import com.example.stagemate.dto.request.RegisterUserRequest;
 
 import java.time.LocalDate;
 
@@ -15,7 +15,7 @@ public record RegisterUserCommand(
         String nickname,
         LocalDate birthdate
 ) {
-    public static RegisterUserCommand from(RegisterUserRequestDTO request) {
+    public static RegisterUserCommand from(RegisterUserRequest request) {
         return new RegisterUserCommand(
                 request.userId(),
                 request.email(),
