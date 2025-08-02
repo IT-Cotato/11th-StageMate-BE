@@ -30,11 +30,40 @@ public record CommunityPostListResponse(
         );
     }
 
+    public static CommunityPostListResponse masked(CommunityPost post, boolean isLiked) {
+        return new CommunityPostListResponse(
+                post.getId(),
+                "차단한 사용자의 게시물입니다.",
+                post.getCategory().getDescription(),
+                post.getAuthor().getNickname(),
+                post.getCreatedAt(),
+                post.getViewCount(),
+                post.getLikeCount(),
+                post.getCommentCount(),
+                isLiked
+        );
+    }
+
     public static CommunityPostListResponse fromStat(CommunityStatistics stat, boolean isLiked) {
         CommunityPost post = stat.getCommunityPost();
         return new CommunityPostListResponse(
                 post.getId(),
                 post.getTitle(),
+                post.getCategory().getDescription(),
+                post.getAuthor().getNickname(),
+                post.getCreatedAt(),
+                post.getViewCount(),
+                post.getLikeCount(),
+                post.getCommentCount(),
+                isLiked
+        );
+    }
+
+    public static CommunityPostListResponse maskedStat(CommunityStatistics stat, boolean isLiked) {
+        CommunityPost post = stat.getCommunityPost();
+        return new CommunityPostListResponse(
+                post.getId(),
+                "차단한 사용자의 게시물입니다.",
                 post.getCategory().getDescription(),
                 post.getAuthor().getNickname(),
                 post.getCreatedAt(),

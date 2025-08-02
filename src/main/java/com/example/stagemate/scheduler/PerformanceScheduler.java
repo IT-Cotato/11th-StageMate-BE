@@ -16,7 +16,7 @@ public class PerformanceScheduler {
 
 
     //자정에 상영종료되는 공연 상태정보 변경
-    @Scheduled(cron = "0 0 0 * * *")
+//    @Scheduled(cron = "0 0 0 * * *")
     public void updatePerformanceStatus() {
         //현재 시간기준으로 상태업데이트
         performanceCrawlingBatchService.updatePerformanceStatusBasedOnCurrentDate();
@@ -24,7 +24,7 @@ public class PerformanceScheduler {
 
     //추천 공연 업데이트
     //1시간에 한번 실행
-    @Scheduled(cron = "0 0 */1 * * *")
+//    @Scheduled(cron = "0 0 */1 * * *")
     public void updatePerformance() {
         performanceStatisticsBatchService.updateStatistics();
     }

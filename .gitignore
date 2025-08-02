@@ -45,3 +45,5 @@ stagemate_gcs.json
 
 # 로컬 환경 시큐리티
 src/main/java/com/example/stagemate/dev/
+
+.DS_Store

@@ -41,6 +41,11 @@ public class UserPersistenceAdapter implements LoadUserPort, SaveUserPort {
     }
 
     @Override
+    public boolean existsByEmail(String email) {
+        return userJpaRepository.existsByEmail(email);
+    }
+
+    @Override
     public User save(User user) {
         UserJpaEntity userJpaEntity = UserJpaEntity.from(user);
         return userJpaRepository.save(userJpaEntity).toDomain();

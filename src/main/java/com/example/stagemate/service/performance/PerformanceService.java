@@ -1,23 +1,22 @@
 package com.example.stagemate.service.performance;
 
-import com.example.stagemate.domain.performance.Performance;
-import com.example.stagemate.domain.performance.PerformanceScrap;
-import com.example.stagemate.domain.performance.PerformanceStatistics;
-import com.example.stagemate.domain.performance.PerformanceStatus;
+import com.example.stagemate.domain.performance.*;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.response.PerformanceDetailResponse;
 import com.example.stagemate.dto.response.RecommendedPerformanceResponse;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.performances.PerformanceErrorCode;
-import com.example.stagemate.repository.PerformanceRepository;
-import com.example.stagemate.repository.PerformanceScheduleRepository;
-import com.example.stagemate.repository.PerformanceScrapRepository;
-import com.example.stagemate.repository.PerformanceStatisticsRepository;
+import com.example.stagemate.repository.performance.PerformanceRepository;
+import com.example.stagemate.repository.performance.PerformanceScheduleRepository;
+import com.example.stagemate.repository.performance.PerformanceScrapRepository;
+import com.example.stagemate.repository.performance.PerformanceStatisticsRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,14 +38,28 @@ public class PerformanceService {
         return PerformanceDetailResponse.from(performance);
     }
 
-    public List<PerformanceDetailResponse> findOngoingOrUpcomingPerformances() {
-        // 상영중인 공연 가져오기
-        List<Performance> performances = performanceRepository.findByPerformanceStatusIn(List.of(PerformanceStatus.ONGOING, PerformanceStatus.UPCOMING));
 
-        return performances.stream()
-                .map(PerformanceDetailResponse::from)
-                .collect(Collectors.toList());
+    public Page<PerformanceDetailResponse> findFillteredPerformances(
+            PerformanceType performanceType,
+            PerformanceGenre performanceGenre,
+            List<String> region,
+            LocalDate date,
+            Pageable pageable
+    ) {
+        Page<Performance> performancePage;
+
+        if (performanceType == null && performanceGenre == null && region == null && date == null) {
+            performancePage = performanceRepository.findAll(pageable);
+        } else {
+            performancePage = performanceRepository.findByCondition(
+                    performanceType, performanceGenre, region, date, pageable
+            );
+        }
+
+        return performancePage.map(PerformanceDetailResponse::from);
     }
+
+
 
     public void insertOrDeletePerformanceScrap(UserJpaEntity user, Long performanceId) {
         boolean isExist = performanceScrapRepository.

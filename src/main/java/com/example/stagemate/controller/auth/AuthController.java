@@ -2,46 +2,36 @@ package com.example.stagemate.controller.auth;
 
 import com.example.stagemate.domain.user.User;
 import com.example.stagemate.domain.user.entity.RefreshTokenEntity;
-import com.example.stagemate.dto.request.LoginRequestDTO;
-import com.example.stagemate.dto.request.RegisterUserRequestDTO;
-import com.example.stagemate.dto.response.TokenResponseDTO;
-import com.example.stagemate.global.auth.CustomUserDetails;
+import com.example.stagemate.domain.user.entity.UserJpaEntity;
+import com.example.stagemate.domain.user.model.ConsentType;
+import com.example.stagemate.dto.request.LoginRequest;
+import com.example.stagemate.dto.request.RegisterUserRequest;
+import com.example.stagemate.dto.response.TokenResponse;
 import com.example.stagemate.global.auth.JwtTokenProvider;
 import com.example.stagemate.global.dto.DataResponse;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.auth.AuthErrorCode;
 import com.example.stagemate.global.exception.CommonErrorCode;
+import com.example.stagemate.global.reslover.CurrentUser;
+import com.example.stagemate.global.util.SignUpConsentTempStore;
 import com.example.stagemate.repository.user.RefreshTokenRepository;
-import com.example.stagemate.service.user.EmailVerificationService;
-import com.example.stagemate.service.user.LoginUseCase;
-import com.example.stagemate.service.user.RegisterUserUseCase;
-import com.example.stagemate.service.user.UserService;
+import com.example.stagemate.service.user.*;
 import com.example.stagemate.service.user.command.LoginCommand;
-import com.example.stagemate.service.user.command.RegisterUserCommand;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.regex.Pattern;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * AuthController
@@ -58,13 +48,21 @@ public class AuthController {
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserService userService;
     private final EmailVerificationService emailVerificationService;
+    private final ConsentService consentService;
+    private final SignUpConsentTempStore signUpConsentTempStore;
+    private final AuthTokenService authTokenService;
+
+    private static final String SESSION_VERIFIED_USER_ID = "verified_userId";
+    private static final String SESSION_VERIFIED_NICKNAME = "verified_nickname";
+    private static final String SESSION_TEMP_USER_KEY = "tempUserKey";
 
     @Operation(summary = "일반 회원가입 - 정보 입력", description = "아이디, 비밀번호 등 기본 정보를 입력받아 임시 저장합니다.")
     @PostMapping("/sign-up/info")
-    public ResponseEntity<DataResponse<String>> signUpInfo(
-            @Valid @RequestBody RegisterUserRequestDTO request,
+    public ResponseEntity<DataResponse<TokenResponse>> signUpInfo(
+            @Valid @RequestBody RegisterUserRequest request,
             BindingResult bindingResult,
             HttpServletRequest httpRequest) {
+
 
         // DTO 검증 오류가 있는지 확인
         if (bindingResult.hasErrors()) {
@@ -92,8 +90,8 @@ public class AuthController {
         }
 
         // 세션에서 검사한 ID, 닉네임 꺼내기
-        String verifiedUserId = (String) httpRequest.getSession().getAttribute("verified_userId");
-        String verifiedNickname = (String) httpRequest.getSession().getAttribute("verified_nickname");
+        String verifiedUserId = (String) httpRequest.getSession().getAttribute(SESSION_VERIFIED_USER_ID);
+        String verifiedNickname = (String) httpRequest.getSession().getAttribute(SESSION_VERIFIED_NICKNAME);
 
         // 검사 여부 확인
         if (!request.userId().equals(verifiedUserId)) {
@@ -103,42 +101,41 @@ public class AuthController {
             throw new AppException(AuthErrorCode.NICKNAME_NOT_VERIFIED);
         }
 
-        registerUserUseCase.execute(request);
-        String userId = request.userId();
+        //tempUserKey 유효 여부 확인
+        String tempUserKey = (String) httpRequest.getSession().getAttribute(SESSION_TEMP_USER_KEY);
+        if (tempUserKey == null) {
+            throw new AppException(CommonErrorCode.BAD_REQUEST, "세션 정보가 유효하지 않습니다.");
+        }
 
-        // 세션 인증용 CustomUserDetails 생성
-        User user = User.normalGuestSignUp(
-                request.userId(),
-                request.email(),
-                request.password(),
-                request.name(),
-                request.nickname(),
-                request.birthdate()
-        );
 
-        CustomUserDetails userDetails = new CustomUserDetails(user, Collections.emptyMap());
+        //동의 정보 Redis에서 가져오기
+        Map<String, Boolean> consentMap = signUpConsentTempStore.getForNormal(tempUserKey);
+        Map<ConsentType, Boolean> enumConsents = consentMap.entrySet().stream()
+                .filter(e -> e.getKey() != null)
+                .collect(Collectors.toMap(
+                        entry -> ConsentType.valueOf(entry.getKey()),
+                        Map.Entry::getValue
+                ));
 
-        // Authentication 객체 생성
-        Authentication authentication = new UsernamePasswordAuthenticationToken(
-                userDetails, null, userDetails.getAuthorities()
-        );
+        // 유저 등록
+        User user = registerUserUseCase.execute(request);
 
-        // SecurityContext 생성 및 세션 저장
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication(authentication);
+        // 동의 정보 저장
+        consentService.saveAll(user, enumConsents);
 
-        httpRequest.getSession().setAttribute(
-                HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
-                context
-        );
+        // Redis 키 제거
+        signUpConsentTempStore.deleteForNormal(tempUserKey);
 
-        return ResponseEntity.ok(DataResponse.from(userId));
+        // JWT 발급
+        TokenResponse tokenResponse = authTokenService.generateTokensAndSave(user.getId());
+
+        return ResponseEntity.ok(DataResponse.from(tokenResponse));
     }
 
     @PostMapping("/login")
-    ResponseEntity<DataResponse<TokenResponseDTO>> login(final @Valid @RequestBody LoginRequestDTO request) {
+    ResponseEntity<DataResponse<TokenResponse>> login(final @Valid @RequestBody LoginRequest request) {
         LoginCommand command = LoginCommand.from(request);
-        TokenResponseDTO tokens = loginUseCase.login(command);
+        TokenResponse tokens = loginUseCase.login(command);
 
         return ResponseEntity.ok(DataResponse.from(tokens));
     }
@@ -163,7 +160,7 @@ public class AuthController {
 
     @Operation(summary = "AccessToken 재발급", description = "RefreshToken을 검증하여 새로운 AccessToken을 발급합니다.", security = @SecurityRequirement(name = "bearerAuth"))
     @PostMapping("/reissue")
-    public ResponseEntity<DataResponse<TokenResponseDTO>> reissue(HttpServletRequest request) {
+    public ResponseEntity<DataResponse<TokenResponse>> reissue(HttpServletRequest request) {
         // 1. RefreshToken 추출
         String refreshToken = jwtTokenProvider.extractToken(request);
         if (refreshToken == null) {
@@ -200,9 +197,24 @@ public class AuthController {
         String newAccessToken = jwtTokenProvider.createToken(user.getId());
 
         // 8. 응답 DTO 구성
-        TokenResponseDTO response = new TokenResponseDTO(newAccessToken, refreshToken);
+        TokenResponse response = new TokenResponse(newAccessToken, refreshToken);
 
         return ResponseEntity.ok(DataResponse.from(response));
     }
+
+
+    @Operation(summary = "회원 탈퇴", description = "로그인된 사용자가 본인의 계정을 탈퇴합니다.", security = @SecurityRequirement(name = "bearerAuth"))
+    @DeleteMapping("/withdraw")
+    public ResponseEntity<DataResponse<Void>> withdraw(
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user) {
+
+        if (user == null) {
+            throw new AppException(CommonErrorCode.UNAUTHORIZED);
+        }
+
+        userService.withdraw(user.getId());
+        return ResponseEntity.ok(DataResponse.ok());
+    }
+
 
 }
