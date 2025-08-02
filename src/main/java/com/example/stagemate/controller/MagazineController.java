@@ -3,21 +3,22 @@ package com.example.stagemate.controller;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.MagazineCreateRequest;
 import com.example.stagemate.dto.response.MagazineListResponse;
-import com.example.stagemate.dto.response.MagazinePagedResponse;
 import com.example.stagemate.dto.response.MagazineResponse;
 import com.example.stagemate.global.dto.DataResponse;
 import com.example.stagemate.global.dto.ErrorResponse;
+import com.example.stagemate.global.dto.PagedResponse;
 import com.example.stagemate.global.reslover.CurrentUser;
 import com.example.stagemate.service.magazine.MagazineService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.*;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -123,12 +124,12 @@ public class MagazineController {
             @ApiResponse(responseCode = "200", description = "매거진 목록 페이지 단위 조회 성공"),
     })
     @GetMapping
-    public ResponseEntity<DataResponse<MagazinePagedResponse>> getMagazines(
+    public ResponseEntity<DataResponse<PagedResponse<MagazineListResponse>>> getMagazines(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "6") int size,
             @Parameter(hidden = true) @CurrentUser UserJpaEntity user
     ) {
-        MagazinePagedResponse magazines = magazineService.getMagazineList(page, size, user);
+        PagedResponse<MagazineListResponse> magazines = magazineService.getMagazineList(page, size, user);
         return ResponseEntity.ok(DataResponse.from(magazines));
     }
 

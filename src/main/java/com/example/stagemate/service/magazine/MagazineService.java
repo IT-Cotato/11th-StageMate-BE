@@ -5,8 +5,8 @@ import com.example.stagemate.domain.magazine.*;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.MagazineCreateRequest;
 import com.example.stagemate.dto.response.MagazineListResponse;
-import com.example.stagemate.dto.response.MagazinePagedResponse;
 import com.example.stagemate.dto.response.MagazineResponse;
+import com.example.stagemate.global.dto.PagedResponse;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.magazine.MagazineNotFoundException;
 import com.example.stagemate.repository.ImageRepository;
@@ -84,7 +84,7 @@ public class MagazineService {
 
 
     // 매거진 목록 조회 (6개씩 페이징)
-    public MagazinePagedResponse getMagazineList(int page, int size, UserJpaEntity user) {
+    public PagedResponse<MagazineListResponse> getMagazineList(int page, int size, UserJpaEntity user) {
         Pageable pageable = PageRequest.of(page-1, size);
         Page<Magazine> magazinePage = magazineRepository.findAllByOrderByCreatedAtDesc(pageable);
 
@@ -100,13 +100,7 @@ public class MagazineService {
                     .map(m -> MagazineListResponse.from(m, false))
                     .toList();
         }
-        return new MagazinePagedResponse(
-                content,
-                magazinePage.getNumber(),
-                magazinePage.getSize(),
-                magazinePage.getTotalElements(),
-                magazinePage.getTotalPages()
-        );
+        return PagedResponse.from(content, magazinePage);
     }
 
     // 매거진 상세 조회
@@ -198,7 +192,7 @@ public class MagazineService {
 
     // 내가 스크랩한 매거진
     // 매거진 목록 조회 (6개씩 페이징)
-    public MagazinePagedResponse getMyMagazineScrapList(int page, int size, UserJpaEntity user) {
+    public PagedResponse<MagazineListResponse> getMyMagazineScrapList(int page, int size, UserJpaEntity user) {
         if(user == null) {
             throw new AppException(NOT_FOUND_USER);
         }
@@ -210,12 +204,6 @@ public class MagazineService {
         List<MagazineListResponse> content = magazinePage.getContent().stream()
                 .map(m -> MagazineListResponse.from(m, scrappedMagazineIdsByUser.contains(m.getId())))
                 .toList();
-        return new MagazinePagedResponse(
-                content,
-                magazinePage.getNumber(),
-                magazinePage.getSize(),
-                magazinePage.getTotalElements(),
-                magazinePage.getTotalPages()
-        );
+        return PagedResponse.from(content, magazinePage);
     }
 }

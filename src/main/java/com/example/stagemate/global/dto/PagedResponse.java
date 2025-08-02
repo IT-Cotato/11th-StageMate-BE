@@ -1,19 +1,18 @@
-package com.example.stagemate.dto.response.community;
+package com.example.stagemate.global.dto;
 
-import com.example.stagemate.domain.community.UserBlock;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
 
-public record UserBlockPagedResponse(
-        List<UserBlockListResponse> list,
+public record PagedResponse<T>(
+        List<T> list,
         int currentPage,
         int pageSize,
         long totalElements,
         int totalPages
 ) {
-    public static UserBlockPagedResponse from(List<UserBlockListResponse> list, Page<UserBlock> page) {
-        return new UserBlockPagedResponse(
+    public static <T, E> PagedResponse<T> from(List<T> list, Page<E> page) {
+        return new PagedResponse<>(
                 list,
                 page.getNumber(),
                 page.getSize(),
@@ -22,3 +21,4 @@ public record UserBlockPagedResponse(
         );
     }
 }
+

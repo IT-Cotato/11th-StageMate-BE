@@ -2,10 +2,12 @@ package com.example.stagemate.controller;
 
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.community.UserBlockRequest;
+import com.example.stagemate.dto.response.community.UserBlockListResponse;
 import com.example.stagemate.dto.response.UserBlockStatusResponse;
 import com.example.stagemate.dto.response.community.UserBlockPagedResponse;
 import com.example.stagemate.global.dto.DataResponse;
 import com.example.stagemate.global.dto.ErrorResponse;
+import com.example.stagemate.global.dto.PagedResponse;
 import com.example.stagemate.global.reslover.CurrentUser;
 import com.example.stagemate.service.community.UserBlockService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -82,13 +84,13 @@ public class UserBlockController {
     })
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping
-    public ResponseEntity<DataResponse<UserBlockPagedResponse>> getBlockedUsers(
+    public ResponseEntity<DataResponse<PagedResponse<UserBlockListResponse>>> getBlockedUsers(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @Parameter(hidden = true) @CurrentUser UserJpaEntity user
     ) {
-        UserBlockPagedResponse response = userBlockService.getBlockedUsers(user, page, size);
-        return ResponseEntity.ok(DataResponse.from(response));
+        PagedResponse<UserBlockListResponse> blockedUsers = userBlockService.getBlockedUsers(user, page, size);
+        return ResponseEntity.ok(DataResponse.from(blockedUsers));
     }
 
 

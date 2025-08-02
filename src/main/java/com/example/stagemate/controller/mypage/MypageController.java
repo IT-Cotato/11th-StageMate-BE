@@ -3,6 +3,7 @@ package com.example.stagemate.controller.mypage;
 
 import com.example.stagemate.domain.image.Image;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
+import com.example.stagemate.dto.request.ChangePasswordRequest;
 import com.example.stagemate.dto.response.AccountInfoResponse;
 import com.example.stagemate.dto.response.community.CommunityPostPagedResponse;
 import com.example.stagemate.global.dto.BaseResponse;
@@ -16,16 +17,16 @@ import com.example.stagemate.global.reslover.CurrentUser;
 import com.example.stagemate.service.community.CommunityService;
 import com.example.stagemate.service.image.ImageService;
 import com.example.stagemate.service.user.UserService;
-import com.example.stagemate.dto.request.ChangePasswordRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.example.stagemate.dto.request.ChangePasswordRequest;
+import com.example.stagemate.dto.response.community.CommunityPostListResponse;
+import com.example.stagemate.dto.response.community.CommunityPostPagedResponse;
+import com.example.stagemate.global.dto.PagedResponse;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
@@ -116,7 +117,7 @@ public class MypageController {
 
     @Operation(summary = "내가 작성한 게시글 조회", description = "사용자가 작성한 커뮤니티 게시글 목록을 조회합니다.")
     @GetMapping("/posts")
-    public ResponseEntity<DataResponse<CommunityPostPagedResponse>> getMyPosts(
+    public ResponseEntity<DataResponse<PagedResponse<CommunityPostListResponse>>> getMyPosts(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @Parameter(hidden = true) @CurrentUser UserJpaEntity user
@@ -130,7 +131,7 @@ public class MypageController {
 
     @Operation(summary = "댓글 단 게시글 조회", description = "사용자가 댓글 단 게시글 목록을 조회합니다.")
     @GetMapping("/commented-posts")
-    public ResponseEntity<DataResponse<CommunityPostPagedResponse>> getCommentedPosts(
+    public ResponseEntity<DataResponse<PagedResponse<CommunityPostListResponse>>> getCommentedPosts(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @Parameter(hidden = true) @CurrentUser UserJpaEntity user
