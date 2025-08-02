@@ -1,6 +1,7 @@
 package com.example.stagemate.repository.community;
 
 import com.example.stagemate.domain.community.UserBlock;
+import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,4 +18,9 @@ public interface UserBlockRepository extends JpaRepository<UserBlock, Long> {
     List<UserBlock> findAllByBlockerId(Long blockerId);
     @Query("SELECT ub.blocked.id FROM UserBlock ub WHERE ub.blocker.id = :blockerId")
     Set<Long> findBlockedUserIdsByBlockerId(@Param("blockerId") Long blockerId);
+
+    @Query("SELECT ub.blocked.id FROM UserBlock ub WHERE ub.blocker.id = :userId AND ub.blocked.id IN :userIds")
+    List<Long> findBlockedUserIds(@Param("userId") Long userId, @Param("userIds") List<Long> userIds);
+
+
 }

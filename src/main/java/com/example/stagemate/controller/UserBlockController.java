@@ -2,6 +2,7 @@ package com.example.stagemate.controller;
 
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.community.UserBlockRequest;
+import com.example.stagemate.dto.response.UserBlockStatusResponse;
 import com.example.stagemate.dto.response.community.UserBlockPagedResponse;
 import com.example.stagemate.global.dto.DataResponse;
 import com.example.stagemate.global.dto.ErrorResponse;
@@ -15,12 +16,16 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/blocks")
+@Slf4j
 public class UserBlockController {
 
     private final UserBlockService userBlockService;
@@ -83,6 +88,24 @@ public class UserBlockController {
             @Parameter(hidden = true) @CurrentUser UserJpaEntity user
     ) {
         UserBlockPagedResponse response = userBlockService.getBlockedUsers(user, page, size);
+        return ResponseEntity.ok(DataResponse.from(response));
+    }
+
+
+    @Operation(summary = "사용자 차단 여부 확인", description = "사용자 차단 여부를 확인합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "차단 여부 확인 성공"),
+            @ApiResponse(responseCode = "401", description = "인증 필요 (COMMON-009)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    })
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/check")
+    public ResponseEntity<DataResponse<List<UserBlockStatusResponse>>> checkBlockedUser(
+            @RequestParam("userIds") List<Long> userIds,
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user
+    ) {
+        log.info("userIds: {}", userIds);
+        List<UserBlockStatusResponse> response = userBlockService.checkBlockedUser(user, userIds);
         return ResponseEntity.ok(DataResponse.from(response));
     }
 }
