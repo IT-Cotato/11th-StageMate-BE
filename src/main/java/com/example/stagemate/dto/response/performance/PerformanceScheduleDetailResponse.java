@@ -1,4 +1,4 @@
-package com.example.stagemate.dto.response;
+package com.example.stagemate.dto.response.performance;
 
 import com.example.stagemate.domain.performanceSchedule.PerformanceSchedule;
 import com.example.stagemate.domain.performanceSchedule.PerformanceScheduleReportCategory;

@@ -1,4 +1,4 @@
-package com.example.stagemate.dto.response;
+package com.example.stagemate.dto.response.archive;
 
 import com.example.stagemate.domain.archive.Archive;
 import lombok.Builder;

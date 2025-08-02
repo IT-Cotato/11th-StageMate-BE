@@ -1,6 +1,7 @@
 package com.example.stagemate.domain.performanceSchedule;
 
 import com.example.stagemate.domain.performance.Performance;
+import com.example.stagemate.domain.theater.Theater;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.PerformanceScheduleCreateRequest;
 import jakarta.persistence.*;
@@ -27,8 +28,12 @@ public class PerformanceSchedule {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "performance_id")
+    @JoinColumn(name = "performance_id", nullable = true)
     private Performance performance;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "theater_id", nullable = false)
+    private Theater theater;
 
     private String title;
 
@@ -79,7 +84,8 @@ public class PerformanceSchedule {
     public static PerformanceSchedule createPerformanceSchedule(
             UserJpaEntity user,
             PerformanceScheduleCreateRequest performanceScheduleCreateRequest,
-            Performance performance) {
+            Performance performance,
+            Theater theater) {
 
         PerformanceSchedule performanceSchedule =
                 PerformanceSchedule
@@ -94,6 +100,7 @@ public class PerformanceSchedule {
                         .reportDate(performanceScheduleCreateRequest.getReportDate())
                         .performanceScheduleType(PerformanceScheduleType.ETC)
                         .userJpaEntity(user)
+                        .theater(theater)
                         .build();
 
 
