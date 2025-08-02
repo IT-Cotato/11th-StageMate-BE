@@ -3,6 +3,7 @@ package com.example.stagemate.controller;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.chat.ReportChatRequest;
 import com.example.stagemate.dto.request.community.ReportCommunityRequest;
+import com.example.stagemate.dto.response.chat.ChatReportCountResponse;
 import com.example.stagemate.global.dto.DataResponse;
 import com.example.stagemate.global.dto.ErrorResponse;
 import com.example.stagemate.global.reslover.CurrentUser;
@@ -18,10 +19,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -88,6 +88,37 @@ public class ReportController {
 
         reportService.reportChat(user, request.chatId(), request.reason());
         return ResponseEntity.ok(DataResponse.ok());
+    }
+
+
+    @Operation(
+            summary = "채팅 신고 횟수 조회",
+            description = """
+               유저별 채팅신고 당한 횟수를 조회합니다
+            """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "채팅 신고 횟수 조회 성공",
+                    content = @Content(schema = @Schema(implementation = ChatReportCountResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "사용자를 찾을 수 없음 (COMMON-008)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            )
+    })
+
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/chat/count")
+    public ResponseEntity<DataResponse<List<ChatReportCountResponse>>> getChatReportCount(
+            @RequestParam("userIds") List<Long> userIds,
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user
+    ) {
+
+        List<ChatReportCountResponse> responses = reportService.getChatReportCount(user, userIds);
+        return ResponseEntity.ok(DataResponse.from(responses));
     }
 
 

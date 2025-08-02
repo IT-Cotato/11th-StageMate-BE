@@ -7,6 +7,7 @@ import com.example.stagemate.domain.community.CommunityReport;
 import com.example.stagemate.domain.community.ReportReason;
 import com.example.stagemate.domain.community.TargetType;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
+import com.example.stagemate.dto.response.chat.ChatReportCountResponse;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.repository.chat.ChatReportRepository;
 import com.example.stagemate.repository.chat.ChatRepository;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static com.example.stagemate.global.exception.CommonErrorCode.NOT_FOUND_USER;
 import static com.example.stagemate.global.exception.community.CommunityErrorCode.*;
@@ -81,5 +83,16 @@ public class ReportService {
 
         chatReportRepository.save(chatReport);
 
+    }
+
+    //채팅 신고 횟수 getChatReportCount
+    public List<ChatReportCountResponse> getChatReportCount(UserJpaEntity user, List<Long> userIds) {
+        userIds.forEach(id -> {
+            if (!userRepository.existsById(id)) {
+                throw new AppException(NOT_FOUND_USER);
+            }
+        });
+
+        return chatReportRepository.getChatReportCount(userIds);
     }
 }
