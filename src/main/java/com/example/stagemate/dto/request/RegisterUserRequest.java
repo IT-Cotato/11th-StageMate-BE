@@ -5,7 +5,7 @@ import java.time.LocalDate;
 
 import static com.example.stagemate.global.util.ValidationConstants.*;
 
-public record RegisterUserRequestDTO(
+public record RegisterUserRequest(
         @NotBlank(message = "아이디를 입력해주세요.")
         @Size(min = USER_ID_MIN_LENGTH, max = USER_ID_MAX_LENGTH, message = "아이디는 4~16자 이내로 입력해주세요.")
         @Pattern(regexp = USER_ID_REGEX, message = "아이디는 영문과 숫자만 사용할 수 있습니다.")

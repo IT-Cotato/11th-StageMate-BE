@@ -2,7 +2,7 @@ package com.example.stagemate.service.user;
 
 
 import com.example.stagemate.domain.user.entity.RefreshTokenEntity;
-import com.example.stagemate.dto.response.TokenResponseDTO;
+import com.example.stagemate.dto.response.TokenResponse;
 import com.example.stagemate.global.auth.JwtTokenProvider;
 import com.example.stagemate.repository.user.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,7 @@ public class AuthTokenService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
 
-    public TokenResponseDTO generateTokensAndSave(Long userId) {
+    public TokenResponse generateTokensAndSave(Long userId) {
         String accessToken = jwtTokenProvider.createToken(userId);
         String refreshToken = jwtTokenProvider.createRefreshToken(userId);
 
@@ -29,7 +29,7 @@ public class AuthTokenService {
                         .build()
         );
 
-        return new TokenResponseDTO(accessToken, refreshToken);
+        return new TokenResponse(accessToken, refreshToken);
     }
 
 }

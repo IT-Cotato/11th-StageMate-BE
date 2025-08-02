@@ -2,14 +2,11 @@ package com.example.stagemate.controller.mypage;
 
 
 import com.example.stagemate.domain.image.Image;
-import com.example.stagemate.domain.user.User;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.response.AccountInfoResponse;
 import com.example.stagemate.dto.response.community.CommunityPostPagedResponse;
-import com.example.stagemate.global.auth.CustomUserDetails;
 import com.example.stagemate.global.dto.BaseResponse;
 import com.example.stagemate.global.dto.DataResponse;
-import com.example.stagemate.global.dto.ErrorResponse;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.CommonErrorCode;
 import com.example.stagemate.global.exception.auth.AuthErrorCode;

@@ -8,7 +8,7 @@ import lombok.Getter;
 import java.time.LocalDate;
 
 @Getter
-public class OAuth2SignupRequestDTO {
+public class OAuth2SignupRequest {
 
     @NotBlank
     private String nickname;
