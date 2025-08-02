@@ -50,6 +50,16 @@ dependencies {
 	implementation group: 'org.springframework.cloud', name: 'spring-cloud-gcp-starter', version: '1.2.5.RELEASE'
 	implementation group: 'org.springframework.cloud', name: 'spring-cloud-gcp-storage', version: '1.2.5.RELEASE'
 
+	//웹소켓
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+	implementation 'org.webjars:sockjs-client:1.1.2'
+
+	//mongoDB 의존성 추가
+	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+
+	//redis pub/sub
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'org.springframework.data:spring-data-redis'
 
 	//이메일 인증 번호 전송을 위한 의존성 추가
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
