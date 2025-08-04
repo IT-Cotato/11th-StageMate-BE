@@ -84,6 +84,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,
                                 "/api/v1/email/send-code")
                         .permitAll()
+                        .requestMatchers("/actuator/**")
+                        .permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/communities/hot",
                                 "/api/v1/communities",
