@@ -1,0 +1,44 @@
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "korean_ngram": {
+          "type": "custom",
+          "tokenizer": "nori_tokenizer",
+          "filter": ["lowercase", "edge_ngram_filter"]
+        }
+      },
+      "filter": {
+        "edge_ngram_filter": {
+          "type": "edge_ngram",
+          "min_gram": 1,
+          "max_gram": 20
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "id": { "type": "keyword" },
+      "type": { "type": "keyword" },
+      "title": {
+        "type": "text",
+        "fields": {
+          "nori":   { "type": "text", "analyzer": "nori" },
+          "ngram":  { "type": "text", "analyzer": "korean_ngram", "search_analyzer": "korean_ngram" }
+        }
+      },
+      "content": {
+        "type": "text",
+        "fields": {
+          "nori":   { "type": "text", "analyzer": "nori" },
+          "ngram":  { "type": "text", "analyzer": "korean_ngram", "search_analyzer": "korean_ngram" }
+        }
+      },
+      "genre": { "type": "keyword" },
+      "startDate": { "type": "date" },
+      "endDate": { "type": "date" },
+      "createdAt": { "type": "date" }
+    }
+  }
+}

@@ -1,7 +1,9 @@
 package com.example.stagemate.service.search;
 
 import com.example.stagemate.dto.response.search.PopularKeywordResponse;
+import com.example.stagemate.global.exception.AppException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -11,6 +13,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
+import static com.example.stagemate.global.exception.search.SearchErrorCode.REDIS_ERROR;
 
 @Service
 @RequiredArgsConstructor
@@ -36,18 +40,26 @@ public class KeywordService {
 
     // 검색어 기록
     public void record(String keyword) {
-        String key = getCurrent10MinKey();
-        redisTemplate.opsForZSet().incrementScore(key, keyword, 1);
-        redisTemplate.expire(key, Duration.ofMinutes(15));
+        try {
+            String key = getCurrent10MinKey();
+            redisTemplate.opsForZSet().incrementScore(key, keyword, 1);
+            redisTemplate.expire(key, Duration.ofMinutes(15));
+        } catch (DataAccessException e) {
+            throw new AppException(REDIS_ERROR);
+        }
     }
 
     // 직전 구간 인기 검색어 조회 ex. 2025-08-01 22:40 기준
     public PopularKeywordResponse getTop10() {
-        String key = getPrevious10MinKey();
-        Set<String> result = redisTemplate.opsForZSet().reverseRange(key, 0, 9);
-        List<String> list = result != null ? new ArrayList<>(result) : new ArrayList<>();
-        LocalDateTime time = parseTimeFromKey(key);
-        return new PopularKeywordResponse(time, list);
+        try {
+            String key = getPrevious10MinKey();
+            Set<String> result = redisTemplate.opsForZSet().reverseRange(key, 0, 9);
+            List<String> list = result != null ? new ArrayList<>(result) : new ArrayList<>();
+            LocalDateTime time = parseTimeFromKey(key);
+            return new PopularKeywordResponse(time, list);
+        } catch (DataAccessException e) {
+            throw new AppException(REDIS_ERROR);
+        }
     }
 
     private LocalDateTime parseTimeFromKey(String key) {

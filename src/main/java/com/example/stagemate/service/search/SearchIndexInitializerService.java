@@ -3,6 +3,7 @@ package com.example.stagemate.service.search;
 import com.example.stagemate.domain.community.CommunityPost;
 import com.example.stagemate.domain.performance.Performance;
 import com.example.stagemate.domain.search.SearchDocument;
+import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.repository.community.CommunityRepository;
 import com.example.stagemate.repository.performance.PerformanceRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
+import static com.example.stagemate.global.exception.search.SearchErrorCode.ELASTICSEARCH_ERROR;
 
 @RequiredArgsConstructor
 @Service
@@ -28,9 +31,14 @@ public class SearchIndexInitializerService {
     @EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void indexAllOnStartup() {
-        indexAllCommunityPosts();
-        indexAllPerformances();
-        log.info("애플리케이션 시작 시 엘라스틱서치 초기화 완료");
+        if (!template.indexOps(SearchDocument.class).exists()) {
+            log.info("search 인덱스가 없어 초기화 진행");
+            indexAllCommunityPosts();
+            indexAllPerformances();
+            log.info("✅ 애플리케이션 시작 시 엘라스틱서치 초기화 완료");
+        } else {
+            log.info("⚠️ search 인덱스가 이미 존재합니다. 초기화 건너뜀");
+        }
     }
 
     public void indexAllCommunityPosts() {
@@ -44,10 +52,15 @@ public class SearchIndexInitializerService {
                         post.getContent(),
                         null,
                         null,
-                        null
+                        null,
+                        post.getCreatedAt().toLocalDate()
                 )).toList();
 
-        template.save(documents); // bulk insert
+        try {
+            template.save(documents); // bulk insert
+        } catch(Exception e) {
+            throw new AppException(ELASTICSEARCH_ERROR);
+        }
     }
 
     public void indexAllPerformances() {
@@ -61,10 +74,15 @@ public class SearchIndexInitializerService {
                         null,
                         performance.getPerformanceGenre().name(),
                         performance.getStartDate(),
-                        performance.getEndDate()
+                        performance.getEndDate(),
+                        null
                 )).toList();
 
-        template.save(documents); // bulk insert
+        try {
+            template.save(documents); // bulk insert
+        } catch(Exception e) {
+            throw new AppException(ELASTICSEARCH_ERROR);
+        }
     }
 }
 

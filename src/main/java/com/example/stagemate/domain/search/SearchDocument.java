@@ -29,5 +29,7 @@ public class SearchDocument {
     private LocalDate startDate; // performance 에만 존재
     @Field(type = FieldType.Date, format = DateFormat.date)
     private LocalDate endDate; // performance 에만 존재
+    @Field(type = FieldType.Date, format = DateFormat.date)
+    private LocalDate createdAt; // community 에만 존재
 }
 

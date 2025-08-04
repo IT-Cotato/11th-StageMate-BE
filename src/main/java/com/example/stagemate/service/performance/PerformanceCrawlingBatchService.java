@@ -49,6 +49,9 @@ public class PerformanceCrawlingBatchService {
     @Transactional
     public void updateBatch(List<CrawledPerformanceInfo> crawledPerformances) {
         // 상영중, 상영예정 공연 가져오기
+
+        searchService.deleteAllFromPerformances();
+
         List<Performance> existingPerformances = performanceRepository.findByPerformanceStatusIn(
                 List.of(PerformanceStatus.ONGOING, PerformanceStatus.UPCOMING));
 
