@@ -25,7 +25,6 @@ public interface PerformanceScheduleRepository extends JpaRepository<Performance
     List<PerformanceSchedule> findByScheduleReportStatus(@Param("status") List<PerformanceScheduleReportStatus> status);
 
     //findByIdWithPerformanceScheduleReportCategories
-    @Query("SELECT ps FROM PerformanceSchedule ps JOIN FETCH ps.performance JOIN FETCH ps.performanceScheduleReportCategories WHERE ps.id = :performanceScheduleId")
-    Optional<PerformanceSchedule> findByIdWithPerformanceScheduleReportCategories(@Param("performanceScheduleId") Long performanceScheduleId);
+    Optional<PerformanceSchedule> findOptionalByPerformance_IdAndPerformanceScheduleType(Long performanceId, PerformanceScheduleType type);
 
 }
