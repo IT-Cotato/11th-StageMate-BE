@@ -64,11 +64,26 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults()) // swagger 설정하다가 추가
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)) //stateLess로 다시 변경
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/", "/login", "/api/v1/auth/**","/login/oauth2/**", "/oauth2/**", "/swagger-ui/**", "/v3/api-docs/**"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/v1/auth/sign-up/tempUserKey")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/v1/check/userId/*",
+                                "/api/v1/check/nickname/*")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/v1/auth/login",
+                                  "/api/v1/auth/sign-up/agree",
+                                  "/api/v1/auth/sign-up/info")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/v1/email/send-code")
+                        .permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/communities/hot",
                                 "/api/v1/communities",
@@ -96,6 +111,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/chat-room"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/v1/mypage/notices",
+                                "/api/v1/mypage/notices/*",
+                                "/api/v1/mypage/policy/terms",
+                                "/api/v1/mypage/policy/privacy")
+                        .permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
@@ -118,3 +139,33 @@ public class SecurityConfig {
 
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
