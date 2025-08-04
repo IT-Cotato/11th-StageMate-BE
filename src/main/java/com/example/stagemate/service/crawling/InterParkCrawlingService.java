@@ -354,13 +354,43 @@ public class InterParkCrawlingService {
     }
 
 
+//    private void initWebDriver() {
+//        WebDriverManager.chromedriver().setup();
+//        ChromeOptions options = new ChromeOptions();
+//
+//        driver = new ChromeDriver(options);
+//        wait = new WebDriverWait(driver, DEFAULT_WAIT_TIMEOUT);
+//    }
+
     private void initWebDriver() {
         WebDriverManager.chromedriver().setup();
+
+        // 고유한 user-data-dir 경로 생성
+        String userDataDir = "/tmp/selenium-profile-" + UUID.randomUUID();
+        String downloadDir = "/tmp/downloads-" + UUID.randomUUID();
+
         ChromeOptions options = new ChromeOptions();
+        options.addArguments("--headless=new"); // Headless 모드 (new는 크롬 최신 방식)
+        options.addArguments("--no-sandbox"); // root 권한 문제 방지
+        options.addArguments("--disable-dev-shm-usage"); // /dev/shm 크기 부족 문제 방지
+        options.addArguments("--disable-gpu"); // GPU 렌더링 비활성화 (리눅스 서버에서 안정적)
+        options.addArguments("--window-size=1920,1080"); // 브라우저 해상도 설정
+        options.addArguments("--user-data-dir=" + userDataDir); // 고유한 프로필로 충돌 방지
+        options.addArguments("--lang=ko-KR"); // 언어 설정 (선택 사항)
+
+        // 자동 다운로드 방지를 위한 설정 (필요 시)
+        Map<String, Object> prefs = new HashMap<>();
+        prefs.put("download.default_directory", downloadDir);
+        prefs.put("profile.default_content_settings.popups", 0);
+        options.setExperimentalOption("prefs", prefs);
 
         driver = new ChromeDriver(options);
         wait = new WebDriverWait(driver, DEFAULT_WAIT_TIMEOUT);
+
+        log.info("🧭 WebDriver 초기화 완료 (userDataDir: {}, downloadDir: {})", userDataDir, downloadDir);
     }
+
+
 
     private List<CrawledPerformanceInfo> crawlInterPark(String url, PerformanceType performanceType) {
         List<CrawledPerformanceInfo> performanceInfos = new ArrayList<>();
