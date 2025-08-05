@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
+import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,12 +33,12 @@ public class SearchIndexInitializerService {
     @Transactional
     public void indexAllOnStartup() {
         if (!template.indexOps(SearchDocument.class).exists()) {
-            log.info("search 인덱스가 없어 초기화 진행");
+            log.info("🔍 search 인덱스가 없어 전체 초기화 진행");
             indexAllCommunityPosts();
             indexAllPerformances();
-            log.info("✅ 애플리케이션 시작 시 엘라스틱서치 초기화 완료");
+            log.info("✅ 애플리케이션 시작 시 Elasticsearch 초기화 완료");
         } else {
-            log.info("⚠️ search 인덱스가 이미 존재합니다. 초기화 건너뜀");
+            log.info("✅ search 인덱스가 이미 존재합니다. 초기화 없이 실행합니다.");
         }
     }
 
@@ -80,6 +81,25 @@ public class SearchIndexInitializerService {
 
         try {
             template.save(documents); // bulk insert
+        } catch(Exception e) {
+            throw new AppException(ELASTICSEARCH_ERROR);
+        }
+    }
+
+    public void deleteAllFromPerformances() {
+        try {
+            NativeQuery query = NativeQuery.builder()
+                    .withQuery(q -> q.term(t -> t.field("type").value("performance")))
+                    .build();
+
+            List<String> idsToDelete = template.search(query, SearchDocument.class)
+                    .stream()
+                    .map(hit -> hit.getContent().getId())
+                    .toList();
+
+            for (String id : idsToDelete) {
+                template.delete(id, SearchDocument.class);
+            }
         } catch(Exception e) {
             throw new AppException(ELASTICSEARCH_ERROR);
         }

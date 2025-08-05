@@ -170,20 +170,10 @@ public class SearchService {
         save(doc);
     }
 
-    public void deleteAllFromPerformances() {
+
+    public void deleteFromPerformanceId(Long performanceId) {
         try {
-            NativeQuery query = NativeQuery.builder()
-                    .withQuery(q -> q.term(t -> t.field("type").value("performance")))
-                    .build();
-
-            List<String> idsToDelete = template.search(query, SearchDocument.class)
-                    .stream()
-                    .map(hit -> hit.getContent().getId())
-                    .toList();
-
-            for (String id : idsToDelete) {
-                template.delete(id, SearchDocument.class);
-            }
+            template.delete("performance-" + performanceId, SearchDocument.class);
         } catch(Exception e) {
             throw new AppException(ELASTICSEARCH_ERROR);
         }
