@@ -15,12 +15,12 @@ import org.springframework.stereotype.Component;
 public class CommunityStatisticsScheduler {
     private final CommunityStatisticsRepository communityStatisticsRepository;
 
-    // 애플리케이션 시작 시 매거진 통계 초기화
+    // 애플리케이션 시작 시 커뮤니티 통계 초기화
     @EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void initStatistics() {
         updateCommunityStatistics();
-        log.info("애플리케이션 시작 시 매거진 통계 초기화 완료");
+        log.info("애플리케이션 시작 시 커뮤니티 통계 초기화 완료");
     }
 
 //     1시간마다 스케줄러 실행

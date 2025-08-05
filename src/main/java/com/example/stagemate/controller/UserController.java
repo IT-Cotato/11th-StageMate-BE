@@ -1,10 +1,11 @@
 package com.example.stagemate.controller;
 
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
-import com.example.stagemate.dto.response.MagazinePagedResponse;
-import com.example.stagemate.dto.response.community.CommunityPostPagedResponse;
+import com.example.stagemate.dto.response.MagazineListResponse;
+import com.example.stagemate.dto.response.community.CommunityPostListResponse;
 import com.example.stagemate.global.dto.DataResponse;
 import com.example.stagemate.global.dto.ErrorResponse;
+import com.example.stagemate.global.dto.PagedResponse;
 import com.example.stagemate.global.reslover.CurrentUser;
 import com.example.stagemate.service.community.CommunityService;
 import com.example.stagemate.service.magazine.MagazineService;
@@ -42,12 +43,12 @@ public class UserController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/magazines")
-    public ResponseEntity<DataResponse<MagazinePagedResponse>> getMagazines(
+    public ResponseEntity<DataResponse<PagedResponse<MagazineListResponse>>> getMagazines(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "6") int size,
             @Parameter(hidden = true) @CurrentUser UserJpaEntity user
     ) {
-        MagazinePagedResponse magazines = magazineService.getMyMagazineScrapList(page, size, user);
+        PagedResponse<MagazineListResponse> magazines = magazineService.getMyMagazineScrapList(page, size, user);
         return ResponseEntity.ok(DataResponse.from(magazines));
     }
 
@@ -59,12 +60,12 @@ public class UserController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping("/communities")
-    public ResponseEntity<DataResponse<CommunityPostPagedResponse>> getMyCommunityScrapList(
+    public ResponseEntity<DataResponse<PagedResponse<CommunityPostListResponse>>> getMyCommunityScrapList(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "6") int size,
             @Parameter(hidden = true) @CurrentUser UserJpaEntity user
     ) {
-        CommunityPostPagedResponse myCommunityScrapList = communityService.getMyCommunityScrapList(user, page, size);
+        PagedResponse<CommunityPostListResponse> myCommunityScrapList = communityService.getMyCommunityScrapList(user, page, size);
         return ResponseEntity.ok(DataResponse.from(myCommunityScrapList));
     }
 }

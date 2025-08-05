@@ -6,11 +6,13 @@ import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.community.CommunityPostCreateRequest;
 import com.example.stagemate.dto.request.community.CommunityPostUpdateRequest;
 import com.example.stagemate.dto.response.community.*;
+import com.example.stagemate.global.dto.PagedResponse;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.repository.ImageRepository;
 import com.example.stagemate.repository.community.*;
 import com.example.stagemate.repository.user.UserJpaRepository;
 import com.example.stagemate.service.image.ImageService;
+import com.example.stagemate.service.search.SearchService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -54,6 +56,7 @@ public class CommunityService {
     private final CommunityReportRepository communityReportRepository;
     private final CommunityCommentRepository communityCommentRepository;
     private final UserBlockRepository userBlockRepository;
+    private final SearchService searchService;
 
     // 커뮤니티 게시글 작성, 이미지 업로드
     public CommunityPostResponse createCommunityPost(UserJpaEntity user, CommunityPostCreateRequest request, List<MultipartFile> images) throws JsonProcessingException {
@@ -87,6 +90,14 @@ public class CommunityService {
                 post.getImages().add(communityImage);
             }
         }
+
+        // 엘라스틱 서치에 저장
+        try {
+            searchService.saveFromCommunity(post);
+        } catch (Exception e) {
+            log.warn("엘라스틱서치 인덱싱 실패: {}", e.getMessage());
+        }
+
         // 역직렬화
         JsonNode jsonContent = objectMapper.readTree(post.getContent());
 
@@ -98,7 +109,7 @@ public class CommunityService {
     // HOT
     // 비회원은 전체공개 글만 조회 가능
     // 회원은 전체공개 + 회원공개 글 중 차단한 사람 제외
-    public CommunityPostPagedResponse getCommunityHotPosts(UserJpaEntity user, int page, int size) {
+    public PagedResponse<CommunityPostListResponse> getCommunityHotPosts(UserJpaEntity user, int page, int size) {
         Pageable pageable = PageRequest.of(page-1, size);
         Page<CommunityStatistics> communityStatistics;
         List<CommunityPostListResponse> list;
@@ -131,13 +142,7 @@ public class CommunityService {
                     .toList();
         }
 
-        return new CommunityPostPagedResponse(
-                list,
-                communityStatistics.getNumber(),
-                communityStatistics.getSize(),
-                communityStatistics.getTotalElements(),
-                communityStatistics.getTotalPages()
-        );
+        return PagedResponse.from(list, communityStatistics);
     }
 
 
@@ -145,7 +150,7 @@ public class CommunityService {
     // 일상, 꿀팁
     // 비회원은 전체공개 글만 조회 가능
     // 회원은 전체공개 + 회원공개 글 중 차단한 사람 제외
-    public CommunityPostPagedResponse getCommunityPosts(UserJpaEntity user, String category, int page, int size) {
+    public PagedResponse<CommunityPostListResponse> getCommunityPosts(UserJpaEntity user, String category, int page, int size) {
         Pageable pageable = PageRequest.of(page-1, size);
         Page<CommunityPost> communityPosts;
         List<CommunityPostListResponse> list;
@@ -181,20 +186,14 @@ public class CommunityService {
                     })
                     .toList();
         }
-        return new CommunityPostPagedResponse(
-                list,
-                communityPosts.getNumber(),
-                communityPosts.getSize(),
-                communityPosts.getTotalElements(),
-                communityPosts.getTotalPages()
-        );
+        return PagedResponse.from(list, communityPosts);
     }
 
     // 커뮤니티 게시글 목록 조회(페이징)
     // 나눔거래
     // 비회원은 전체공개 글만 조회 가능
     // 회원은 전체공개 + 회원공개 글 중 차단한 사람 제외
-    public CommunityPostTradePagedResponse getCommunityTradePosts(UserJpaEntity user, int page, int size) {
+    public PagedResponse<CommunityPostTradeListResponse> getCommunityTradePosts(UserJpaEntity user, int page, int size) {
         Pageable pageable = PageRequest.of(page-1, size);
         Page<CommunityPost> communityPosts;
         List<CommunityPostTradeListResponse> list;
@@ -228,13 +227,8 @@ public class CommunityService {
                     })
                     .toList();
         }
-        return new CommunityPostTradePagedResponse(
-                list,
-                communityPosts.getNumber(),
-                communityPosts.getSize(),
-                communityPosts.getTotalElements(),
-                communityPosts.getTotalPages()
-        );
+
+        return PagedResponse.from(list, communityPosts);
     }
 
 
@@ -325,6 +319,13 @@ public class CommunityService {
         // 이미지 업데이트
         updateCommunityPostImage(post, request.getImageIds(), newImages);
 
+        // 엘라스틱 서치에 저장
+        try {
+            searchService.saveFromCommunity(post);
+        } catch (Exception e) {
+            log.warn("엘라스틱서치 인덱싱 실패: {}", e.getMessage());
+        }
+
         // 스크랩, 좋아요 여부 확인
         boolean isScrapped = communityScrapRepository.existsByUserIdAndCommunityPostId(user.getId(), postId);
         boolean isLiked = communityLikeRepository.existsByUserIdAndCommunityPostId(user.getId(), postId);
@@ -396,6 +397,12 @@ public class CommunityService {
 
         // soft delete 처리
         post.changeIsDeleted();
+
+        try {
+            searchService.deleteFromCommunity(post.getId());
+        } catch (Exception e) {
+            log.warn("엘라스틱서치 삭제 실패: {}", e.getMessage());
+        }
     }
 
 
@@ -408,7 +415,7 @@ public class CommunityService {
     }
 
 
-    public CommunityPostPagedResponse getMyCommunityScrapList(UserJpaEntity user, int page, int size) {
+    public PagedResponse<CommunityPostListResponse> getMyCommunityScrapList(UserJpaEntity user, int page, int size) {
         Pageable pageable = PageRequest.of(page-1, size);
         // 유저 존재하는지 확인
         if (user == null) {
@@ -422,17 +429,11 @@ public class CommunityService {
                 .toList();
 
 
-        return new CommunityPostPagedResponse(
-                list,
-                communityPosts.getNumber(),
-                communityPosts.getSize(),
-                communityPosts.getTotalElements(),
-                communityPosts.getTotalPages()
-        );
+        return PagedResponse.from(list, communityPosts);
     }
 
     // 내가 작성한 커뮤니티 게시글 목록 조회(페이징)
-    public CommunityPostPagedResponse getMyCommunityPosts(UserJpaEntity user, int page, int size) {
+    public PagedResponse<CommunityPostListResponse> getMyCommunityPosts(UserJpaEntity user, int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<CommunityPost> posts = communityRepository.findAllByAuthorIdAndDeletedFalse(user.getId(), pageable);
         List<Long> likedPostIdsByUser = communityLikeService.getLikedPostIdsByUser(user.getId());
@@ -440,11 +441,11 @@ public class CommunityService {
                 .map(post -> CommunityPostListResponse.from(post, likedPostIdsByUser.contains(post.getId())))
                 .toList();
 
-        return new CommunityPostPagedResponse(list, posts.getNumber(), posts.getSize(), posts.getTotalElements(), posts.getTotalPages());
+        return PagedResponse.from(list, posts);
     }
 
     // 내가 댓글 단 커뮤니티 게시글 목록 조회(페이징)
-    public CommunityPostPagedResponse getCommentedCommunityPosts(UserJpaEntity user, int page, int size) {
+    public PagedResponse<CommunityPostListResponse> getCommentedCommunityPosts(UserJpaEntity user, int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size);
         Page<CommunityPost> posts = communityCommentRepository.findDistinctPostsByWriterId(user.getId(), pageable);
         List<Long> likedPostIdsByUser = communityLikeService.getLikedPostIdsByUser(user.getId());
@@ -452,7 +453,7 @@ public class CommunityService {
                 .map(post -> CommunityPostListResponse.from(post, likedPostIdsByUser.contains(post.getId())))
                 .toList();
 
-        return new CommunityPostPagedResponse(list, posts.getNumber(), posts.getSize(), posts.getTotalElements(), posts.getTotalPages());
+        return PagedResponse.from(list, posts);
     }
 
 

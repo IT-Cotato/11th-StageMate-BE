@@ -37,7 +37,6 @@ out/
 .vscode/
 
 ### .yml ###
-*.yml
 application-local.yml
 
 # GCS 서비스 키
