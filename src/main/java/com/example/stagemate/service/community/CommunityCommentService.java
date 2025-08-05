@@ -54,11 +54,17 @@ public class CommunityCommentService {
             if (parent.getParent() != null) {
                 throw new AppException(COMMUNITY_REPLY_NOT_ALLOWED);
             }
-            notificationService.save(parent.getUser(), NotificationType.REPLY_ON_COMMENT, post.getId(), request.content()); // 댓글 작성자 알림함에 저장
+            // 본인 댓글에 달지 않은 경우에만 알림
+            if (!post.getAuthor().getId().equals(user.getId())) {
+                notificationService.save(parent.getUser(), NotificationType.REPLY_ON_COMMENT, post.getId(), request.content()); // 댓글 작성자 알림함에 저장
+            }
         }
         CommunityComment comment = request.toEntity(post, user, parent);
         commentRepository.save(comment);
-        notificationService.save(post.getAuthor(), NotificationType.COMMENT_ON_POST, post.getId(), request.content()); // 게시글 작성자 알림함에 저장
+        // 본인 게시글에 달지 않은 경우에만 알림
+        if (!post.getAuthor().getId().equals(user.getId())) {
+            notificationService.save(post.getAuthor(), NotificationType.COMMENT_ON_POST, post.getId(), request.content()); // 게시글 작성자 알림함에 저장
+        }
         post.addCommentCount();
     }
 

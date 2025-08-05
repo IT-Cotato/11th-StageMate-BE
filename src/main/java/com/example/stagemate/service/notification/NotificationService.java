@@ -18,7 +18,8 @@ public class NotificationService {
     public final NotificationRepository notificationRepository;
 
     public void save(UserJpaEntity user, NotificationType notificationType, Long targetId, String comment) {
-        Notification.of(user, notificationType, targetId);
+        Notification notification = Notification.of(user, notificationType, targetId, comment);
+        notificationRepository.save(notification);
     }
 
     public List<NotificationResponse> getMyNotifications(UserJpaEntity user) {

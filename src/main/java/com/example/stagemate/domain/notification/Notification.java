@@ -32,12 +32,12 @@ public class Notification {
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    public static Notification of(UserJpaEntity receiver, NotificationType type, Long targetId) {
+    public static Notification of(UserJpaEntity receiver, NotificationType type, Long targetId, String comment) {
         return Notification.builder()
                 .receiver(receiver)
                 .type(type)
                 .targetId(targetId)
-                .content(type.getMessage())
+                .content(comment)
                 .build();
     }
 
