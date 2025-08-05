@@ -2,6 +2,7 @@ package com.example.stagemate.service.community;
 
 import com.example.stagemate.domain.community.CommunityComment;
 import com.example.stagemate.domain.community.CommunityPost;
+import com.example.stagemate.domain.notification.NotificationType;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.community.CommunityCommentRequest;
 import com.example.stagemate.dto.request.community.CommunityCommentUpdateRequest;
@@ -10,6 +11,7 @@ import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.repository.community.CommunityCommentRepository;
 import com.example.stagemate.repository.community.CommunityRepository;
 import com.example.stagemate.repository.community.UserBlockRepository;
+import com.example.stagemate.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +28,7 @@ public class CommunityCommentService {
     private final CommunityCommentRepository commentRepository;
     private final CommunityRepository communityRepository;
     private final UserBlockRepository userBlockRepository;
+    private final NotificationService notificationService;
 
     public List<CommunityCommentResponse> getCommentsByPost(CommunityPost post, UserJpaEntity user) {
         List<CommunityComment> rootComments = commentRepository.findRootCommentsWithChildrenByPost(post);
@@ -51,9 +54,11 @@ public class CommunityCommentService {
             if (parent.getParent() != null) {
                 throw new AppException(COMMUNITY_REPLY_NOT_ALLOWED);
             }
+            notificationService.save(parent.getUser(), NotificationType.REPLY_ON_COMMENT, post.getId(), request.content()); // 댓글 작성자 알림함에 저장
         }
         CommunityComment comment = request.toEntity(post, user, parent);
         commentRepository.save(comment);
+        notificationService.save(post.getAuthor(), NotificationType.COMMENT_ON_POST, post.getId(), request.content()); // 게시글 작성자 알림함에 저장
         post.addCommentCount();
     }
 
