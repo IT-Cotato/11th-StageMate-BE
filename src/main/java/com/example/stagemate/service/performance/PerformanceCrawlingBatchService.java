@@ -1,15 +1,15 @@
 package com.example.stagemate.service.performance;
 
+import com.example.stagemate.domain.performance.PerformanceType;
+import com.example.stagemate.domain.performanceSchedule.*;
 import com.example.stagemate.domain.performance.Performance;
 import com.example.stagemate.domain.performance.PerformanceStatus;
-import com.example.stagemate.domain.performanceSchedule.PerformanceSchedule;
-import com.example.stagemate.domain.performanceSchedule.PerformanceScheduleType;
 import com.example.stagemate.domain.theater.Theater;
 import com.example.stagemate.dto.data.CrawledPerformanceInfo;
-import com.example.stagemate.repository.TheaterRepository;
 import com.example.stagemate.repository.performance.PerformanceRepository;
+import com.example.stagemate.repository.performance.PerformanceScheduleReportCategoryRepository;
 import com.example.stagemate.repository.performance.PerformanceScheduleRepository;
-import com.example.stagemate.service.search.SearchService;
+import com.example.stagemate.repository.TheaterRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,7 +29,7 @@ public class PerformanceCrawlingBatchService {
     private final PerformanceRepository performanceRepository;
     private final PerformanceScheduleRepository performanceScheduleRepository;
     private final TheaterRepository theaterRepository;
-    private final SearchService searchService;
+    private final PerformanceScheduleReportCategoryRepository performanceScheduleReportCategoryRepository;
 
 
 
@@ -42,10 +42,6 @@ public class PerformanceCrawlingBatchService {
         for (Performance performance : ongoingPerformances) {
             performance.updateStatusBasedOnCurrentDate();
 
-            if(performance.getPerformanceStatus() == PerformanceStatus.ENDED) {
-                searchService.deleteFromPerformanceId(performance.getId());
-            }
-
             performanceRepository.save(performance);
         }
     }
@@ -55,7 +51,6 @@ public class PerformanceCrawlingBatchService {
     @Transactional
     public void updateBatch(List<CrawledPerformanceInfo> crawledPerformances) {
         // 상영중, 상영예정 공연 가져오기
-
         List<Performance> existingPerformances = performanceRepository.findByPerformanceStatusIn(
                 List.of(PerformanceStatus.ONGOING, PerformanceStatus.UPCOMING));
 
@@ -89,18 +84,14 @@ public class PerformanceCrawlingBatchService {
                 updatePerformanceSchedule(existing);
 
                 performanceRepository.save(existing);
-
-                searchService.saveFromPerformance(existing);
             } else {
                 // 새로운 공연이면 삽입
                 performanceRepository.save(crawledPerformance);
-                searchService.saveFromPerformance(crawledPerformance);
 
                 //새로운 공연이면 공연 시작 스케줄 + 공연 종료 스케줄 2개 추가
                 insertPerformanceSchedule(crawledPerformance);
             }
         }
-
 
         // 주석 처리된 취소 로직 (필요 시 복구)
         // List<Performance> toBeCancelled = existingPerformances.stream()
@@ -115,40 +106,51 @@ public class PerformanceCrawlingBatchService {
 
     private Theater insertTheater(String theaterName, String region) {
 
-         Theater theater = Theater.builder()
-                 .name(theaterName)
-                 .region(region)
-                 .build();
-         return theaterRepository.save(theater);
+        Theater theater = Theater.builder()
+                .name(theaterName)
+                .region(region)
+                .build();
+        return theaterRepository.save(theater);
     }
 
     private PerformanceSchedule createPerformanceStartOrEndSchedule(Performance performance, PerformanceScheduleType scheduleType) {
-        LocalDate date = scheduleType.equals(PerformanceScheduleType.START) ?
+        LocalDate date = scheduleType == PerformanceScheduleType.START ?
                 performance.getStartDate() : performance.getEndDate();
 
-        String content = scheduleType.equals(PerformanceScheduleType.START) ?
-                "첫 공연" : "마지막 공연";
+        String content = scheduleType == PerformanceScheduleType.START ? "첫 공연" : "마지막 공연";
 
-        LocalDate startDate = performance.getStartDate();
-        LocalDate endDate = performance.getEndDate();
+        LocalDateTime dateTime = date.atStartOfDay();  // or customize by type
 
-        LocalDateTime startDateTime = startDate.atStartOfDay();
-        LocalDateTime endDateTime = endDate.atStartOfDay();
-
-        if (startDateTime.isAfter(endDateTime)) {
-            return null;
-        }
-
-        return PerformanceSchedule.builder()
+        PerformanceSchedule performanceSchedule = PerformanceSchedule.builder()
                 .performance(performance)
                 .content(content)
                 .scheduleDate(date)
                 .performanceScheduleType(scheduleType)
-                .scheduleStartTime(startDateTime)
-                .scheduleEndTime(endDateTime)
+                .scheduleStartTime(dateTime)
+                .scheduleEndTime(dateTime)
                 .theater(performance.getTheater())
+                .reportDate(LocalDateTime.now())
+                .performanceScheduleReportStatus(PerformanceScheduleReportStatus.APPROVED)
+                .title(performance.getPerformanceName() + " " + content)
+                .url(performance.getUrl())
                 .build();
 
+        PerformanceSchedule savedSchedule = performanceScheduleRepository.save(performanceSchedule);
+
+        PerformanceScheduleReportCategoryType categoryType =
+                performance.getPerformanceType() == PerformanceType.PLAY ?
+                        PerformanceScheduleReportCategoryType.PLAY :
+                        PerformanceScheduleReportCategoryType.MUSICAL;
+
+        PerformanceScheduleReportCategory category = PerformanceScheduleReportCategory.builder()
+                .performanceSchedule(savedSchedule)
+                .performanceScheduleReportCategoryType(categoryType)
+                .categoryOrder(1)
+                .build();
+
+        performanceScheduleReportCategoryRepository.save(category);
+
+        return savedSchedule;
     }
 
     //기존 공연의 시작일, 종료일이 변경되면 공연 스케줄 업데이트

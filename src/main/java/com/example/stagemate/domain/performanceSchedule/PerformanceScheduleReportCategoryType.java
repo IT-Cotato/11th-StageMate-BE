@@ -2,7 +2,7 @@ package com.example.stagemate.domain.performanceSchedule;
 
 public enum PerformanceScheduleReportCategoryType {
     //뮤지컬, 공연
-    MUSICIAL,
+    MUSICAL,
     PLAY,
 
     //배우, 공식팝업, 시츠프로브, 온라인 중계, 시상식
