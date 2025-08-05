@@ -1,14 +1,15 @@
 package com.example.stagemate.service.performance;
 
-import com.example.stagemate.domain.performanceSchedule.PerformanceSchedule;
-import com.example.stagemate.domain.performanceSchedule.PerformanceScheduleType;
 import com.example.stagemate.domain.performance.Performance;
 import com.example.stagemate.domain.performance.PerformanceStatus;
+import com.example.stagemate.domain.performanceSchedule.PerformanceSchedule;
+import com.example.stagemate.domain.performanceSchedule.PerformanceScheduleType;
 import com.example.stagemate.domain.theater.Theater;
 import com.example.stagemate.dto.data.CrawledPerformanceInfo;
+import com.example.stagemate.repository.TheaterRepository;
 import com.example.stagemate.repository.performance.PerformanceRepository;
 import com.example.stagemate.repository.performance.PerformanceScheduleRepository;
-import com.example.stagemate.repository.TheaterRepository;
+import com.example.stagemate.service.search.SearchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,7 @@ public class PerformanceCrawlingBatchService {
     private final PerformanceRepository performanceRepository;
     private final PerformanceScheduleRepository performanceScheduleRepository;
     private final TheaterRepository theaterRepository;
+    private final SearchService searchService;
 
 
 
@@ -39,6 +41,11 @@ public class PerformanceCrawlingBatchService {
 
         for (Performance performance : ongoingPerformances) {
             performance.updateStatusBasedOnCurrentDate();
+
+            if(performance.getPerformanceStatus() == PerformanceStatus.ENDED) {
+                searchService.deleteFromPerformanceId(performance.getId());
+            }
+
             performanceRepository.save(performance);
         }
     }
@@ -48,6 +55,7 @@ public class PerformanceCrawlingBatchService {
     @Transactional
     public void updateBatch(List<CrawledPerformanceInfo> crawledPerformances) {
         // 상영중, 상영예정 공연 가져오기
+
         List<Performance> existingPerformances = performanceRepository.findByPerformanceStatusIn(
                 List.of(PerformanceStatus.ONGOING, PerformanceStatus.UPCOMING));
 
@@ -81,14 +89,18 @@ public class PerformanceCrawlingBatchService {
                 updatePerformanceSchedule(existing);
 
                 performanceRepository.save(existing);
+
+                searchService.saveFromPerformance(existing);
             } else {
                 // 새로운 공연이면 삽입
                 performanceRepository.save(crawledPerformance);
+                searchService.saveFromPerformance(crawledPerformance);
 
                 //새로운 공연이면 공연 시작 스케줄 + 공연 종료 스케줄 2개 추가
                 insertPerformanceSchedule(crawledPerformance);
             }
         }
+
 
         // 주석 처리된 취소 로직 (필요 시 복구)
         // List<Performance> toBeCancelled = existingPerformances.stream()

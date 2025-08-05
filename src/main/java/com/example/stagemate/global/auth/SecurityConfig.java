@@ -1,11 +1,8 @@
 package com.example.stagemate.global.auth;
 
-import com.example.stagemate.domain.user.Role;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -25,7 +22,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
-@Profile("!local")
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
@@ -110,8 +106,18 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/theaters"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/v1/email/*"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/v1/check/**"
+                        ).permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/chat-room"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/v1/search",
+                                "/api/v1/search/popular"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/mypage/notices",
@@ -141,33 +147,3 @@ public class SecurityConfig {
 
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

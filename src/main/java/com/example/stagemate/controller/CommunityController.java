@@ -3,12 +3,12 @@ package com.example.stagemate.controller;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.community.CommunityPostCreateRequest;
 import com.example.stagemate.dto.request.community.CommunityPostUpdateRequest;
-import com.example.stagemate.dto.response.community.CommunityPostPagedResponse;
+import com.example.stagemate.dto.response.community.CommunityPostListResponse;
 import com.example.stagemate.dto.response.community.CommunityPostResponse;
-import com.example.stagemate.dto.response.community.CommunityPostTradePagedResponse;
-import com.example.stagemate.global.auth.CustomUserDetails;
+import com.example.stagemate.dto.response.community.CommunityPostTradeListResponse;
 import com.example.stagemate.global.dto.DataResponse;
 import com.example.stagemate.global.dto.ErrorResponse;
+import com.example.stagemate.global.dto.PagedResponse;
 import com.example.stagemate.global.reslover.CurrentUser;
 import com.example.stagemate.service.community.CommunityService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -21,7 +21,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -83,15 +82,15 @@ public class CommunityController {
     @Operation(summary = "HOT 게시글 목록 조회", description = "페이징 기반으로 HOT 게시글을 조회합니다.")
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @GetMapping("/hot")
-    public ResponseEntity<DataResponse<CommunityPostPagedResponse>> getCommunityHotPosts(
+    public ResponseEntity<DataResponse<PagedResponse<CommunityPostListResponse>>> getCommunityHotPosts(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @Parameter(hidden = true) @CurrentUser UserJpaEntity user
     ) {
-        CommunityPostPagedResponse response = communityService.getCommunityHotPosts(
+        PagedResponse<CommunityPostListResponse> communityHotPosts = communityService.getCommunityHotPosts(
                 user, page, size
         );
-        return ResponseEntity.ok(DataResponse.from(response));
+        return ResponseEntity.ok(DataResponse.from(communityHotPosts));
     }
 
 
@@ -99,13 +98,13 @@ public class CommunityController {
     " 카테고리는 '일상' 또는 '꿀팁' 중 하나여야 합니다.")
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @GetMapping
-    public ResponseEntity<DataResponse<CommunityPostPagedResponse>> getCommunityPosts(
+    public ResponseEntity<DataResponse<PagedResponse<CommunityPostListResponse>>> getCommunityPosts(
             @RequestParam String category,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @Parameter(hidden = true) @CurrentUser UserJpaEntity user
     ) {
-        CommunityPostPagedResponse response = communityService.getCommunityPosts(
+        PagedResponse<CommunityPostListResponse> response = communityService.getCommunityPosts(
                 user, category, page, size
         );
         return ResponseEntity.ok(DataResponse.from(response));
@@ -114,15 +113,15 @@ public class CommunityController {
     @Operation(summary = "나눔거래 게시글 목록 조회", description = "페이징 기반으로 나눔거래 카테고리 게시글을 조회합니다.")
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @GetMapping("/trade")
-    public ResponseEntity<DataResponse<CommunityPostTradePagedResponse>> getCommunityTradePosts(
+    public ResponseEntity<DataResponse<PagedResponse<CommunityPostTradeListResponse>>> getCommunityTradePosts(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @Parameter(hidden = true) @CurrentUser UserJpaEntity user
     ) {
-        CommunityPostTradePagedResponse response = communityService.getCommunityTradePosts(
+        PagedResponse<CommunityPostTradeListResponse> communityTradePosts = communityService.getCommunityTradePosts(
                 user, page, size
         );
-        return ResponseEntity.ok(DataResponse.from(response));
+        return ResponseEntity.ok(DataResponse.from(communityTradePosts));
     }
 
     @Operation(summary = "커뮤니티 게시글 상세 조회", description = "게시글 ID로 상세 정보를 조회합니다. 댓글과 대댓글도 함께 조회합니다.")

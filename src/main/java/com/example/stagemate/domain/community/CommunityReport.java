@@ -35,6 +35,7 @@ public class CommunityReport {
     @Enumerated(EnumType.STRING)
     private ReportReason reason;
 
+    @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public static CommunityReport of(UserJpaEntity user, TargetType targetType, Long targetId, ReportReason reason) {

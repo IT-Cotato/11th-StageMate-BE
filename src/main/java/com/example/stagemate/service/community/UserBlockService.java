@@ -7,7 +7,7 @@ import com.example.stagemate.domain.community.UserBlock;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.response.UserBlockStatusResponse;
 import com.example.stagemate.dto.response.community.UserBlockListResponse;
-import com.example.stagemate.dto.response.community.UserBlockPagedResponse;
+import com.example.stagemate.global.dto.PagedResponse;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.repository.community.CommunityCommentRepository;
 import com.example.stagemate.repository.community.CommunityRepository;
@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.stagemate.global.exception.CommonErrorCode.NOT_FOUND_USER;
-import static com.example.stagemate.global.exception.CommonErrorCode.UNAUTHORIZED;
 import static com.example.stagemate.global.exception.community.CommunityErrorCode.*;
 
 @Service
@@ -91,7 +90,7 @@ public class UserBlockService {
     }
 
 
-    public UserBlockPagedResponse getBlockedUsers(UserJpaEntity user, int page, int size) {
+    public PagedResponse<UserBlockListResponse> getBlockedUsers(UserJpaEntity user, int page, int size) {
         Pageable pageable = PageRequest.of(page-1, size);
         userRepository.findById(user.getId())
                 .orElseThrow(() -> new AppException(NOT_FOUND_USER));
@@ -101,10 +100,7 @@ public class UserBlockService {
                 .stream()
                 .map(UserBlockListResponse::from)
                 .toList();
-        return UserBlockPagedResponse.from(
-                list,
-                allByBlockerId
-        );
+        return PagedResponse.from(list, allByBlockerId);
 
     }
 

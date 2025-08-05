@@ -1,9 +1,7 @@
 package com.example.stagemate.domain.chat;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.example.stagemate.domain.performance.Performance;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -28,5 +26,9 @@ public class ChatRoom {
     private LocalDate startDate;
 
     private LocalDate endDate;
+
+    @OneToOne
+    @JoinColumn(name = "performance_id")
+    private Performance performance;
 
 }
