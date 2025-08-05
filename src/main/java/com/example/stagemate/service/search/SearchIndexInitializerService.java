@@ -12,6 +12,8 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
+import org.springframework.data.elasticsearch.core.IndexOperations;
+import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,13 +34,23 @@ public class SearchIndexInitializerService {
     @EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void indexAllOnStartup() {
-        if (!template.indexOps(SearchDocument.class).exists()) {
-            log.info("🔍 search 인덱스가 없어 전체 초기화 진행");
+        IndexOperations indexOps = template.indexOps(SearchDocument.class);
+
+        if (!indexOps.exists()) {
+            log.error("❌ search 인덱스가 없습니다. init-search-index.sh를 먼저 실행해주세요.");
+            return;
+        }
+
+        Query query = Query.findAll(); // 전체 문서 조회
+        long documentCount = template.count(query, SearchDocument.class);
+
+        if (documentCount == 0) {
+            log.info("🔍 search 인덱스는 존재하나 데이터가 없어 전체 초기화 진행");
             indexAllCommunityPosts();
             indexAllPerformances();
             log.info("✅ 애플리케이션 시작 시 Elasticsearch 초기화 완료");
         } else {
-            log.info("✅ search 인덱스가 이미 존재합니다. 초기화 없이 실행합니다.");
+            log.info("✅ search 인덱스에 이미 데이터가 존재합니다. 초기화 없이 실행합니다. (count = {})", documentCount);
         }
     }
 
