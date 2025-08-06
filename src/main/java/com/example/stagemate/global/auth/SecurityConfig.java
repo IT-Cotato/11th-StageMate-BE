@@ -25,7 +25,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
-@Profile("!local")
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
@@ -67,7 +66,12 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/", "/login", "/api/v1/auth/**","/login/oauth2/**", "/oauth2/**", "/swagger-ui/**", "/v3/api-docs/**"
+                                "/", "/login", "/api/v1/auth/**","/login/oauth2/**", "/oauth2/**", "/swagger-ui/**", "/v3/api-docs/**","/api/v1/check/**", "/api/v1/email/*"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/v1/mypage/notices",
+                                "/api/v1/mypage/notices/*",
+                                "api/v1/mypage/policy/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/communities/hot",
