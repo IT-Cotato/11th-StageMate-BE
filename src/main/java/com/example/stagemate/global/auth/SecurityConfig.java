@@ -3,6 +3,7 @@ package com.example.stagemate.global.auth;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -22,6 +23,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
+@Profile("!local")
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
@@ -41,9 +43,16 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
+        // 프론트 도메인 허용 (https 프로토콜 포함)
+        configuration.addAllowedOrigin("https://stagemate.co.kr");
+        configuration.addAllowedOrigin("https://www.stagemate.co.kr");
+        configuration.addAllowedOrigin("https://api.stagemate.co.kr");
+
+
         configuration.addAllowedOrigin("http://localhost:3000");
         configuration.addAllowedOrigin("http://localhost:5173");      // ✅ 추가
         configuration.addAllowedOrigin("http://34.49.53.76");         // ✅ 추가
+
         configuration.setAllowCredentials(true);                      // ✅ true이면 origin은 * 사용 금지
         configuration.addAllowedHeader("*");
         configuration.addAllowedMethod("*"); // 또는 GET, POST, PUT, DELETE, OPTIONS
@@ -53,6 +62,7 @@ public class SecurityConfig {
         return source;
     }
 
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
@@ -60,7 +70,7 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults()) // swagger 설정하다가 추가
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)) //stateLess로 다시 변경
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)) //stateLess로 다시 변경
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/", "/login", "/api/v1/auth/**","/login/oauth2/**", "/oauth2/**", "/swagger-ui/**", "/v3/api-docs/**","/api/v1/check/**", "/api/v1/email/*"

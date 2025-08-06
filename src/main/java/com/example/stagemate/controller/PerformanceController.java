@@ -6,6 +6,7 @@ import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.response.performance.PerformanceDetailResponse;
 import com.example.stagemate.dto.response.performance.RecommendedPerformanceResponse;
 import com.example.stagemate.global.dto.DataResponse;
+import com.example.stagemate.global.dto.PagedResponse;
 import com.example.stagemate.global.reslover.CurrentUser;
 import com.example.stagemate.service.performance.PerformanceService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,7 +42,7 @@ public class PerformanceController {
     @Operation(summary = "공연 목록", description = "공연 목록을 가져옴")
     @ApiResponse(responseCode = "200", description = "공연 목록을 가져옴")
     @GetMapping("/api/v1/performance")
-    public ResponseEntity<DataResponse<Page<PerformanceDetailResponse>>> getPerformances(
+    public ResponseEntity<DataResponse<PagedResponse<PerformanceDetailResponse>>> getPerformances(
             @RequestParam(name = "size", defaultValue = "10") int size,
             @RequestParam(name = "page", defaultValue = "1") int page,
             @RequestParam(name = "performanceType", required = false) PerformanceType performanceType,
@@ -52,7 +53,7 @@ public class PerformanceController {
 
         Pageable pageable = PageRequest.of(page - 1, size);
 
-        Page<PerformanceDetailResponse> performanceDetailResponses =
+        PagedResponse<PerformanceDetailResponse> performanceDetailResponses =
                 performanceService.findFillteredPerformances(performanceType, performanceGenre, region, date, pageable);
 
         return ResponseEntity.ok(DataResponse.from(performanceDetailResponses));
@@ -78,14 +79,14 @@ public class PerformanceController {
     @Operation(summary = "추천 공연", description = "추천 공연 목록을 가져옴")
     @ApiResponse(responseCode = "200", description = "추천 공연 목록을 가져옴")
     @GetMapping("/api/v1/performance/recommend")
-    public ResponseEntity<DataResponse<List<RecommendedPerformanceResponse>>> getRecommendPerformance(
-            @RequestParam(name = "size", defaultValue = "10") int size) { // 기본 size = 10
+    public ResponseEntity<DataResponse<PagedResponse<RecommendedPerformanceResponse>>> getRecommendPerformance(
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            @RequestParam(name = "page", defaultValue = "1") int page) { // 기본 size = 10
 
-        Pageable pageable = PageRequest.of(0, size);
 
         //size만큼 추천 공연 목록 가져오기
-        List<RecommendedPerformanceResponse> recommendedPerformanceResponses =
-                performanceService.getRecommendPerformances(pageable);
+        PagedResponse<RecommendedPerformanceResponse> recommendedPerformanceResponses =
+                performanceService.getRecommendPerformances(page, size);
 
         return ResponseEntity.ok(DataResponse.from(recommendedPerformanceResponses));
 
