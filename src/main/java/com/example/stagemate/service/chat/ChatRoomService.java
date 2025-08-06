@@ -2,6 +2,7 @@ package com.example.stagemate.service.chat;
 
 import com.example.stagemate.domain.chat.ChatRoom;
 import com.example.stagemate.dto.response.chat.ChatRoomResponse;
+import com.example.stagemate.global.dto.PagedResponse;
 import com.example.stagemate.repository.chat.ChatRoomRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -14,12 +15,12 @@ import org.springframework.stereotype.Service;
 public class ChatRoomService {
     private final ChatRoomRepository chatRoomRepository;
 
-    public Page<ChatRoomResponse> getChatRooms(int page, int size) {
+    public PagedResponse<ChatRoomResponse> getChatRooms(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
 
         Page<ChatRoom> chatRooms = chatRoomRepository.findChatRoomsOrderByEndDateAsc(pageable);
 
-        return chatRooms.map(ChatRoomResponse::from);
+        return PagedResponse.from(chatRooms.getContent().stream().map(ChatRoomResponse::from).toList(), chatRooms);
     }
 
 }

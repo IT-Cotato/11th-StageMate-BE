@@ -1,6 +1,7 @@
 package com.example.stagemate.repository.performance;
 
 import com.example.stagemate.domain.performance.PerformanceStatistics;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -28,8 +29,11 @@ public interface PerformanceStatisticsRepository extends JpaRepository<Performan
     void updateIncreasedScrapCountInBulk();
 
 
-    @Transactional
-    @Query("SELECT ps FROM PerformanceStatistics ps JOIN FETCH ps.performance ORDER BY ps.increasedScrapCount DESC")
-    List<PerformanceStatistics> findTopByIncreasedScrapCount(Pageable pageable);
+    @Query(
+            value = "SELECT ps FROM PerformanceStatistics ps JOIN FETCH ps.performance ORDER BY ps.increasedScrapCount DESC",
+            countQuery = "SELECT COUNT(ps) FROM PerformanceStatistics ps"
+    )
+    Page<PerformanceStatistics> findTopByIncreasedScrapCount(Pageable pageable);
+
 
 }

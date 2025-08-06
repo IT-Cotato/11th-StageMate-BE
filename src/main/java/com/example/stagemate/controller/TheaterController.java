@@ -2,6 +2,7 @@ package com.example.stagemate.controller;
 
 import com.example.stagemate.dto.response.TheaterDetailResponse;
 import com.example.stagemate.global.dto.DataResponse;
+import com.example.stagemate.global.dto.PagedResponse;
 import com.example.stagemate.service.theater.TheaterService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,16 +23,22 @@ public class TheaterController {
 
     @Operation(summary = "공연장 목록", description = "공연장 목록을 가져옴, region은 선택")
     @GetMapping("/api/v1/theaters")
-    public ResponseEntity<DataResponse<List<TheaterDetailResponse>>> getTheaters(
-            @RequestParam(name = "region", required = false) String region
+    public ResponseEntity<DataResponse<PagedResponse<TheaterDetailResponse>>> getTheaters(
+            @RequestParam(name = "region", required = false) String region,
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size
     ) {
 
         if (region != null) {
-            List<TheaterDetailResponse> theaterDetailResponses = theaterService.getTheatersByRegion(region);
+            PagedResponse<TheaterDetailResponse> theaterDetailResponses =
+                    theaterService.getTheatersByRegion(page, size, region);
+
             return ResponseEntity.ok(DataResponse.from(theaterDetailResponses));
         }
 
-        List<TheaterDetailResponse> theaterDetailResponses = theaterService.getAllTheaters();
+        PagedResponse<TheaterDetailResponse> theaterDetailResponses =
+                theaterService.getAllTheaters(page, size);
+
         return ResponseEntity.ok(DataResponse.from(theaterDetailResponses));
     }
 

@@ -4,6 +4,7 @@ import com.example.stagemate.domain.performance.*;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.response.performance.PerformanceDetailResponse;
 import com.example.stagemate.dto.response.performance.RecommendedPerformanceResponse;
+import com.example.stagemate.global.dto.PagedResponse;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.performances.PerformanceErrorCode;
 import com.example.stagemate.repository.performance.PerformanceRepository;
@@ -12,6 +13,7 @@ import com.example.stagemate.repository.performance.PerformanceScrapRepository;
 import com.example.stagemate.repository.performance.PerformanceStatisticsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,7 +41,7 @@ public class PerformanceService {
     }
 
 
-    public Page<PerformanceDetailResponse> findFillteredPerformances(
+    public PagedResponse<PerformanceDetailResponse> findFillteredPerformances(
             PerformanceType performanceType,
             PerformanceGenre performanceGenre,
             List<String> region,
@@ -56,7 +58,12 @@ public class PerformanceService {
             );
         }
 
-        return performancePage.map(PerformanceDetailResponse::from);
+        List<PerformanceDetailResponse> performanceDetailResponses =
+                performancePage.getContent().stream()
+                        .map(PerformanceDetailResponse::from)
+                        .collect(Collectors.toList());
+
+        return PagedResponse.from(performanceDetailResponses, performancePage);
     }
 
 
@@ -82,17 +89,21 @@ public class PerformanceService {
     }
 
     //추천 공연은 1시간이내 스크랩이 많이 오른 순으로 추천
-    public List<RecommendedPerformanceResponse> getRecommendPerformances(Pageable pageable) {
+    public PagedResponse<RecommendedPerformanceResponse> getRecommendPerformances(int page, int size) {
+        Pageable pageable = PageRequest.of(page-1, size);
+
         //increased_scrap_count 높은 순 공연통계 찾기
-        List<PerformanceStatistics> performanceStatistics = performanceStatisticsRepository.findTopByIncreasedScrapCount(pageable);
+        Page<PerformanceStatistics> performanceStatistics =
+                performanceStatisticsRepository.findTopByIncreasedScrapCount(pageable);
 
+        return PagedResponse.from(
+                performanceStatistics.getContent().stream()
+                        .map(RecommendedPerformanceResponse::from)
+                        .toList(),
+                performanceStatistics
+        );
 
-        return performanceStatistics.stream()
-                .map(stats -> RecommendedPerformanceResponse.from(stats.getPerformance(), stats))
-                .collect(Collectors.toList());
     }
-
-
 
 
 
