@@ -1,6 +1,7 @@
 package com.example.stagemate.dto.response;
 
 import com.example.stagemate.domain.mypage.Notice;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -12,6 +13,7 @@ public class NoticeSummaryResponse {
     private Long id;
     private String title;
     private String author;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yy.MM.dd")
     private LocalDateTime createdAt;
     private int viewCount;
 
