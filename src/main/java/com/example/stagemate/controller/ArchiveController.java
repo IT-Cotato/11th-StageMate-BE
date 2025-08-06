@@ -169,7 +169,7 @@ public class ArchiveController {
     public ResponseEntity<DataResponse<List<ArchiveRankingResponse>>> getTopRatingArchives(
             @RequestParam Integer year,
             @RequestParam Integer month,
-            @RequestParam Integer size) {
+            @RequestParam(defaultValue = "3") Integer size) {
 
 
         List<ArchiveRankingResponse> archives = archiveService.getTopRatingArchives(year, month, size);
