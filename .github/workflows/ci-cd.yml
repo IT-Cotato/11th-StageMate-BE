@@ -3,8 +3,8 @@ name: Deploy to EC2 on develop
 on:
   push:
     branches:
-      - develop  # ✅ develop 브랜치에 push될 때만 실행
-  workflow_dispatch:  # 수동 실행도 허용 (선택)
+      - develop
+  workflow_dispatch:
 
 env:
   EC2_HOST: ${{ secrets.EC2_HOST }}
@@ -22,14 +22,24 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build --no-daemon
 
-      - name: Deploy to EC2
+      - name: Prepare SSH key
         run: |
           echo "$SSH_PRIVATE_KEY" > private_key.pem
           chmod 600 private_key.pem
-          scp -i private_key.pem build/libs/*.jar $EC2_USER@$EC2_HOST:/home/$EC2_USER/
-          ssh -i private_key.pem $EC2_USER@$EC2_HOST "nohup java -jar /home/$EC2_USER/*.jar > output.log 2>&1 &"
-          
+
+      - name: Deploy JAR to EC2 (with HostKey bypass)
+        run: |
+          scp -o StrictHostKeyChecking=no -i private_key.pem \
+            build/libs/*.jar \
+            $EC2_USER@$EC2_HOST:/home/$EC2_USER/
+
+      - name: Run app on EC2 with env var (with HostKey bypass)
+        run: |
+          ssh -o StrictHostKeyChecking=no -i private_key.pem $EC2_USER@$EC2_HOST << EOF
+            export GCS_CREDENTIAL_PATH=/home/$EC2_USER/stagemate_gcs.json
+            pkill -f 'java -jar' || true
+            nohup java -jar /home/$EC2_USER/*.jar > /home/$EC2_USER/output.log 2>&1 &
+          EOF
+
       - name: Clean up private key
         run: rm -f private_key.pem
-
-
