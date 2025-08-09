@@ -19,9 +19,14 @@ public class UserCheckController {
 
     @GetMapping("/userId/{userId}")
     public ResponseEntity<Map<String, Boolean>> checkUserId(@PathVariable String userId, HttpServletRequest request) {
-        if (userService.checkUserIdExists(userId)) {
-            throw new AppException(AuthErrorCode.DUPLICATE_USER_ID);
+//        if (userService.checkUserIdExists(userId)) {
+//            throw new AppException(AuthErrorCode.DUPLICATE_USER_ID);
+//        }
+
+        if(userService.checkUserIdExists(userId)) {
+            return ResponseEntity.ok(Map.of("isAvailable", false));
         }
+
         // 세션에 저장
         request.getSession().setAttribute("verified_userId", userId);
         return ResponseEntity.ok(Map.of("isAvailable", true));
@@ -29,9 +34,14 @@ public class UserCheckController {
 
     @GetMapping("/nickname/{nickname}")
     public ResponseEntity<Map<String, Boolean>> checkNickname(@PathVariable String nickname, HttpServletRequest request) {
-        if (userService.checkNicknameExists(nickname)) {
-            throw new AppException(AuthErrorCode.DUPLICATE_NICKNAME);
+//        if (userService.checkNicknameExists(nickname)) {
+//            throw new AppException(AuthErrorCode.DUPLICATE_NICKNAME);
+//        }
+
+        if(userService.checkNicknameExists(nickname)) {
+            return ResponseEntity.ok(Map.of("isAvailable", false));
         }
+
         // 세션에 저장
         request.getSession().setAttribute("verified_nickname", nickname);
         return ResponseEntity.ok(Map.of("isAvailable", true));
