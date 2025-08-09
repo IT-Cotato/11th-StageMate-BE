@@ -2,15 +2,14 @@ package com.example.stagemate.dto.response.community;
 
 import com.example.stagemate.domain.community.CommunityPost;
 import com.example.stagemate.domain.community.CommunityStatistics;
-
-import java.time.LocalDateTime;
+import com.example.stagemate.global.util.DateFormat;
 
 public record CommunityPostListResponse(
         Long id,
         String title,
         String category, // 일상, 꿀팁, 나눔거래
         String author,
-        LocalDateTime createdAt,
+        String createdAt,
         int viewCount,
         int likeCount,
         int commentCount,
@@ -22,7 +21,7 @@ public record CommunityPostListResponse(
                 post.getTitle(),
                 post.getCategory().getDescription(),
                 post.getAuthor().getNickname(),
-                post.getCreatedAt(),
+                DateFormat.formatDateOnly(post.getCreatedAt()),
                 post.getViewCount(),
                 post.getLikeCount(),
                 post.getCommentCount(),
@@ -36,7 +35,7 @@ public record CommunityPostListResponse(
                 "차단한 사용자의 게시물입니다.",
                 post.getCategory().getDescription(),
                 post.getAuthor().getNickname(),
-                post.getCreatedAt(),
+                DateFormat.formatDateOnly(post.getCreatedAt()),
                 post.getViewCount(),
                 post.getLikeCount(),
                 post.getCommentCount(),
@@ -51,7 +50,7 @@ public record CommunityPostListResponse(
                 post.getTitle(),
                 post.getCategory().getDescription(),
                 post.getAuthor().getNickname(),
-                post.getCreatedAt(),
+                DateFormat.formatDateOnly(post.getCreatedAt()),
                 post.getViewCount(),
                 post.getLikeCount(),
                 post.getCommentCount(),
@@ -66,7 +65,7 @@ public record CommunityPostListResponse(
                 "차단한 사용자의 게시물입니다.",
                 post.getCategory().getDescription(),
                 post.getAuthor().getNickname(),
-                post.getCreatedAt(),
+                DateFormat.formatDateOnly(post.getCreatedAt()),
                 post.getViewCount(),
                 post.getLikeCount(),
                 post.getCommentCount(),

@@ -1,11 +1,11 @@
 package com.example.stagemate.dto.response.community;
 
 import com.example.stagemate.domain.community.CommunityPost;
+import com.example.stagemate.global.util.DateFormat;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -15,7 +15,7 @@ public class CommunityPostResponse {
     String title;
     JsonNode content;
     String authorName;
-    LocalDateTime createdAt;
+    String createdAt;
     int viewCount;
     String category; // 일상, 나눔거래, 꿀팁
     String tradeCategory; // 나눔거래일때 카테고리(연극, 뮤지컬)
@@ -35,7 +35,7 @@ public class CommunityPostResponse {
                 post.getTitle(),
                 jsonContent,
                 post.getAuthor().getNickname(),
-                post.getCreatedAt(),
+                DateFormat.formatDateOnly(post.getCreatedAt()),
                 post.getViewCount(),
                 post.getCategory().getDescription(),
                 post.getTradeCategory() == null ? null : post.getTradeCategory().getDescription(),
