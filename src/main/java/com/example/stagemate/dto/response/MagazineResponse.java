@@ -26,7 +26,7 @@ public record MagazineResponse(
                 magazine.getContent(),
                 magazine.getImages().isEmpty() ? List.of("basic") : magazine.getImages().stream().map(image -> image.getImage().getImageUrl()).toList(),
                 magazine.getCategory().getDescription(),
-                DateFormat.formatDateOnly(magazine.getCreatedAt()),
+                DateFormat.formatTimeIfTodayElseDate(magazine.getCreatedAt()),
                 magazine.getLikeCount(),
                 magazine.getScrapCount(),
                 isScraped,

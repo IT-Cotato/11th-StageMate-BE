@@ -35,7 +35,7 @@ public class CommunityPostResponse {
                 post.getTitle(),
                 jsonContent,
                 post.getAuthor().getNickname(),
-                DateFormat.formatDateOnly(post.getCreatedAt()),
+                DateFormat.formatTimeIfTodayElseDate(post.getCreatedAt()),
                 post.getViewCount(),
                 post.getCategory().getDescription(),
                 post.getTradeCategory() == null ? null : post.getTradeCategory().getDescription(),

@@ -18,7 +18,7 @@ public record CommunityCommentResponse(
         this(
                 comment.getId(),
                 comment.getUser().getNickname(),  // user 닉네임 or 이름
-                DateFormat.formatDateTime(comment.getCreatedAt()),
+                DateFormat.formatTimeIfTodayElseDateTime(comment.getCreatedAt()),
                 resolveContent(comment, blockedUserIds),
                 !comment.getCreatedAt().equals(comment.getUpdatedAt()),
                 comment.getChildren().stream()
