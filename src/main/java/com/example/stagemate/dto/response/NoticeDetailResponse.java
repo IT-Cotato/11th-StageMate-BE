@@ -22,7 +22,7 @@ public class NoticeDetailResponse {
                 .title(notice.getTitle())
                 .content(notice.getContent())
                 .author(notice.getAuthor().getNickname())
-                .createdAt(DateFormat.formatDateOnly(notice.getCreatedAt()))
+                .createdAt(DateFormat.formatTimeIfTodayElseDate(notice.getCreatedAt()))
                 .viewCount(notice.getViewCount())
                 .build();
     }
