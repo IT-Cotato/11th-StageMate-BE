@@ -38,19 +38,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        String token = jwtTokenProvider.extractToken(request);
+        // 방어용 try-catch 블록
+        try {
 
-        if (token != null && jwtTokenProvider.validateToken(token)) {
-            Long userId = jwtTokenProvider.getUserId(token);
-            CustomUserDetails userDetails = customUserDetailsService.loadUserById(userId);
+            String token = jwtTokenProvider.extractToken(request);
 
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            if (token != null && jwtTokenProvider.validateToken(token)) {
+                Long userId = jwtTokenProvider.getUserId(token);
+                CustomUserDetails userDetails = customUserDetailsService.loadUserById(userId);
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+        }catch (Exception e) {
+            // 토큰이 이상하거나 유효하지 않더라도 무시하고 다음 필터로 넘긴다.
+            log.warn("JWT 필터에서 토큰 인증 중 예외 발생: {}", e.getMessage());
         }
 
-        filterChain.doFilter(request, response);
+            filterChain.doFilter(request, response);
     }
-
 }

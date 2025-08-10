@@ -12,7 +12,9 @@ import com.example.stagemate.repository.NoticeRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import com.example.stagemate.dto.request.NoticeCreateRequest;
 
@@ -44,6 +46,11 @@ public class NoticeService {
     public Page<NoticeSummaryResponse> getNotices(Pageable pageable) {
         return noticeRepository.findAll(pageable)
                 .map(NoticeSummaryResponse::from);
+    }
+
+    public Page<NoticeSummaryResponse> getNotices(int page, int size) {
+        Pageable pageable = PageRequest.of(Math.max(page - 1, 0), size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        return getNotices(pageable);
     }
 
     public NoticeDetailResponse getNoticeDetail(Long id) {

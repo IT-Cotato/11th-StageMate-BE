@@ -1,11 +1,10 @@
 package com.example.stagemate.dto.response;
 
 import com.example.stagemate.domain.mypage.Notice;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import com.example.stagemate.global.util.DateFormat;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
 
 @Getter
 @Builder
@@ -14,8 +13,7 @@ public class NoticeDetailResponse {
     private String title;
     private String content;
     private String author;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yy.MM.dd")
-    private LocalDateTime createdAt;
+    String createdAt;
     private int viewCount;
 
     public static NoticeDetailResponse from(Notice notice) {
@@ -24,7 +22,7 @@ public class NoticeDetailResponse {
                 .title(notice.getTitle())
                 .content(notice.getContent())
                 .author(notice.getAuthor().getNickname())
-                .createdAt(notice.getCreatedAt())
+                .createdAt(DateFormat.formatDateOnly(notice.getCreatedAt()))
                 .viewCount(notice.getViewCount())
                 .build();
     }
