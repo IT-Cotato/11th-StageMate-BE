@@ -18,7 +18,7 @@ public class NotificationResponse {
                 .postId(notification.getTargetId())
                 .title(notification.getContent())
                 .content(notification.getType().getMessage())
-                .formattedDate(DateFormat.formatDateTime(notification.getCreatedAt()))
+                .formattedDate(DateFormat.formatTimeIfTodayElseDateTime(notification.getCreatedAt()))
                 .build();
     }
 

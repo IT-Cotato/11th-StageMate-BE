@@ -10,12 +10,12 @@ public final class DateFormat {
     private DateFormat() {}
 
     private static final DateTimeFormatter TIME_ONLY  = DateTimeFormatter.ofPattern("HH:mm");
-    private static final DateTimeFormatter DATE_TIME  = DateTimeFormatter.ofPattern("yy/MM/dd HH:mm");
-    private static final DateTimeFormatter DATE_ONLY  = DateTimeFormatter.ofPattern("yy/MM/dd");
+    private static final DateTimeFormatter DATE_TIME  = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm");
+    private static final DateTimeFormatter DATE_ONLY  = DateTimeFormatter.ofPattern("yyyy/MM/dd");
 
     // 오늘 작성: HH:mm
-    // 오늘 아님(과거): yy/MM/dd HH:mm
-    public static String formatDateTime(LocalDateTime dateTime) {
+    // 오늘 아님(과거): yyyy/MM/dd HH:mm
+    public static String formatTimeIfTodayElseDateTime(LocalDateTime dateTime) {
         Objects.requireNonNull(dateTime, "dateTime");
         LocalDate target = dateTime.toLocalDate();
         LocalDate today  = LocalDate.now();
@@ -28,9 +28,9 @@ public final class DateFormat {
     }
 
     // 오늘 작성: HH:mm
-    // 오늘 아님(과거): yy/MM/dd
-    // 날짜만 표기(yy/MM/dd)
-    public static String formatDateOnly(LocalDateTime dateTime) {
+    // 오늘 아님(과거): yyyy/MM/dd
+    // 날짜만 표기(yyyy/MM/dd)
+    public static String formatTimeIfTodayElseDate(LocalDateTime dateTime) {
         Objects.requireNonNull(dateTime, "dateTime");
         LocalDate today = LocalDate.now();
 
@@ -40,5 +40,14 @@ public final class DateFormat {
             return dateTime.format(DATE_ONLY);
         }
     }
+
+
+    // 날짜만 표기(yyyy/MM/dd)
+    public static String formateOnlyDate(LocalDate dateTime) {
+        Objects.requireNonNull(dateTime, "dateTime");
+        return dateTime.format(DATE_ONLY);
+    }
+
+
 }
 
