@@ -1,12 +1,9 @@
 package com.example.stagemate.dto.response;
 
 import com.example.stagemate.domain.notification.Notification;
+import com.example.stagemate.global.util.DateFormat;
 import lombok.Builder;
 import lombok.Getter;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 @Getter
 @Builder
@@ -21,19 +18,8 @@ public class NotificationResponse {
                 .postId(notification.getTargetId())
                 .title(notification.getContent())
                 .content(notification.getType().getMessage())
-                .formattedDate(formatDate(notification.getCreatedAt()))
+                .formattedDate(DateFormat.formatDateTime(notification.getCreatedAt()))
                 .build();
-    }
-
-    private static String formatDate(LocalDateTime createdAt) {
-        LocalDate createdDate = createdAt.toLocalDate();
-        LocalDate today = LocalDate.now();
-
-        if (createdDate.isEqual(today)) {
-            return createdAt.format(DateTimeFormatter.ofPattern("HH:mm"));
-        } else {
-            return createdAt.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"));
-        }
     }
 
 }
