@@ -4,6 +4,7 @@ package com.example.stagemate.controller.mypage;
 import com.example.stagemate.domain.image.Image;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.ChangePasswordRequest;
+import com.example.stagemate.dto.request.CreateInquiryRequest;
 import com.example.stagemate.dto.response.AccountInfoResponse;
 import com.example.stagemate.dto.response.community.CommunityPostListResponse;
 import com.example.stagemate.global.dto.BaseResponse;
@@ -17,9 +18,11 @@ import com.example.stagemate.global.exception.image.ImageUploadFailException;
 import com.example.stagemate.global.reslover.CurrentUser;
 import com.example.stagemate.service.community.CommunityService;
 import com.example.stagemate.service.image.ImageService;
+import com.example.stagemate.service.mypage.InquiryService;
 import com.example.stagemate.service.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -38,6 +41,7 @@ public class MypageController {
     private final ImageService imageService;
     private final UserService userService;
     private final CommunityService communityService;
+    private final InquiryService inquiryservice;
 
     @PutMapping(value = "/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "프로필 이미지 변경", description = "multipart/form-data 형식으로 이미지를 업로드합니다.")
@@ -139,6 +143,17 @@ public class MypageController {
         }
 
         return ResponseEntity.ok(DataResponse.from(communityService.getCommentedCommunityPosts(user, page, size)));
+    }
+
+    @Operation(summary = "문의하기 생성", description = "사용자가 문의를 생성합니다.")
+    @PostMapping("/inquiries")
+    public ResponseEntity<DataResponse<String>> create(
+            @Valid @RequestBody CreateInquiryRequest request,
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user,
+            HttpServletRequest httpReq) {
+
+        inquiryservice.handleInquiry(request, user, httpReq);
+        return ResponseEntity.ok(DataResponse.from("RECEIVED"));
     }
 
 

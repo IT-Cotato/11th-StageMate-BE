@@ -6,6 +6,7 @@ import com.example.stagemate.dto.request.NoticeCreateRequest;
 import com.example.stagemate.dto.response.NoticeDetailResponse;
 import com.example.stagemate.dto.response.NoticeSummaryResponse;
 import com.example.stagemate.global.dto.DataResponse;
+import com.example.stagemate.global.dto.PagedResponse;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.CommonErrorCode;
 import com.example.stagemate.global.exception.auth.AuthErrorCode;
@@ -47,18 +48,17 @@ public class NoticeController {
         return ResponseEntity.ok(DataResponse.from(noticeId));
     }
 
-    @GetMapping("notices")
+    @GetMapping("/notices")
     @Operation(summary = "공지사항 목록 조회")
-    public ResponseEntity<DataResponse<Page<NoticeSummaryResponse>>> getNotices(
-            @ParameterObject
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC)
-            Pageable pageable
+    public ResponseEntity<DataResponse<PagedResponse<NoticeSummaryResponse>>> getNotices(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "6") int size
     ) {
-        Page<NoticeSummaryResponse> result = noticeService.getNotices(pageable);
-        return ResponseEntity.ok(DataResponse.from(result));
+        Page<NoticeSummaryResponse> p = noticeService.getNotices(page, size);
+        return ResponseEntity.ok(DataResponse.from(PagedResponse.from(p.getContent(), p)));
     }
 
-    @GetMapping("notices/{id}")
+    @GetMapping("/notices/{id}")
     @Operation(summary = "공지사항 상세 조회")
     public ResponseEntity<DataResponse<NoticeDetailResponse>> getNotice(@PathVariable Long id) {
         NoticeDetailResponse result = noticeService.getNoticeDetail(id);
