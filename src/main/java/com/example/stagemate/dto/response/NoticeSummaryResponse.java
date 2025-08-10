@@ -20,7 +20,7 @@ public class NoticeSummaryResponse {
                 .id(notice.getId())
                 .title(notice.getTitle())
                 .author(notice.getAuthor().getNickname())
-                .createdAt(DateFormat.formatDateOnly(notice.getCreatedAt()))
+                .createdAt(DateFormat.formatTimeIfTodayElseDate(notice.getCreatedAt()))
                 .viewCount(notice.getViewCount())
                 .build();
     }
