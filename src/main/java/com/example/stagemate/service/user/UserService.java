@@ -20,6 +20,7 @@ import com.example.stagemate.service.user.command.RegisterUserCommand;
 import com.example.stagemate.dto.auth.GuestInfo;
 import com.example.stagemate.dto.request.OAuth2SignupRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +32,7 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class UserService implements LoginUseCase, RegisterUserUseCase {
 
     private final SaveUserPort saveUserPort;
@@ -164,6 +166,9 @@ public class UserService implements LoginUseCase, RegisterUserUseCase {
         User user = loadUserPort.findById(userId)
                 .orElseThrow(() -> new AppException(CommonErrorCode.NOT_FOUND_USER));
         user.updateProfileImage(imageUrl);
+        log.info("Image URL: {}", imageUrl);
+
+        saveUserPort.save(user);
     }
 
 
