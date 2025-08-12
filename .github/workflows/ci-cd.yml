@@ -1,45 +1,45 @@
-name: Deploy to EC2 on develop
+# name: Deploy to EC2 on develop
 
-on:
-  push:
-    branches:
-      - develop
-  workflow_dispatch:
+# on:
+#   push:
+#     branches:
+#       - develop
+#   workflow_dispatch:
 
-env:
-  EC2_HOST: ${{ secrets.EC2_HOST }}
-  EC2_USER: ${{ secrets.EC2_USER }}
-  SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+# env:
+#   EC2_HOST: ${{ secrets.EC2_HOST }}
+#   EC2_USER: ${{ secrets.EC2_USER }}
+#   SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
 
-      - name: Build with Gradle
-        run: ./gradlew build --no-daemon
+#       - name: Build with Gradle
+#         run: ./gradlew build --no-daemon
 
-      - name: Prepare SSH key
-        run: |
-          echo "$SSH_PRIVATE_KEY" > private_key.pem
-          chmod 600 private_key.pem
+#       - name: Prepare SSH key
+#         run: |
+#           echo "$SSH_PRIVATE_KEY" > private_key.pem
+#           chmod 600 private_key.pem
 
-      - name: Deploy JAR to EC2 (with HostKey bypass)
-        run: |
-          scp -o StrictHostKeyChecking=no -i private_key.pem \
-            build/libs/*.jar \
-            $EC2_USER@$EC2_HOST:/home/$EC2_USER/
+#       - name: Deploy JAR to EC2 (with HostKey bypass)
+#         run: |
+#           scp -o StrictHostKeyChecking=no -i private_key.pem \
+#             build/libs/*.jar \
+#             $EC2_USER@$EC2_HOST:/home/$EC2_USER/
 
-      - name: Run app on EC2 with env var (with HostKey bypass)
-        run: |
-          ssh -o StrictHostKeyChecking=no -i private_key.pem $EC2_USER@$EC2_HOST << EOF
-            export GCS_CREDENTIAL_PATH=/home/$EC2_USER/stagemate_gcs.json
-            pkill -f 'java -jar' || true
-            nohup java -jar /home/$EC2_USER/*.jar > /home/$EC2_USER/output.log 2>&1 &
-          EOF
+#       - name: Run app on EC2 with env var (with HostKey bypass)
+#         run: |
+#           ssh -o StrictHostKeyChecking=no -i private_key.pem $EC2_USER@$EC2_HOST << EOF
+#             export GCS_CREDENTIAL_PATH=/home/$EC2_USER/stagemate_gcs.json
+#             pkill -f 'java -jar' || true
+#             nohup java -jar /home/$EC2_USER/*.jar > /home/$EC2_USER/output.log 2>&1 &
+#           EOF
 
-      - name: Clean up private key
-        run: rm -f private_key.pem
+#       - name: Clean up private key
+#         run: rm -f private_key.pem
