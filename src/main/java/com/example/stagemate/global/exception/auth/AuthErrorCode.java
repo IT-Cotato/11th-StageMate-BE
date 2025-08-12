@@ -22,7 +22,7 @@ public enum AuthErrorCode implements ErrorCode {
     USERID_NOT_VERIFIED(HttpStatus.UNAUTHORIZED, "유저 아이디 중복 검사가 완료되지 않았습니다.", "AUTH-015"),
     DUPLICATE_USER_ID(HttpStatus.CONFLICT, "이미 사용 중인 유저 ID입니다.", "AUTH-016"),
     DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "이미 사용 중인 닉네임입니다.", "AUTH-017"),
-    INVALID_CURRENT_PASSWORD(HttpStatus.UNAUTHORIZED, "현재 비밀번호가 일치하지 않습니다.", "AUTH-018"),
+    INVALID_CURRENT_PASSWORD(HttpStatus.BAD_REQUEST, "현재 비밀번호가 일치하지 않습니다.", "AUTH-018"),
     SAME_AS_OLD_PASSWORD(HttpStatus.BAD_REQUEST, "기존과 동일한 비밀번호는 사용할 수 없습니다.", "AUTH-019"),
     NO_ADMIN_PRIVILEGES(HttpStatus.FORBIDDEN, "운영자 권한이 필요합니다.", "AUTH-020"),
 
