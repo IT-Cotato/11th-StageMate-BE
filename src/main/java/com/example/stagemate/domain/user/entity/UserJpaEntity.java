@@ -99,6 +99,7 @@ public class UserJpaEntity {
                 .birthdate(user.getBirthdate())
                 .loginType(user.getLoginType())
                 .role(user.getRole())
+                .profileImageUrl(user.getProfileImageUrl())
                 .build();
 
         if (user.getConsents() != null && !user.getConsents().isEmpty()) {
