@@ -21,7 +21,7 @@ public class MagazineImage {
 
     private int sortOrder;
 
-    @ManyToOne
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "image_id")
     private Image image;
 
