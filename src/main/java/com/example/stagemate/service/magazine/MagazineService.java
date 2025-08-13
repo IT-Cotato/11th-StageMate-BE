@@ -20,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.stagemate.global.exception.CommonErrorCode.NOT_FOUND_USER;
@@ -122,9 +123,12 @@ public class MagazineService {
     public void deleteMagazine(Long id) {
         Magazine magazine = magazineRepository.findById(id)
                 .orElseThrow(() -> new MagazineNotFoundException(MAGAZINE_NOT_FOUND));
-        for (MagazineImage mi : magazine.getImages()) {
-            imageRepository.delete(mi.getImage());
-        }
+
+        // GCS에 저장된 이미지 삭제
+        new ArrayList<>(magazine.getImages()).forEach(magazineImage -> {
+            imageService.deleteImageFromGcs(magazineImage.getImage().getImageUrl());
+        });
+
         magazineRepository.delete(magazine);
     }
 

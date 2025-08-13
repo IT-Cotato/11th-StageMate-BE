@@ -5,7 +5,10 @@ import com.example.stagemate.domain.image.Image;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.community.CommunityPostCreateRequest;
 import com.example.stagemate.dto.request.community.CommunityPostUpdateRequest;
-import com.example.stagemate.dto.response.community.*;
+import com.example.stagemate.dto.response.community.CommunityCommentResponse;
+import com.example.stagemate.dto.response.community.CommunityPostListResponse;
+import com.example.stagemate.dto.response.community.CommunityPostResponse;
+import com.example.stagemate.dto.response.community.CommunityPostTradeListResponse;
 import com.example.stagemate.global.dto.PagedResponse;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.repository.ImageRepository;
@@ -27,7 +30,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -344,31 +346,21 @@ public class CommunityService {
         // null 방어 및 effectively final 유지
         List<Long> safeImageIdsToRemain = remainImageIds == null ? List.of() : remainImageIds;
 
-        // 기존 이미지 리스트 복사
-        List<CommunityImage> originalImages = new ArrayList<>(post.getImages());
+        post.getImages().removeIf(communityImage -> {
+            boolean shouldDelete = !safeImageIdsToRemain.contains(communityImage.getImage().getImageId());
+            if (shouldDelete) {
+                // GCS에서 물리적 파일 삭제
+                imageService.deleteImageFromGcs(communityImage.getImage().getImageUrl());
+            }
+            return shouldDelete;
+        });
 
-        // 삭제할 이미지 필터링 (ID 기준)
-        List<CommunityImage> toDelete = originalImages.stream()
-                .filter(img -> !safeImageIdsToRemain.contains(img.getImage().getImageId()))
-                .toList();
+        // 기존 이미지 순서 재정렬
+        post.getImages().sort(Comparator.comparingInt(img -> safeImageIdsToRemain.indexOf(img.getImage().getImageId())));
 
-        for (CommunityImage img : toDelete) {
-            post.getImages().remove(img);
-            img.setCommunityPost(null);
-            communityImageRepository.delete(img);
-            imageRepository.delete(img.getImage());
-        }
-
-        // 남은 이미지 필터링 및 정렬
-        List<CommunityImage> remainImages = post.getImages().stream()
-                .filter(img -> safeImageIdsToRemain.contains(img.getImage().getImageId()))
-                .sorted(Comparator.comparingInt(CommunityImage::getSortOrder))
-                .toList();
-
-        // 정렬 순서 재지정
         int order = 1;
-        for (CommunityImage img : remainImages) {
-            img.setSortOrder(order++);
+        for (CommunityImage communityImage : post.getImages()) {
+            communityImage.setSortOrder(order++);
         }
 
         // 새 이미지 추가
@@ -382,7 +374,6 @@ public class CommunityService {
                         .sortOrder(order++)
                         .build();
                 post.getImages().add(newImage);
-                communityImageRepository.save(newImage);
             }
         }
     }
@@ -394,6 +385,15 @@ public class CommunityService {
         // 게시글 작성자와 요청한 사용자가 일치하는지 확인
         if (!post.getAuthor().getId().equals(user.getId()))
             throw new AppException(COMMUNITY_POST_NOT_AUTHOR);
+
+        // GCS에서 물리적 파일 삭제
+        post.getImages().forEach(communityImage -> {
+            String imageUrl = communityImage.getImage().getImageUrl();
+            imageService.deleteImageFromGcs(imageUrl);
+        });
+
+        // DB에서 CommunityImage, Image 연쇄 삭제
+        post.getImages().clear();
 
         // soft delete 처리
         post.changeIsDeleted();
