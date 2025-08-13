@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 public enum ImageErrorCode implements ErrorCode {
 
     IMAGE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 업로드에 실패했습니다.", "IMAGE-001"),
+    IMAGE_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 삭제에 실패했습니다.", "IMAGE-002"),
+
     ;
 
     private final HttpStatus httpStatus;

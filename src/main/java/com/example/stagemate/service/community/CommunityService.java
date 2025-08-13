@@ -1,19 +1,16 @@
 package com.example.stagemate.service.community;
 
 import com.example.stagemate.domain.community.*;
-import com.example.stagemate.domain.event.Event;
 import com.example.stagemate.domain.image.Image;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.community.CommunityPostCreateRequest;
 import com.example.stagemate.dto.request.community.CommunityPostUpdateRequest;
 import com.example.stagemate.dto.response.community.*;
-import com.example.stagemate.dto.response.event.EventResponse;
 import com.example.stagemate.global.dto.PagedResponse;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.repository.ImageRepository;
 import com.example.stagemate.repository.community.*;
 import com.example.stagemate.repository.user.UserJpaRepository;
-import com.example.stagemate.service.event.EventService;
 import com.example.stagemate.service.image.ImageService;
 import com.example.stagemate.service.search.SearchService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -60,7 +57,6 @@ public class CommunityService {
     private final CommunityCommentRepository communityCommentRepository;
     private final UserBlockRepository userBlockRepository;
     private final SearchService searchService;
-    private final EventService eventService;
 
     // 커뮤니티 게시글 작성, 이미지 업로드
     public CommunityPostResponse createCommunityPost(UserJpaEntity user, CommunityPostCreateRequest request, List<MultipartFile> images) throws JsonProcessingException {
@@ -97,8 +93,7 @@ public class CommunityService {
 
         // 엘라스틱 서치에 저장
         try {
-//            searchService.saveFromCommunity(post);
-            eventService.saveEvent(post.toEvent("created"));
+            searchService.saveFromCommunity(post);
         } catch (Exception e) {
             log.warn("엘라스틱서치 인덱싱 실패: {}", e.getMessage());
         }
@@ -326,9 +321,7 @@ public class CommunityService {
 
         // 엘라스틱 서치에 저장
         try {
-//            searchService.saveFromCommunity(post);
-            eventService.saveEvent(post.toEvent("updated"));
-
+            searchService.saveFromCommunity(post);
         } catch (Exception e) {
             log.warn("엘라스틱서치 인덱싱 실패: {}", e.getMessage());
         }
@@ -406,8 +399,7 @@ public class CommunityService {
         post.changeIsDeleted();
 
         try {
-//            searchService.deleteFromCommunity(post.getId());
-            eventService.saveEvent(post.toEvent("deleted"));
+            searchService.deleteFromCommunity(post.getId());
         } catch (Exception e) {
             log.warn("엘라스틱서치 삭제 실패: {}", e.getMessage());
         }
@@ -464,17 +456,6 @@ public class CommunityService {
         return PagedResponse.from(list, posts);
     }
 
-
-    public List<EventResponse> getAllPostEventsForElkInit() {
-        List<CommunityPost> posts = communityRepository.findAllByDeletedFalse();
-        List<Event> events = posts.stream()
-                .map(post -> post.toEvent("created"))
-                .toList();
-        return events.stream()
-                .map(EventResponse::from)
-                .toList();
-
-    }
 
 
 
