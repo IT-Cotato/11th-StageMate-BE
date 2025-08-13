@@ -1,5 +1,6 @@
 package com.example.stagemate.domain.community;
 
+import com.example.stagemate.domain.event.Event;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.community.CommunityPostUpdateRequest;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -101,5 +102,17 @@ public class CommunityPost {
         this.tradeMethod = communityCategory==CommunityCategory.TRADE ? TradeMethod.from(request.getTradeMethod()) : null;
         this.membersOnly = request.isMembersOnly();
         this.sendNotification = request.isSendNotification();
+    }
+
+    public Event toEvent(String eventType) {
+        return Event.builder()
+                .targetId(this.id)
+                .createdAt(this.createdAt.toLocalDate())
+                .title(this.title)
+                .content(this.content)
+                .eventType(eventType)
+                .type("community")
+                .isUsed(false)
+                .build();
     }
 }

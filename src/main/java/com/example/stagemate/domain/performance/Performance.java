@@ -1,5 +1,6 @@
 package com.example.stagemate.domain.performance;
 
+import com.example.stagemate.domain.event.Event;
 import com.example.stagemate.domain.theater.Theater;
 import com.example.stagemate.dto.data.CrawledPerformanceInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -13,6 +14,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 
 @Entity
@@ -102,4 +104,38 @@ public class Performance {
                 .build();
     }
 
+    public Event toEvent(String eventType) {
+        return Event.builder()
+                .targetId(this.id)
+                .endDate(this.endDate)
+                .startDate(this.startDate)
+                .title(this.performanceName)
+                .genre(this.performanceGenre.toString())
+                .eventType(eventType)
+                .type("performance")
+                .isUsed(false)
+                .build();
+    }
+
+    public boolean isNotChanged(Performance other) {
+        if (other == null) return false; // 비교 대상 없으면 변경된 것으로 취급
+
+        return Objects.equals(this.getInterparkPerformanceId(), other.getInterparkPerformanceId())
+                && Objects.equals(this.getPerformanceName(), other.getPerformanceName())
+                && Objects.equals(this.getUrl(), other.getUrl())
+                && Objects.equals(this.getImageUrl(), other.getImageUrl())
+                && Objects.equals(this.getStartDate(), other.getStartDate())
+                && Objects.equals(this.getEndDate(), other.getEndDate())
+                && sameTheater(this.getTheater(), other.getTheater())
+                && this.getPerformanceType() == other.getPerformanceType()         // enum은 ==
+                && this.getPerformanceStatus() == other.getPerformanceStatus()
+                && this.getPerformanceGenre() == other.getPerformanceGenre();
+    }
+
+    private boolean sameTheater(Theater a, Theater b) {
+        if (a == b) return true;
+        if (a == null || b == null) return false;
+        // equals 구현/프록시 이슈 피하려면 id 기준이 안전
+        return Objects.equals(a.getId(), b.getId());
+    }
 }

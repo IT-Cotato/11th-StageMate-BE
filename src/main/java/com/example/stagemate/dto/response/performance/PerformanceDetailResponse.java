@@ -1,6 +1,7 @@
 package com.example.stagemate.dto.response.performance;
 
 import com.example.stagemate.domain.performance.PerformanceType;
+import com.example.stagemate.global.util.DateFormat;
 
 
 public record PerformanceDetailResponse(String performanceName, String url, String startDate, String endDate,
@@ -9,8 +10,8 @@ public record PerformanceDetailResponse(String performanceName, String url, Stri
         return new PerformanceDetailResponse(
                 performance.getPerformanceName(),
                 performance.getUrl(),
-                performance.getStartDate().toString(),
-                performance.getEndDate().toString(),
+                DateFormat.formateOnlyDate(performance.getStartDate()),
+                DateFormat.formateOnlyDate(performance.getEndDate()),
                 performance.getTheater().getName(),
                 performance.getTheater().getRegion(),
                 performance.getImageUrl(),

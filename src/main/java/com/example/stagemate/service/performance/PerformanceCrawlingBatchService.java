@@ -10,6 +10,8 @@ import com.example.stagemate.repository.performance.PerformanceRepository;
 import com.example.stagemate.repository.performance.PerformanceScheduleReportCategoryRepository;
 import com.example.stagemate.repository.performance.PerformanceScheduleRepository;
 import com.example.stagemate.repository.TheaterRepository;
+import com.example.stagemate.service.event.EventService;
+import com.example.stagemate.service.search.SearchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,7 @@ public class PerformanceCrawlingBatchService {
     private final PerformanceScheduleRepository performanceScheduleRepository;
     private final TheaterRepository theaterRepository;
     private final PerformanceScheduleReportCategoryRepository performanceScheduleReportCategoryRepository;
+    private final EventService eventService;
 
 
 
@@ -41,6 +44,12 @@ public class PerformanceCrawlingBatchService {
 
         for (Performance performance : ongoingPerformances) {
             performance.updateStatusBasedOnCurrentDate();
+
+            if (performance.getPerformanceStatus().equals(PerformanceStatus.ENDED)) {
+//                searchService.deleteFromPerformanceId(performance.getId());
+
+                eventService.saveEvent(performance.toEvent("deleted"));
+            }
 
             performanceRepository.save(performance);
         }
@@ -78,10 +87,18 @@ public class PerformanceCrawlingBatchService {
                 // 기존에 존재하면 업데이트
                 Performance existing = existingMap.get(performanceId);
 
+                if(existing.isNotChanged(crawledPerformance)) {
+                    //필드값이 변경되지않았으면 업데이트하지 않음
+                    continue;
+                }
+
                 existing.updateFromCrawledData(crawledPerformance);
 
                 //기존 공연의 시작일, 종료일이 변경되면 공연 스케줄 업데이트
                 updatePerformanceSchedule(existing);
+
+//                searchService.saveFromPerformance(existing);
+                eventService.saveEvent(existing.toEvent("updated"));
 
                 performanceRepository.save(existing);
             } else {
@@ -90,6 +107,9 @@ public class PerformanceCrawlingBatchService {
 
                 //새로운 공연이면 공연 시작 스케줄 + 공연 종료 스케줄 2개 추가
                 insertPerformanceSchedule(crawledPerformance);
+
+//                searchService.saveFromPerformance(crawledPerformance);
+                eventService.saveEvent(crawledPerformance.toEvent("created"));
             }
         }
 

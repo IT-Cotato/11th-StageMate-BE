@@ -37,6 +37,7 @@ public interface PerformanceRepository extends JpaRepository<Performance, Long> 
             Pageable pageable
     );
 
-
+    @Query("select p from Performance p left join fetch p.theater where p.id in :ids")
+    List<Performance> findAllWithTheaterByIdIn(@Param("ids") List<Long> ids);
 
 }
