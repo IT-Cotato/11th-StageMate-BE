@@ -1,11 +1,16 @@
 package com.example.stagemate.service.community;
 
 import com.example.stagemate.domain.community.*;
+import com.example.stagemate.domain.event.Event;
 import com.example.stagemate.domain.image.Image;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.community.CommunityPostCreateRequest;
 import com.example.stagemate.dto.request.community.CommunityPostUpdateRequest;
-import com.example.stagemate.dto.response.community.*;
+import com.example.stagemate.dto.response.community.CommunityCommentResponse;
+import com.example.stagemate.dto.response.community.CommunityPostListResponse;
+import com.example.stagemate.dto.response.community.CommunityPostResponse;
+import com.example.stagemate.dto.response.community.CommunityPostTradeListResponse;
+import com.example.stagemate.dto.response.event.EventResponse;
 import com.example.stagemate.global.dto.PagedResponse;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.repository.ImageRepository;
@@ -13,7 +18,6 @@ import com.example.stagemate.repository.community.*;
 import com.example.stagemate.repository.user.UserJpaRepository;
 import com.example.stagemate.service.event.EventService;
 import com.example.stagemate.service.image.ImageService;
-import com.example.stagemate.service.search.SearchService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -54,10 +58,8 @@ public class CommunityService {
     private final CommunityLikeService communityLikeService;
     private final ObjectMapper objectMapper;
     private final CommunityCommentService communityCommentService;
-    private final CommunityReportRepository communityReportRepository;
     private final CommunityCommentRepository communityCommentRepository;
     private final UserBlockRepository userBlockRepository;
-    private final SearchService searchService;
     private final EventService eventService;
 
     // 커뮤니티 게시글 작성, 이미지 업로드
@@ -449,5 +451,11 @@ public class CommunityService {
 
 
 
+    //getAllPostEventsForElkInit
+    public List<EventResponse> getAllPostEventsForElkInit() {
+        List<CommunityPost> posts = communityRepository.findAllByDeletedFalse();
+        List<Event> events = posts.stream().map(p -> p.toEvent("created")).toList();
+        return events.stream().map(EventResponse::from).toList();
+    }
 
 }
