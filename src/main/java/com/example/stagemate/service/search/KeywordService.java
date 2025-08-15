@@ -25,15 +25,15 @@ import static com.example.stagemate.global.exception.search.SearchErrorCode.REDI
 @Service
 @RequiredArgsConstructor
 public class KeywordService {
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
+    private final String POPULAR_KEYWORD_URL = "http://10.0.0.14:8080/api/v1/search/popular";
 
     // 직전 구간 인기 검색어 조회 ex. 2025-08-01 22:40 기준
     public PopularKeywordResponse getTop10() {
-        String url = "http://localhost:8081/api/v1/search/popular";
 
         ResponseEntity<DataResponse<PopularKeywordResponse>> res =
                 restTemplate.exchange(
-                        url,
+                        POPULAR_KEYWORD_URL,
                         HttpMethod.GET,
                         null,
                         new ParameterizedTypeReference<DataResponse<PopularKeywordResponse>>() {}

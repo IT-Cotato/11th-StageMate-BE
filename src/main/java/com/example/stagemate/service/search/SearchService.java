@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 @Transactional
 @Slf4j
 public class SearchService {
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
     private final ElasticsearchTemplate template;
     private final CommunityRepository communityRepository;
     private final CommunityLikeService communityLikeService;
@@ -48,6 +48,7 @@ public class SearchService {
     private final PerformanceRepository performanceRepository;
     private final KeywordService keywordService;
     private final ChatRoomRepository chatRoomRepository;
+    private final String ELASTICSEARCH_URL   = "http://10.0.0.14:8080/api/v1/search";
 
     public SearchResultResponse searchAll(String keyword, PerformanceGenre genre, LocalDate date, UserJpaEntity user) {
         // 1) ES에서 ID 묶음 받아오기 (null 가능)
@@ -80,7 +81,7 @@ public class SearchService {
         // RestTemplate 호출 로직
         try {
             // 1. URL 및 쿼리 파라미터를 안전하게 조립합니다.
-            UriComponentsBuilder builder = UriComponentsBuilder.fromPath("http://localhost:8081/api/v1/search");
+            UriComponentsBuilder builder = UriComponentsBuilder.fromPath(ELASTICSEARCH_URL);
             if (keyword != null && !keyword.isBlank()) {
                 builder.queryParam("keyword", keyword);
             }
@@ -98,8 +99,7 @@ public class SearchService {
 
             // 3. GET 요청을 보내고 ResponseEntity로 전체 응답을 받습니다.
             URI uri = UriComponentsBuilder
-                    .fromHttpUrl("http://localhost:8081")   // 또는 rootUri 쓰면 fromPath("/api/v1/search")
-                    .path("/api/v1/search")
+                    .fromHttpUrl(ELASTICSEARCH_URL)   // 또는 rootUri 쓰면 fromPath("/api/v1/search")
                     .queryParamIfPresent("keyword", Optional.ofNullable(keyword).filter(s -> !s.isBlank()))
                     .queryParamIfPresent("performanceGenre", Optional.ofNullable(genre).map(Enum::name))
                     .queryParamIfPresent("date", Optional.ofNullable(date).map(LocalDate::toString))
