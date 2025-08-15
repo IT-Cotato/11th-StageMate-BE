@@ -5,6 +5,7 @@ import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.PerformanceScheduleCreateRequest;
 import com.example.stagemate.dto.response.performance.PerformanceScheduleDetailResponse;
 import com.example.stagemate.global.dto.DataResponse;
+import com.example.stagemate.global.dto.PagedResponse;
 import com.example.stagemate.global.reslover.CurrentUser;
 import com.example.stagemate.service.performance.PerformanceScheduleService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,6 +14,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,13 +45,14 @@ public class PerformanceScheduleController {
     @Operation(summary = "공식스케줄 제보 생성", description = "공식스케줄 제보 생성")
     @ApiResponse(responseCode = "200", description = "공식스케줄 제보 생성")
     @PostMapping("/api/v1/performanceSchedule")
-    public ResponseEntity<DataResponse<Long>> createPerformanceSchedule(
+    public ResponseEntity<DataResponse<Long>> createPerformanceScheduleV1(
             @Parameter(hidden = true) @CurrentUser UserJpaEntity user,
             @Valid @RequestBody PerformanceScheduleCreateRequest performanceScheduleCreateRequest) {
 
         Long performanceScheduleId = performanceScheduleService.createPerformanceSchedule(user, performanceScheduleCreateRequest);
         return ResponseEntity.ok(DataResponse.from(performanceScheduleId));
     }
+
 
     @Operation(summary = "공식스케줄 상태 변경", description = "공식스케줄 상태 변경, 관리자가 PENDING 상태인 공식스케줄 제보를 APPROVED, REJECTED 상태로 바꾸는 용도")
     @ApiResponse(responseCode = "200", description = "공식스케줄리포트 상태 변경")
@@ -59,6 +64,8 @@ public class PerformanceScheduleController {
         performanceScheduleService.changePerformanceScheduleStatus(performanceScheduleId, performanceScheduleReportStatus);
         return ResponseEntity.ok().build();
     }
+
+
 
 
 //    @Operation(summary = "공식스케줄 상태별 조회",
@@ -76,7 +83,7 @@ public class PerformanceScheduleController {
     @Operation(summary = "공연 스케줄 목록", description = "공연 스케줄 목록을 가져옴")
     @ApiResponse(responseCode = "200", description = "공연 스케줄 목록을 가져옴")
     @GetMapping(value = "/api/v1/performanceSchedule", params = {"year", "month"})
-    public ResponseEntity<DataResponse<List<PerformanceScheduleDetailResponse>>> getPerformanceSchedules(
+    public ResponseEntity<DataResponse<List<PerformanceScheduleDetailResponse>>> getPerformanceSchedulesV1(
             @Parameter(hidden = true) @CurrentUser UserJpaEntity user,
             @RequestParam("year") Integer year,
             @RequestParam("month") Integer month,
@@ -86,6 +93,33 @@ public class PerformanceScheduleController {
         List<PerformanceScheduleDetailResponse> performanceScheduleDetailResponses = day == null ?
                 performanceScheduleService.getPerformanceSchedule(user, year, month, PerformanceScheduleReportStatus.APPROVED) :
                 performanceScheduleService.getPerformanceSchedule(user, year, month, day, PerformanceScheduleReportStatus.APPROVED);
+
+        return ResponseEntity.ok(DataResponse.from(performanceScheduleDetailResponses));
+    }
+
+    //공연 스케줄 목록
+    @Operation(summary = "공연 스케줄 목록", description = "공연 스케줄 목록을 가져옴")
+    @ApiResponse(responseCode = "200", description = "공연 스케줄 목록을 가져옴")
+    @GetMapping(value = "/api/v2/performanceSchedule", params = {"year", "month"})
+    public ResponseEntity<DataResponse<PagedResponse<PerformanceScheduleDetailResponse>>> getPerformanceSchedulesV2(
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user,
+            @RequestParam("year") Integer year,
+            @RequestParam("month") Integer month,
+            @RequestParam(name = "day", required = false) Integer day,
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page-1, size);
+
+        //유저에게 승인된 공연 스케줄만 return
+        PagedResponse<PerformanceScheduleDetailResponse> performanceScheduleDetailResponses = day == null ?
+
+                performanceScheduleService.getPerformanceScheduleV2(
+                        user, year, month, PerformanceScheduleReportStatus.APPROVED, pageable) :
+
+                performanceScheduleService.getPerformanceScheduleV2(
+                        user, year, month, day, PerformanceScheduleReportStatus.APPROVED, pageable);
+
 
         return ResponseEntity.ok(DataResponse.from(performanceScheduleDetailResponses));
     }
