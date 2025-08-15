@@ -93,7 +93,12 @@ public class ArchiveService {
 
         Image updatedImage = uploadImageAndSave(image);
 
-        archive.update(archiveUpdateRequest, updatedImage);
+        //이미지 변경안했을시
+        if (updatedImage == null) {
+            archive.update(archiveUpdateRequest);
+        } else { //이미지 변경했을시
+            archive.update(archiveUpdateRequest, updatedImage);
+        }
     }
 
     private void validateUserIsNull(UserJpaEntity user) {

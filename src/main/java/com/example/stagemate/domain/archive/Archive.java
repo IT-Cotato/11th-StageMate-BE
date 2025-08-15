@@ -85,4 +85,14 @@ public class Archive {
         this.image = updatedImage;
         this.theaterName = request.getTheaterName();
     }
+
+    public void update(ArchiveUpdateRequest request) {
+        this.title = request.getTitle();
+        this.viewingDate = request.getViewingDate();
+        this.casting = request.getCasting();
+        this.review = request.getReview();
+        this.rating = request.getRating();
+        this.memo = request.getMemo();
+        this.theaterName = request.getTheaterName();
+    }
 }
