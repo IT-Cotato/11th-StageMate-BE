@@ -63,8 +63,15 @@ public class ArchiveService {
 
     public Long createArchive(UserJpaEntity user, ArchiveCreateRequest archiveCreateRequest, MultipartFile image) {
         validateUserIsNull(user);
+        Image uploadImage;
 
-        Image uploadImage = uploadImageAndSave(image);
+        if (image != null && !image.isEmpty()) {
+            //이미지를 직접 올린 경우
+            uploadImage = uploadImageAndSave(image);
+        } else {
+            //이미지를 naver 검색으로 imageUrl로 저장하는 경우
+            uploadImage = uploadImageAndSave(archiveCreateRequest.getNaverImageUrl());
+        }
 
         Archive archive = Archive.create(archiveCreateRequest, user, uploadImage);
 
@@ -105,6 +112,10 @@ public class ArchiveService {
         return Optional.ofNullable(image)
                 .map(imageService::uploadImage)
                 .orElse(null);
+    }
+
+    private Image uploadImageAndSave(String imageUrl) {
+        return imageService.uploadImage(imageUrl);
     }
 
     //월별 평점 top

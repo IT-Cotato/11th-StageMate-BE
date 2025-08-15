@@ -27,6 +27,8 @@ public class ArchiveCreateRequest {
 
     private String memo;
 
+    private String naverImageUrl;
+
 
     public void validate() {
         //모두 not null
