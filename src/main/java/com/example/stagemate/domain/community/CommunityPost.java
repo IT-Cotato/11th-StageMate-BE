@@ -1,5 +1,6 @@
 package com.example.stagemate.domain.community;
 
+import com.example.stagemate.domain.event.Event;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.community.CommunityPostUpdateRequest;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -8,6 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -36,6 +39,7 @@ public class CommunityPost {
     private String content;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private UserJpaEntity author;
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -101,5 +105,17 @@ public class CommunityPost {
         this.tradeMethod = communityCategory==CommunityCategory.TRADE ? TradeMethod.from(request.getTradeMethod()) : null;
         this.membersOnly = request.isMembersOnly();
         this.sendNotification = request.isSendNotification();
+    }
+
+    public Event toEvent(String eventType) {
+        return Event.builder()
+                .targetId(this.id)
+                .createdAt(this.createdAt.toLocalDate())
+                .title(this.title)
+                .content(this.content)
+                .eventType(eventType)
+                .type("community")
+                .isUsed(false)
+                .build();
     }
 }

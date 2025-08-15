@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -42,7 +41,7 @@ public class PerformanceController {
     @Operation(summary = "공연 목록", description = "공연 목록을 가져옴")
     @ApiResponse(responseCode = "200", description = "공연 목록을 가져옴")
     @GetMapping("/api/v1/performance")
-    public ResponseEntity<DataResponse<PagedResponse<PerformanceDetailResponse>>> getPerformances(
+    public ResponseEntity<DataResponse<PagedResponse<PerformanceDetailResponse>>> getPerformancesV1(
             @RequestParam(name = "size", defaultValue = "10") int size,
             @RequestParam(name = "page", defaultValue = "1") int page,
             @RequestParam(name = "performanceType", required = false) PerformanceType performanceType,
@@ -58,6 +57,27 @@ public class PerformanceController {
 
         return ResponseEntity.ok(DataResponse.from(performanceDetailResponses));
     }
+
+    @Operation(summary = "공연 목록", description = "공연 목록을 가져옴")
+    @ApiResponse(responseCode = "200", description = "공연 목록을 가져옴")
+    @GetMapping("/api/v2/performance")
+    public ResponseEntity<DataResponse<PagedResponse<PerformanceDetailResponse>>> getPerformancesV2(
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "performanceType", required = false) PerformanceType performanceType,
+            @RequestParam(name = "performanceGenre", required = false) PerformanceGenre performanceGenre,
+            @RequestParam(name = "region", required = false) List<String> region,
+            @RequestParam(name = "date", required = false) LocalDate date
+    ) {
+
+        Pageable pageable = PageRequest.of(page - 1, size);
+
+        PagedResponse<PerformanceDetailResponse> performanceDetailResponses =
+                performanceService.findFillteredPerformances(performanceType, performanceGenre, region, date, pageable);
+
+        return ResponseEntity.ok(DataResponse.from(performanceDetailResponses));
+    }
+
 
 
     //performance 스크랩

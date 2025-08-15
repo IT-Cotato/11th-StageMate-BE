@@ -3,6 +3,7 @@ package com.example.stagemate.global.auth;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -22,7 +23,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
-//@Profile("!local")
+@Profile("!local")
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
@@ -48,6 +49,7 @@ public class SecurityConfig {
         configuration.addAllowedOrigin("https://api.stagemate.co.kr");
 
 
+        configuration.addAllowedOrigin("http://localhost:8080");
         configuration.addAllowedOrigin("http://localhost:3000");
         configuration.addAllowedOrigin("http://localhost:5173");      // ✅ 추가
         configuration.addAllowedOrigin("http://34.49.53.76");         // ✅ 추가
@@ -138,6 +140,14 @@ public class SecurityConfig {
                                 "/api/v1/mypage/notices/*",
                                 "/api/v1/mypage/policy/terms",
                                 "/api/v1/mypage/policy/privacy")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                 "/api/v1/event/all-performance",
+                                   "/api/v1/event/all-post",
+                                   "/api/v1/event")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/v1/event")
                         .permitAll()
                         .anyRequest().authenticated()
                 )

@@ -12,7 +12,9 @@ public record ArchiveDetailResponse(
         double rating,
         String memo,
         String imageUrl,
-        String theaterName
+        String theaterName,
+        String title,
+        Long id
 ) {
     public static ArchiveDetailResponse from(Archive archive) {
         return ArchiveDetailResponse.
@@ -24,6 +26,8 @@ public record ArchiveDetailResponse(
                 .memo(archive.getMemo())
                 .imageUrl(archive.getImage().getImageUrl())
                 .theaterName(archive.getTheaterName())
+                .title(archive.getTitle())
+                .id(archive.getId())
                 .build();
     }
 }

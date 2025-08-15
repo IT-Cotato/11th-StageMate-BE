@@ -74,12 +74,12 @@ public class ArchiveController {
         }
         ```
 
-        - `viewingDate`: 관람한 날짜 (`yyyy-MM-dd`)
-        - `casting`: 출연 배우 목록 (쉼표 구분 문자열)
-        - `review`: 공연에 대한 리뷰 내용
-        - `theaterName`: 공연장 이름
-        - `rating`: 평점 (0.0 ~ 5.0, 0.5 단위)
-        - `memo`: 자유 메모
+        - `viewingDate`: 관람한 날짜 (`yyyy-MM-dd`) (필수)
+        - `casting`: 출연 배우 목록 (쉼표 구분 문자열) (필수) 
+        - `review`: 공연에 대한 리뷰 내용 (필수)
+        - `theaterName`: 공연장 이름 (필수) 
+        - `rating`: 평점 (0.0 ~ 5.0, 0.5 단위) (필수)
+        - `memo`: 자유 메모 (필수)
         """
     )
     @ApiResponse(responseCode = "200", description = "아카이브 생성")

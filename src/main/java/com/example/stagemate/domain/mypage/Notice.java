@@ -4,6 +4,8 @@ package com.example.stagemate.domain.mypage;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 
@@ -32,6 +34,7 @@ public class Notice {
     // 작성자 정보 (UserJpaEntity와 연관관계 설정)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private UserJpaEntity author;
 
     @Column(nullable = false)

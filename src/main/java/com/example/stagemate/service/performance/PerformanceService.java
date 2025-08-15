@@ -1,7 +1,9 @@
 package com.example.stagemate.service.performance;
 
+import com.example.stagemate.domain.event.Event;
 import com.example.stagemate.domain.performance.*;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
+import com.example.stagemate.dto.response.event.EventResponse;
 import com.example.stagemate.dto.response.performance.PerformanceDetailResponse;
 import com.example.stagemate.dto.response.performance.RecommendedPerformanceResponse;
 import com.example.stagemate.global.dto.PagedResponse;
@@ -105,6 +107,19 @@ public class PerformanceService {
 
     }
 
+
+    public List<EventResponse> getAllPerformanceEventsForElkInit() {
+        List<Performance> performances = performanceRepository.findAll();
+
+        List<Event> events = performances.stream()
+                // 람다를 사용해 "created" 또는 "updated" 등 필요한 이벤트 타입을 직접 전달합니다.
+                .map(performance -> performance.toEvent("created"))
+                .toList();
+
+        return events.stream()
+                .map(EventResponse::from)
+                .toList();
+    }
 
 
 }

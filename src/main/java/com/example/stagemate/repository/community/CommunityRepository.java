@@ -22,4 +22,7 @@ public interface CommunityRepository extends JpaRepository<CommunityPost, Long> 
     // 내가 작성한 삭제되지 않은 게시글 조회
     Page<CommunityPost> findAllByAuthorIdAndDeletedFalse(Long authorId, Pageable pageable);
 
+    //findAllByDeletedFalse
+    List<CommunityPost> findAllByDeletedFalse();
+
 }
