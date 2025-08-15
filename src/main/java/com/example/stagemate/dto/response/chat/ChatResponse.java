@@ -5,13 +5,14 @@ import com.example.stagemate.domain.chat.Chat;
 import java.time.LocalDateTime;
 
 public record ChatResponse(
+        String chatId,
         Long senderId,
         String senderNickname,
         String content,
         LocalDateTime createdAt
 ) {
     public static ChatResponse from(Chat chat) {
-        return new ChatResponse(chat.getSenderId(), chat.getSenderNickname(), chat.getContent(), chat.getCreatedAt());
+        return new ChatResponse(chat.getId(), chat.getSenderId(), chat.getSenderNickname(), chat.getContent(), chat.getCreatedAt());
     }
 
 }
