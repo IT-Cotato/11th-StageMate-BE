@@ -65,6 +65,7 @@ public class ArchiveController {
 
         ```json
         {
+          "title": "프랑스 배경 연극 추천",
           "viewingDate": "2025-07-21",
           "casting": "홍길동, 김연아",
           "review": "배우들의 연기가 인상 깊었습니다.",
@@ -73,7 +74,7 @@ public class ArchiveController {
           "memo": "연출도 훌륭했고, 다시 보고 싶어요."
         }
         ```
-
+        - `title`: 공연 제목 (필수)
         - `viewingDate`: 관람한 날짜 (`yyyy-MM-dd`) (필수)
         - `casting`: 출연 배우 목록 (쉼표 구분 문자열) (필수) 
         - `review`: 공연에 대한 리뷰 내용 (필수)
@@ -124,6 +125,7 @@ public class ArchiveController {
 
         ```json
         {
+          "title": "프랑스 배경 연극 추천",
           "viewingDate": "2025-07-21",
           "casting": "홍길동, 김연아",
           "review": "배우들의 연기가 인상 깊었습니다.",
@@ -132,13 +134,13 @@ public class ArchiveController {
           "memo": "연출도 훌륭했고, 다시 보고 싶어요."
         }
         ```
-
-        - `viewingDate`: 관람한 날짜 (`yyyy-MM-dd`)
-        - `casting`: 출연 배우 목록 (쉼표 구분 문자열)
-        - `review`: 공연에 대한 리뷰 내용
-        - `theaterName`: 공연장 이름
-        - `rating`: 평점 (0.0 ~ 5.0, 0.5 단위)
-        - `memo`: 자유 메모
+        - `title`: 공연 제목 (필수)
+        - `viewingDate`: 관람한 날짜 (`yyyy-MM-dd`) (필수)
+        - `casting`: 출연 배우 목록 (쉼표 구분 문자열) (필수)
+        - `review`: 공연에 대한 리뷰 내용 (필수)
+        - `theaterName`: 공연장 이름 (필수)
+        - `rating`: 평점 (0.0 ~ 5.0, 0.5 단위) (필수)
+        - `memo`: 자유 메모 (필수)
         """
 )
     @ApiResponse(responseCode = "200", description = "아카이브 변경")
@@ -146,19 +148,13 @@ public class ArchiveController {
     public ResponseEntity<DataResponse<?>> updateArchive(
             @Parameter(hidden = true) @CurrentUser UserJpaEntity user,
             @PathVariable Long archiveId,
-            @RequestPart String reqeustJson,
-            @Parameter(
-                    description = "업로드할 이미지 파일",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE,
-                            schema = @Schema(type = "string", format = "binary")))
-            @RequestPart(value = "image", required = false) MultipartFile updatedImage
+            @RequestPart String reqeustJson
 ) throws JsonProcessingException {
 
         ArchiveUpdateRequest archiveUpdateRequest = objectMapper.readValue(reqeustJson, ArchiveUpdateRequest.class);
         archiveUpdateRequest.validate();
 
-        archiveService.updateArchive(user,archiveId, archiveUpdateRequest,updatedImage);
+        archiveService.updateArchive(user,archiveId, archiveUpdateRequest);
         return ResponseEntity.ok(DataResponse.ok());
     }
 

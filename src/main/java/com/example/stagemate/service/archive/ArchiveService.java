@@ -82,7 +82,7 @@ public class ArchiveService {
         archiveRepository.deleteById(archiveId);
     }
 
-    public void updateArchive(UserJpaEntity user, Long archiveId, ArchiveUpdateRequest archiveUpdateRequest, MultipartFile image) {
+    public void updateArchive(UserJpaEntity user, Long archiveId, ArchiveUpdateRequest archiveUpdateRequest) {
         validateUserIsNull(user);
 
         Archive archive = archiveRepository.findById(archiveId)
@@ -91,14 +91,8 @@ public class ArchiveService {
         //유저 권한 검증
         archive.validateDeleteOrUpdateBy(user);
 
-        Image updatedImage = uploadImageAndSave(image);
-
-        //이미지 변경안했을시
-        if (updatedImage == null) {
-            archive.update(archiveUpdateRequest);
-        } else { //이미지 변경했을시
-            archive.update(archiveUpdateRequest, updatedImage);
-        }
+        //이미지 제외 나머지 속성 변경
+        archive.update(archiveUpdateRequest);
     }
 
     private void validateUserIsNull(UserJpaEntity user) {

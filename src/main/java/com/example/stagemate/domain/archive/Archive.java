@@ -46,6 +46,7 @@ public class Archive {
 
     @jakarta.persistence.ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
     @jakarta.persistence.JoinColumn(name = "image_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Image image;
 
     @jakarta.persistence.ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
@@ -75,17 +76,7 @@ public class Archive {
         }
     }
 
-    public void update(ArchiveUpdateRequest request, Image updatedImage) {
-        this.title = request.getTitle();
-        this.viewingDate = request.getViewingDate();
-        this.casting = request.getCasting();
-        this.review = request.getReview();
-        this.rating = request.getRating();
-        this.memo = request.getMemo();
-        this.image = updatedImage;
-        this.theaterName = request.getTheaterName();
-    }
-
+    //이미지는 변경 불가능
     public void update(ArchiveUpdateRequest request) {
         this.title = request.getTitle();
         this.viewingDate = request.getViewingDate();
