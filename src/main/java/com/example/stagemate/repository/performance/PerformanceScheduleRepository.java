@@ -3,6 +3,8 @@ package com.example.stagemate.repository.performance;
 import com.example.stagemate.domain.performanceSchedule.PerformanceSchedule;
 import com.example.stagemate.domain.performanceSchedule.PerformanceScheduleType;
 import com.example.stagemate.domain.performanceSchedule.PerformanceScheduleReportStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -27,4 +29,16 @@ public interface PerformanceScheduleRepository extends JpaRepository<Performance
     //findByIdWithPerformanceScheduleReportCategories
     Optional<PerformanceSchedule> findOptionalByPerformance_IdAndPerformanceScheduleType(Long performanceId, PerformanceScheduleType type);
 
+    Page<PerformanceSchedule> findByScheduleDateBetweenAndPerformanceScheduleReportStatus(
+            LocalDate startDate,
+            LocalDate endDate,
+            PerformanceScheduleReportStatus status,
+            Pageable pageable
+    );
+
+    Page<PerformanceSchedule> findByScheduleDateAndPerformanceScheduleReportStatus(
+            LocalDate date,
+            PerformanceScheduleReportStatus status,
+            Pageable pageable
+    );
 }

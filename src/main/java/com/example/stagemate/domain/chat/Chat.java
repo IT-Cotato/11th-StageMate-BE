@@ -18,7 +18,6 @@ public class Chat {
 
     private Long roomId;
     private Long senderId;
-    private String senderNickname;
     private String content;
     private LocalDateTime createdAt;
 }

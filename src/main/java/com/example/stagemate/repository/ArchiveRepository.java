@@ -29,5 +29,13 @@ public interface ArchiveRepository extends JpaRepository<Archive, Long> {
 
     List<Archive> findByUserAndViewingDateBetween(UserJpaEntity user, LocalDate startDate, LocalDate endDate);
 
+    //findTopRatedArchives(startDate, endDate, user.getId(), pageable);
+    @Query("SELECT a " +
+            "FROM Archive a " +
+            "WHERE a.viewingDate " +
+            "BETWEEN :startDate AND :endDate " +
+            "AND a.user.id = :userId " +
+            "ORDER BY a.rating DESC")
+    Page<Archive> findTopRatedArchives(LocalDate startDate, LocalDate endDate, Long userId, Pageable pageable);
 
 }

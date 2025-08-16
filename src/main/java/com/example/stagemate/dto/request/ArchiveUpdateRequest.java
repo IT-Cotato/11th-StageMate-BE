@@ -12,6 +12,7 @@ import java.time.LocalDate;
 @Getter
 @NoArgsConstructor
 public class ArchiveUpdateRequest {
+    @NotNull(message = "title cannot be null")
     private String title;
 
     @NotNull(message = "viewingDate cannot be null")
@@ -37,8 +38,6 @@ public class ArchiveUpdateRequest {
     @NotNull(message = "memo cannot be null")
     private String memo;
 
-    @NotNull(message = "imageUrl cannot be null")
-    private String imageUrl;
 
     public void validate() {
         //모두 not null

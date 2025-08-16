@@ -40,4 +40,7 @@ public interface PerformanceRepository extends JpaRepository<Performance, Long> 
     @Query("select p from Performance p left join fetch p.theater where p.id in :ids")
     List<Performance> findAllWithTheaterByIdIn(@Param("ids") List<Long> ids);
 
+    //findAllByStartDateAfter
+    @Query("SELECT p FROM Performance p WHERE p.startDate >= :date")
+    List<Performance> findAllByStartDateAfter(@Param("date") LocalDate date);
 }

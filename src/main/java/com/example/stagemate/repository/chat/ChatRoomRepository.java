@@ -18,4 +18,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 
     @Query("SELECT c FROM ChatRoom c WHERE c.performance.id IN :performanceIds")
     List<ChatRoom> findByPerformanceIds(@Param("performanceIds") List<Long> performanceIds);
+
+    //existsByPerformanceId
+    boolean existsByPerformanceId(Long performanceId);
 }

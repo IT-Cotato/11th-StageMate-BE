@@ -6,6 +6,7 @@ import com.example.stagemate.domain.performance.PerformanceStatistics;
 import com.example.stagemate.domain.performance.PerformanceType;
 
 public record RecommendedPerformanceResponse(
+        Long id,
         String performanceName, String url, String startDate, String endDate,
         String theaterName, String region, String imageUrl, PerformanceType performanceType,
         Long increasedScrapCount,
@@ -16,6 +17,7 @@ public record RecommendedPerformanceResponse(
         Performance performance = performanceStatistics.getPerformance();
 
         return new RecommendedPerformanceResponse(
+                performance.getId(),
                 performance.getPerformanceName(),
                 performance.getUrl(),
                 performance.getStartDate().toString(),

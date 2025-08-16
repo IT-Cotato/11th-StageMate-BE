@@ -14,14 +14,12 @@ public class ChatRequest {
     private String content;
     private Long roomId;
     private Long senderId;
-    private String senderNickname;
 
     public Chat toEntity() {
         return Chat.builder()
                 .content(content)
                 .roomId(roomId)
                 .senderId(senderId)
-                .senderNickname(senderNickname)
                 .createdAt(LocalDateTime.now())
                 .build();
     }

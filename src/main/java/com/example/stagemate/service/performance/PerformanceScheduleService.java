@@ -10,6 +10,7 @@ import com.example.stagemate.domain.theater.TheaterErrorCode;
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.dto.request.PerformanceScheduleCreateRequest;
 import com.example.stagemate.dto.response.performance.PerformanceScheduleDetailResponse;
+import com.example.stagemate.global.dto.PagedResponse;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.performances.PerformanceErrorCode;
 import com.example.stagemate.repository.performance.PerformanceRepository;
@@ -17,11 +18,15 @@ import com.example.stagemate.repository.performance.PerformanceScheduleRepositor
 import com.example.stagemate.repository.performance.PerformanceScheduleScrapRepository;
 import com.example.stagemate.repository.TheaterRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -54,6 +59,7 @@ public class PerformanceScheduleService {
         return performanceScheduleRepository.save(performanceSchedule).getId();
     }
 
+
     //스크랩 여부
     private boolean findIsScraped(Long performanceScheduleId, UserJpaEntity user) {
         if (user == null) {
@@ -63,42 +69,67 @@ public class PerformanceScheduleService {
         return performanceScheduleScrapRepository.existsByPerformanceScheduleIdAndUserId(performanceScheduleId, user.getId());
     }
 
-    //공연 스케줄 목록
-    public List<PerformanceScheduleDetailResponse> getPerformanceSchedule(UserJpaEntity user, Integer year, Integer month,
-                                                            PerformanceScheduleReportStatus performanceScheduleReportStatus) {
-        //year, month -> LocalDate
-        LocalDate startDate = LocalDate.of(year,month,1);
+    // ====== 리스트 반환 (월간) ======
+    public List<PerformanceScheduleDetailResponse> getPerformanceSchedule(
+            UserJpaEntity user, Integer year, Integer month,
+            PerformanceScheduleReportStatus performanceScheduleReportStatus) {
+
+        LocalDate startDate = LocalDate.of(year, month, 1);
         LocalDate endDate = startDate.plusMonths(1).minusDays(1);
 
-        List<PerformanceSchedule> performanceSchedules =
-                performanceScheduleRepository.findByScheduleDateBetween(startDate,endDate,performanceScheduleReportStatus);
+        List<PerformanceSchedule> schedules =
+                performanceScheduleRepository.findByScheduleDateBetween(
+                        startDate, endDate, performanceScheduleReportStatus);
 
-        List<Boolean> isScraped =
-                performanceSchedules.stream().map(performanceSchedule -> findIsScraped(performanceSchedule.getId(), user)).toList();
+        // user가 null이면 전부 false
+        if (user == null || schedules.isEmpty()) {
+            return schedules.stream()
+                    .map(ps -> PerformanceScheduleDetailResponse.from(ps, false))
+                    .toList();
+        }
 
-        return performanceSchedules
-                .stream()
-                .map(performanceSchedule -> PerformanceScheduleDetailResponse.from(performanceSchedule, isScraped.get(performanceSchedules.indexOf(performanceSchedule))))
+        // 배치 조회로 스크랩 여부 계산
+        List<Long> ids = schedules.stream().map(PerformanceSchedule::getId).toList();
+        Set<Long> scrapedIdSet = new HashSet<>(
+                performanceScheduleScrapRepository.findScrapedScheduleIdsByUser(user.getId(), ids)
+        );
+
+        return schedules.stream()
+                .map(ps -> PerformanceScheduleDetailResponse.from(ps, scrapedIdSet.contains(ps.getId())))
                 .toList();
     }
 
-    //공연 스케줄 목록
-    public List<PerformanceScheduleDetailResponse> getPerformanceSchedule(UserJpaEntity user, Integer year,Integer month,Integer day,
-                                                            PerformanceScheduleReportStatus performanceScheduleReportStatus) {
-        //year, month, day -> LocalDate
-        LocalDate date = LocalDate.of(year,month,day);
+    // ====== 리스트 반환 (일간) ======
+    public List<PerformanceScheduleDetailResponse> getPerformanceSchedule(
+            UserJpaEntity user, Integer year, Integer month, Integer day,
+            PerformanceScheduleReportStatus performanceScheduleReportStatus) {
 
-        List<PerformanceSchedule> performanceSchedules =
-                performanceScheduleRepository.findByScheduleDateAndPerformanceScheduleReportStatus(date,performanceScheduleReportStatus);
+        LocalDate date = LocalDate.of(year, month, day);
 
-        List<Boolean> isScraped =
-                performanceSchedules.stream().map(performanceSchedule -> findIsScraped(performanceSchedule.getId(), user)).toList();
+        List<PerformanceSchedule> schedules =
+                performanceScheduleRepository.findByScheduleDateAndPerformanceScheduleReportStatus(
+                        date, performanceScheduleReportStatus);
 
-        return performanceSchedules
-                .stream()
-                .map(performanceSchedule -> PerformanceScheduleDetailResponse.from(performanceSchedule, isScraped.get(performanceSchedules.indexOf(performanceSchedule))))
+        // user가 null이면 전부 false
+        if (user == null || schedules.isEmpty()) {
+            return schedules.stream()
+                    .map(ps -> PerformanceScheduleDetailResponse.from(ps, false))
+                    .toList();
+        }
+
+        // 배치 조회로 스크랩 여부 계산
+        List<Long> ids = schedules.stream().map(PerformanceSchedule::getId).toList();
+        Set<Long> scrapedIdSet = new HashSet<>(
+                performanceScheduleScrapRepository.findScrapedScheduleIdsByUser(user.getId(), ids)
+        );
+
+        return schedules.stream()
+                .map(ps -> PerformanceScheduleDetailResponse.from(ps, scrapedIdSet.contains(ps.getId())))
                 .toList();
     }
+
+
+
 
     //공연 스케줄 상세 정보
     public PerformanceScheduleDetailResponse getPerformanceSchedule(UserJpaEntity user, Long performanceScheduleId) {
@@ -153,5 +184,68 @@ public class PerformanceScheduleService {
     }
 
 
+
+    // ====== 페이지네이션 (월간) ======
+    public PagedResponse<PerformanceScheduleDetailResponse> getPerformanceScheduleV2(
+            UserJpaEntity user, Integer year, Integer month,
+            PerformanceScheduleReportStatus performanceScheduleReportStatus,
+            Pageable pageable) {
+
+        LocalDate startDate = LocalDate.of(year, month, 1);
+        LocalDate endDate = startDate.plusMonths(1).minusDays(1);
+
+        Page<PerformanceSchedule> page = performanceScheduleRepository
+                .findByScheduleDateBetweenAndPerformanceScheduleReportStatus(
+                        startDate, endDate, performanceScheduleReportStatus, pageable);
+
+        // user가 null이면 전부 false
+        if (user == null || page.isEmpty()) {
+            Page<PerformanceScheduleDetailResponse> mapped =
+                    page.map(ps -> PerformanceScheduleDetailResponse.from(ps, false));
+            return PagedResponse.from(mapped.getContent(), page);
+        }
+
+        // 배치 조회
+        List<Long> ids = page.getContent().stream().map(PerformanceSchedule::getId).toList();
+        Set<Long> scrapedIdSet = ids.isEmpty()
+                ? Set.of()
+                : new HashSet<>(performanceScheduleScrapRepository.findScrapedScheduleIdsByUser(user.getId(), ids));
+
+        Page<PerformanceScheduleDetailResponse> mapped =
+                page.map(ps -> PerformanceScheduleDetailResponse.from(ps, scrapedIdSet.contains(ps.getId())));
+
+        return PagedResponse.from(mapped.getContent(), page);
+    }
+
+    // ====== 페이지네이션 (일간) ======
+    public PagedResponse<PerformanceScheduleDetailResponse> getPerformanceScheduleV2(
+            UserJpaEntity user, Integer year, Integer month, Integer day,
+            PerformanceScheduleReportStatus performanceScheduleReportStatus,
+            Pageable pageable) {
+
+        LocalDate date = LocalDate.of(year, month, day);
+
+        Page<PerformanceSchedule> page = performanceScheduleRepository
+                .findByScheduleDateAndPerformanceScheduleReportStatus(
+                        date, performanceScheduleReportStatus, pageable);
+
+        // user가 null이면 전부 false
+        if (user == null || page.isEmpty()) {
+            Page<PerformanceScheduleDetailResponse> mapped =
+                    page.map(ps -> PerformanceScheduleDetailResponse.from(ps, false));
+            return PagedResponse.from(mapped.getContent(), page);
+        }
+
+        // 배치 조회
+        List<Long> ids = page.getContent().stream().map(PerformanceSchedule::getId).toList();
+        Set<Long> scrapedIdSet = ids.isEmpty()
+                ? Set.of()
+                : new HashSet<>(performanceScheduleScrapRepository.findScrapedScheduleIdsByUser(user.getId(), ids));
+
+        Page<PerformanceScheduleDetailResponse> mapped =
+                page.map(ps -> PerformanceScheduleDetailResponse.from(ps, scrapedIdSet.contains(ps.getId())));
+
+        return PagedResponse.from(mapped.getContent(), page);
+    }
 
 }

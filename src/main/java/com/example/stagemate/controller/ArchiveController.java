@@ -65,21 +65,26 @@ public class ArchiveController {
 
         ```json
         {
+          "title": "프랑스 배경 연극 추천",
           "viewingDate": "2025-07-21",
           "casting": "홍길동, 김연아",
           "review": "배우들의 연기가 인상 깊었습니다.",
           "theaterName": "블루스퀘어 신한카드홀",
           "rating": 4.5,
-          "memo": "연출도 훌륭했고, 다시 보고 싶어요."
+          "memo": "연출도 훌륭했고, 다시 보고 싶어요.",
+          "naverImageUrl": "https://example.com/image.jpg"
         }
         ```
-
+        - `title`: 공연 제목 (필수)
         - `viewingDate`: 관람한 날짜 (`yyyy-MM-dd`) (필수)
-        - `casting`: 출연 배우 목록 (쉼표 구분 문자열) (필수) 
+        - `casting`: 출연 배우 목록 (쉼표 구분 문자열) (필수)
         - `review`: 공연에 대한 리뷰 내용 (필수)
-        - `theaterName`: 공연장 이름 (필수) 
+        - `theaterName`: 공연장 이름 (필수)
         - `rating`: 평점 (0.0 ~ 5.0, 0.5 단위) (필수)
         - `memo`: 자유 메모 (필수)
+        - 'naverImageUrl': 이미지 URL (네이버검색 이미지) (선택)
+        
+        일반 이미지를 저장하거나 naver검색으로 imageUrl 요청
         """
     )
     @ApiResponse(responseCode = "200", description = "아카이브 생성")
@@ -118,12 +123,13 @@ public class ArchiveController {
 @Operation(
         summary = "아카이브 수정",
         description = """
-        아카이브 정보를 JSON 문자열로 입력하고, 이미지 파일을 함께 업로드합니다.
+        아카이브 정보를 JSON 문자열로 입력
 
         🔽 예시 JSON (request 필드 입력값):
 
         ```json
         {
+          "title": "프랑스 배경 연극 추천",
           "viewingDate": "2025-07-21",
           "casting": "홍길동, 김연아",
           "review": "배우들의 연기가 인상 깊었습니다.",
@@ -132,33 +138,25 @@ public class ArchiveController {
           "memo": "연출도 훌륭했고, 다시 보고 싶어요."
         }
         ```
-
-        - `viewingDate`: 관람한 날짜 (`yyyy-MM-dd`)
-        - `casting`: 출연 배우 목록 (쉼표 구분 문자열)
-        - `review`: 공연에 대한 리뷰 내용
-        - `theaterName`: 공연장 이름
-        - `rating`: 평점 (0.0 ~ 5.0, 0.5 단위)
-        - `memo`: 자유 메모
+        - `title`: 공연 제목 (필수)
+        - `viewingDate`: 관람한 날짜 (`yyyy-MM-dd`) (필수)
+        - `casting`: 출연 배우 목록 (쉼표 구분 문자열) (필수)
+        - `review`: 공연에 대한 리뷰 내용 (필수)
+        - `theaterName`: 공연장 이름 (필수)
+        - `rating`: 평점 (0.0 ~ 5.0, 0.5 단위) (필수)
+        - `memo`: 자유 메모 (필수)
         """
 )
     @ApiResponse(responseCode = "200", description = "아카이브 변경")
-    @PutMapping(value = "/api/v1/archive/{archiveId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "/api/v1/archive/{archiveId}")
     public ResponseEntity<DataResponse<?>> updateArchive(
             @Parameter(hidden = true) @CurrentUser UserJpaEntity user,
             @PathVariable Long archiveId,
-            @RequestPart String reqeustJson,
-            @Parameter(
-                    description = "업로드할 이미지 파일",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE,
-                            schema = @Schema(type = "string", format = "binary")))
-            @RequestPart(value = "image", required = false) MultipartFile updatedImage
-) throws JsonProcessingException {
+            @RequestBody ArchiveUpdateRequest archiveUpdateRequest) {
 
-        ArchiveUpdateRequest archiveUpdateRequest = objectMapper.readValue(reqeustJson, ArchiveUpdateRequest.class);
         archiveUpdateRequest.validate();
 
-        archiveService.updateArchive(user,archiveId, archiveUpdateRequest,updatedImage);
+        archiveService.updateArchive(user,archiveId, archiveUpdateRequest);
         return ResponseEntity.ok(DataResponse.ok());
     }
 
@@ -176,6 +174,23 @@ public class ArchiveController {
 
         return ResponseEntity.ok(DataResponse.from(archives));
     }
+
+    //월별 공연 평점 TOP
+    @Operation(summary = "월별 공연 평점 TOP", description = "월별 공연 평점 TOP 목록을 가져옴")
+    @ApiResponse(responseCode = "200", description = "월별 공연 평점 TOP 목록을 가져옴")
+    @GetMapping("/api/v2/archives/top-rating")
+    public ResponseEntity<DataResponse<List<ArchiveRankingResponse>>> getTopRatingArchivesV2(
+            @RequestParam Integer year,
+            @RequestParam Integer month,
+            @RequestParam(defaultValue = "3") Integer size,
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user) {
+
+
+        List<ArchiveRankingResponse> archives = archiveService.getTopRatingArchivesV2(year, month, size, user);
+
+        return ResponseEntity.ok(DataResponse.from(archives));
+    }
+
 
 
 }

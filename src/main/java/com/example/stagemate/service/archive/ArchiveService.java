@@ -63,8 +63,15 @@ public class ArchiveService {
 
     public Long createArchive(UserJpaEntity user, ArchiveCreateRequest archiveCreateRequest, MultipartFile image) {
         validateUserIsNull(user);
+        Image uploadImage;
 
-        Image uploadImage = uploadImageAndSave(image);
+        if (image != null && !image.isEmpty()) {
+            //이미지를 직접 올린 경우
+            uploadImage = uploadImageAndSave(image);
+        } else {
+            //이미지를 naver 검색으로 imageUrl로 저장하는 경우
+            uploadImage = uploadImageAndSave(archiveCreateRequest.getNaverImageUrl());
+        }
 
         Archive archive = Archive.create(archiveCreateRequest, user, uploadImage);
 
@@ -82,7 +89,7 @@ public class ArchiveService {
         archiveRepository.deleteById(archiveId);
     }
 
-    public void updateArchive(UserJpaEntity user, Long archiveId, ArchiveUpdateRequest archiveUpdateRequest, MultipartFile image) {
+    public void updateArchive(UserJpaEntity user, Long archiveId, ArchiveUpdateRequest archiveUpdateRequest) {
         validateUserIsNull(user);
 
         Archive archive = archiveRepository.findById(archiveId)
@@ -91,9 +98,8 @@ public class ArchiveService {
         //유저 권한 검증
         archive.validateDeleteOrUpdateBy(user);
 
-        Image updatedImage = uploadImageAndSave(image);
-
-        archive.update(archiveUpdateRequest, updatedImage);
+        //이미지 제외 나머지 속성 변경
+        archive.update(archiveUpdateRequest);
     }
 
     private void validateUserIsNull(UserJpaEntity user) {
@@ -108,6 +114,12 @@ public class ArchiveService {
                 .orElse(null);
     }
 
+    private Image uploadImageAndSave(String imageUrl) {
+        return Optional.ofNullable(imageUrl)
+                .map(imageService::uploadImage)
+                .orElse(null);
+    }
+
     //월별 평점 top
     public List<ArchiveRankingResponse> getTopRatingArchives(int year, int month, int size) {
         Pageable pageable = PageRequest.of(0, size);
@@ -117,6 +129,24 @@ public class ArchiveService {
         LocalDate endDate = YearMonth.of(year, month).atEndOfMonth();
 
         Page<Archive> archives = archiveRepository.findTopRatedArchives(startDate, endDate, pageable);
+
+        List<Archive> archiveList = archives.getContent();
+
+        return IntStream.range(0, archiveList.size())
+                .mapToObj(i -> ArchiveRankingResponse.from(archiveList.get(i), i + 1))
+                .toList();
+    }
+
+
+    //월별 평점 top
+    public List<ArchiveRankingResponse> getTopRatingArchivesV2(int year, int month, int size, UserJpaEntity user) {
+        Pageable pageable = PageRequest.of(0, size);
+
+        // 월 시작일과 마지막 일 계산
+        LocalDate startDate = LocalDate.of(year, month, 1);
+        LocalDate endDate = YearMonth.of(year, month).atEndOfMonth();
+
+        Page<Archive> archives = archiveRepository.findTopRatedArchives(startDate, endDate, user.getId(), pageable);
 
         List<Archive> archiveList = archives.getContent();
 
