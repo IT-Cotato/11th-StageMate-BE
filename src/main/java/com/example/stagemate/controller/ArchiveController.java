@@ -175,5 +175,22 @@ public class ArchiveController {
         return ResponseEntity.ok(DataResponse.from(archives));
     }
 
+    //월별 공연 평점 TOP
+    @Operation(summary = "월별 공연 평점 TOP", description = "월별 공연 평점 TOP 목록을 가져옴")
+    @ApiResponse(responseCode = "200", description = "월별 공연 평점 TOP 목록을 가져옴")
+    @GetMapping("/api/v2/archives/top-rating")
+    public ResponseEntity<DataResponse<List<ArchiveRankingResponse>>> getTopRatingArchivesV2(
+            @RequestParam Integer year,
+            @RequestParam Integer month,
+            @RequestParam(defaultValue = "3") Integer size,
+            @Parameter(hidden = true) @CurrentUser UserJpaEntity user) {
+
+
+        List<ArchiveRankingResponse> archives = archiveService.getTopRatingArchivesV2(year, month, size, user);
+
+        return ResponseEntity.ok(DataResponse.from(archives));
+    }
+
+
 
 }

@@ -115,7 +115,9 @@ public class ArchiveService {
     }
 
     private Image uploadImageAndSave(String imageUrl) {
-        return imageService.uploadImage(imageUrl);
+        return Optional.ofNullable(imageUrl)
+                .map(imageService::uploadImage)
+                .orElse(null);
     }
 
     //월별 평점 top
@@ -127,6 +129,24 @@ public class ArchiveService {
         LocalDate endDate = YearMonth.of(year, month).atEndOfMonth();
 
         Page<Archive> archives = archiveRepository.findTopRatedArchives(startDate, endDate, pageable);
+
+        List<Archive> archiveList = archives.getContent();
+
+        return IntStream.range(0, archiveList.size())
+                .mapToObj(i -> ArchiveRankingResponse.from(archiveList.get(i), i + 1))
+                .toList();
+    }
+
+
+    //월별 평점 top
+    public List<ArchiveRankingResponse> getTopRatingArchivesV2(int year, int month, int size, UserJpaEntity user) {
+        Pageable pageable = PageRequest.of(0, size);
+
+        // 월 시작일과 마지막 일 계산
+        LocalDate startDate = LocalDate.of(year, month, 1);
+        LocalDate endDate = YearMonth.of(year, month).atEndOfMonth();
+
+        Page<Archive> archives = archiveRepository.findTopRatedArchives(startDate, endDate, user.getId(), pageable);
 
         List<Archive> archiveList = archives.getContent();
 
