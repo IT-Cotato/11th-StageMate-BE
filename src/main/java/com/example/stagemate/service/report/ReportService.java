@@ -86,7 +86,7 @@ public class ReportService {
     }
 
     //채팅 신고 횟수 getChatReportCount
-    public List<ChatReportCountResponse> getChatReportCount(UserJpaEntity user, List<Long> userIds) {
+    public List<ChatReportCountResponse> getChatReportCount(List<Long> userIds) {
         userIds.forEach(id -> {
             if (!userRepository.existsById(id)) {
                 throw new AppException(NOT_FOUND_USER);

@@ -27,7 +27,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.stagemate.global.auth.JwtTokenProvider;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -177,6 +179,15 @@ public class UserService implements LoginUseCase, RegisterUserUseCase {
         UserJpaEntity user = userJpaRepository.findById(userId)
                 .orElseThrow(() -> new AppException(CommonErrorCode.NOT_FOUND_USER));
         return AccountInfoResponse.from(user);
+    }
+
+    //계정 정보 일괄조회
+    public List<AccountInfoResponse> getAccountInfo(List<Long> userIds) {
+        List<UserJpaEntity> user = userJpaRepository.findAllById(userIds);
+
+        return user.stream()
+                .map(AccountInfoResponse::from)
+                .collect(Collectors.toList());
     }
 
 

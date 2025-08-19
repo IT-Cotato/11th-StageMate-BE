@@ -1,5 +1,6 @@
 package com.example.stagemate.repository.user;
 
+import java.util.List;
 import java.util.Optional;
 
 import com.example.stagemate.domain.user.entity.UserJpaEntity;
@@ -23,4 +24,7 @@ public interface UserJpaRepository extends JpaRepository<UserJpaEntity, Long> {
 
     @EntityGraph(attributePaths = {"consents"})
     Optional<UserJpaEntity> findWithConsentsById(Long id);
+
+    //findByIdIn
+    Optional<UserJpaEntity> findByUserIdIn(List<Long> ids);
 }
