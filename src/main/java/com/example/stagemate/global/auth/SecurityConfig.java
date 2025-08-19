@@ -113,11 +113,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/performance/recommend",
                                 "/api/v1/performance",
-                                "/api/v1/performance/*"
+                                "/api/v1/performance/*",
+                                "/api/v2/performance"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/performanceSchedule",
-                                "/api/v1/performanceSchedule/*"
+                                "/api/v1/performanceSchedule/*",
+                                "/api/v2/performanceSchedule"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/theaters"
@@ -148,6 +150,10 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers(HttpMethod.POST,
                                 "/api/v1/event")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**")
+                        .permitAll()
+                        .requestMatchers("/ws-stomp/**")
                         .permitAll()
                         .anyRequest().authenticated()
                 )
