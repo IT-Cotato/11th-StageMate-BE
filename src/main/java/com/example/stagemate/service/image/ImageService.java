@@ -138,11 +138,11 @@ public class ImageService {
                     : contentTypeHdr;
             String ext = extFromContentTypeOrUrl(contentType, url);
 
-            // (선택) 용량 제한
-            if (contentLength > 0 && contentLength > 10L * 1024 * 1024) {
-                log.warn("[IMAGE] Content too large: {} bytes, url={}", contentLength, url);
-                throw new ImageUploadFailException(IMAGE_UPLOAD_FAILED);
-            }
+//            // (선택) 용량 제한
+//            if (contentLength > 10L * 1024 * 1024) {
+//                log.warn("[IMAGE] Content too large: {} bytes, url={}", contentLength, url);
+//                throw new ImageUploadFailException(IMAGE_UPLOAD_FAILED);
+//            }
 
             // 4) GCS 업로드
             String fileName = UUID.randomUUID() + ext;
