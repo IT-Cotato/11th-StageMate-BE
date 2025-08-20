@@ -30,10 +30,11 @@ public class ChatService {
         Chat chat = chatRequest.toEntity();
 
         //몽고DB에 저장
-        chatRepository.save(chat);
+        Chat savedChat = chatRepository.save(chat);
+
 
         //메세지 구독자에게 publish
-        redisMessagePublisher.publish(chat);
+        redisMessagePublisher.publish(savedChat);
     }
 
     public List<ChatResponse> getPreviousMessages(

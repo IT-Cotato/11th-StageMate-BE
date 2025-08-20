@@ -21,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.example.stagemate.global.exception.CommonErrorCode.NOT_FOUND_USER;
 import static com.example.stagemate.global.exception.community.CommunityErrorCode.*;
@@ -78,14 +80,17 @@ public class ReportService {
             throw new AppException(ChatErrorCode.CHAT_REPORT_ALREADY_EXISTS);
         }
 
+        UserJpaEntity targetUser = userRepository.findById(chat.getSenderId())
+                .orElseThrow(() -> new AppException(NOT_FOUND_USER));
 
-        ChatReport chatReport = ChatReport.of(user, chatId, reason);
+
+        ChatReport chatReport = ChatReport.of(user, targetUser, chatId, reason);
 
         chatReportRepository.save(chatReport);
 
     }
 
-    //채팅 신고 횟수 getChatReportCount
+    //채팅 신고 당한 횟수
     public List<ChatReportCountResponse> getChatReportCount(List<Long> userIds) {
         userIds.forEach(id -> {
             if (!userRepository.existsById(id)) {
@@ -93,6 +98,7 @@ public class ReportService {
             }
         });
 
-        return chatReportRepository.getChatReportCount(userIds);
+        return chatReportRepository.getChatReportedCount(userIds);
+
     }
 }
