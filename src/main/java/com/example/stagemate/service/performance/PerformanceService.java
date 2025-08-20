@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -84,7 +85,7 @@ public class PerformanceService {
         PerformanceScrap performanceScrap = PerformanceScrap.builder().
                 performance(performanceRepository.findById(performanceId).orElseThrow(() -> new AppException(PerformanceErrorCode.NOT_FOUND)))
                 .user(user)
-                .scrapDate(LocalDateTime.now())
+                .scrapDate(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
                 .build();
 
         performanceScrapRepository.save(performanceScrap);

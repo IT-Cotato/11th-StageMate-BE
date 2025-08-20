@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -149,7 +150,7 @@ public class PerformanceCrawlingBatchService {
                 .scheduleStartTime(dateTime)
                 .scheduleEndTime(dateTime)
                 .theater(performance.getTheater())
-                .reportDate(LocalDateTime.now())
+                .reportDate(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
                 .performanceScheduleReportStatus(PerformanceScheduleReportStatus.APPROVED)
                 .title(performance.getPerformanceName() + " " + content)
                 .url(performance.getUrl())

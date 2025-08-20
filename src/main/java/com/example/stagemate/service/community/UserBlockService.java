@@ -105,12 +105,12 @@ public class UserBlockService {
     }
 
     //현재 사용자 기준으로 userIds중에 차단된 사용자가 있는지 확인
-    public List<UserBlockStatusResponse> checkBlockedUser(UserJpaEntity user, List<Long> userIds) {
-        List<Long> blokedUserIds = userBlockRepository.findBlockedUserIds(user.getId(), userIds);
+    public List<UserBlockStatusResponse> checkBlockedUser(Long userId, List<Long> targetUserIds) {
+        List<Long> blokedUserIds = userBlockRepository.findBlockedUserIds(userId, targetUserIds);
 
         List<UserBlockStatusResponse> result = new ArrayList<>();
 
-        for (Long id : userIds) {
+        for (Long id : targetUserIds) {
             if (blokedUserIds.contains(id)) {
                 result.add(new UserBlockStatusResponse(id, true));
             } else {

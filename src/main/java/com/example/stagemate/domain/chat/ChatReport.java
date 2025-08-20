@@ -11,6 +11,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Table(name = "chat_reports")
@@ -30,18 +31,24 @@ public class ChatReport {
 
     private String chatId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "target_user_id")
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    private UserJpaEntity targetUser;
+
     @Enumerated(EnumType.STRING)
     private ReportReason reason;
 
     @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
-    public static ChatReport of(UserJpaEntity user, String chatId, ReportReason reason) {
+    public static ChatReport of(UserJpaEntity user, UserJpaEntity targetUser, String chatId, ReportReason reason) {
         return ChatReport.builder()
+                .targetUser(targetUser)
                 .reporter(user)
                 .chatId(chatId)
                 .reason(reason)
-                .createdAt(LocalDateTime.now())
+                .createdAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
                 .build();
     }
 }

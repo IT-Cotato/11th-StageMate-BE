@@ -1,6 +1,7 @@
 package com.example.stagemate.global.config;
 
 
+import com.example.stagemate.global.auth.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -12,6 +13,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @RequiredArgsConstructor
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
@@ -32,9 +34,52 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .setAllowedOrigins(
                         "http://localhost:3000",
                         "http://localhost:5173",
-                        "http://34.49.53.76"
+                        "http://34.49.53.76",
+                        "https://stagemate.co.kr"
                 )
                 .withSockJS();
+    }
+
+    @Override
+    public void configureClientInboundChannel(org.springframework.messaging.simp.config.ChannelRegistration registration) {
+        registration.interceptors(new org.springframework.messaging.support.ChannelInterceptor() {
+            @Override
+            public org.springframework.messaging.Message<?> preSend(org.springframework.messaging.Message<?> message,
+                                                                    org.springframework.messaging.MessageChannel channel) {
+                var accessor = org.springframework.messaging.simp.stomp.StompHeaderAccessor.wrap(message);
+
+                if (org.springframework.messaging.simp.stomp.StompCommand.CONNECT.equals(accessor.getCommand())) {
+                    // 1) Authorization 헤더에서 토큰 추출
+                    String authHeader = accessor.getFirstNativeHeader("Authorization"); // "Bearer xxx"
+                    if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                        throw new IllegalArgumentException("Missing Authorization header");
+                    }
+                    String token = authHeader.substring(7);
+
+                    // 2) 토큰 검증
+                    if (!jwtTokenProvider.validateToken(token)) {
+                        throw new IllegalArgumentException("Invalid JWT");
+                    }
+
+                    // 3) 토큰에서 사용자 식별자 꺼내기
+                    Long userId = jwtTokenProvider.getUserId(token);
+
+                    // 4) Authentication 생성해서 Principal로 세팅
+                    //    (권한이 필요하면 실제 UserDetails를 로드해서 넣으세요)
+                    var authorities = org.springframework.security.core.authority.AuthorityUtils.NO_AUTHORITIES;
+                    var authentication = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                            String.valueOf(userId), // principal (String 권장)
+                            null,                   // credentials
+                            authorities
+                    );
+
+                    accessor.setUser(authentication); // STOMP Principal
+                    org.springframework.security.core.context.SecurityContextHolder.getContext()
+                            .setAuthentication(authentication);
+                }
+                return message;
+            }
+        });
     }
 
 }
