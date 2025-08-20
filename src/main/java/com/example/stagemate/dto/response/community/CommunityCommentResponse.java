@@ -12,6 +12,7 @@ public record CommunityCommentResponse(
         String time, // 오래된 경우 댓글 작성 날짜, 오늘인 경우 (몇 시간 전 / 몇 분 전)
         String content,
         boolean isEdited, // 수정 여부
+        String profileImage, // 프로필 이미지 URL
         List<CommunityCommentResponse> children
 ) {
     public CommunityCommentResponse(CommunityComment comment, Set<Long> blockedUserIds) {
@@ -21,6 +22,7 @@ public record CommunityCommentResponse(
                 DateFormat.formatTimeIfTodayElseDateTime(comment.getCreatedAt()),
                 resolveContent(comment, blockedUserIds),
                 !comment.getCreatedAt().equals(comment.getUpdatedAt()),
+                comment.getUser().getProfileImageUrl(),
                 comment.getChildren().stream()
                         .map(child -> new CommunityCommentResponse(child, blockedUserIds))
                         .toList()
