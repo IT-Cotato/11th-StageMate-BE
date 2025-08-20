@@ -41,11 +41,15 @@ public class CommunityCommentService {
     }
 
     // 커뮤니티 게시글의 댓글 수 증가
+    // 커뮤니티 게시글의 댓글 수 증가 및 알림 기능
     public void addComment(UserJpaEntity user, Long postId, CommunityCommentRequest request) {
         request.validate();
+
         CommunityPost post = communityRepository.findById(postId)
                 .orElseThrow(() -> new AppException(COMMUNITY_POST_NOT_FOUND));
-        if (post.isDeleted()) throw new AppException(COMMUNITY_POST_NOT_FOUND);
+        if (post.isDeleted()) {
+            throw new AppException(COMMUNITY_POST_NOT_FOUND);
+        }
 
         CommunityComment parent = null;
         if (request.parentId() != null) {
@@ -54,19 +58,60 @@ public class CommunityCommentService {
             if (parent.getParent() != null) {
                 throw new AppException(COMMUNITY_REPLY_NOT_ALLOWED);
             }
-            // 본인 댓글에 달지 않은 경우에만 알림
-            if (!post.getAuthor().getId().equals(user.getId())) {
-                notificationService.save(parent.getUser(), NotificationType.REPLY_ON_COMMENT, post.getId(), request.content()); // 댓글 작성자 알림함에 저장
-            }
         }
+
         CommunityComment comment = request.toEntity(post, user, parent);
         commentRepository.save(comment);
-        // 본인 게시글에 달지 않은 경우에만 알림
-        if (!post.getAuthor().getId().equals(user.getId())) {
-            notificationService.save(post.getAuthor(), NotificationType.COMMENT_ON_POST, post.getId(), request.content()); // 게시글 작성자 알림함에 저장
-        }
+
+        // 알림 로직 처리
+        handleNotifications(user, post, comment, parent);
+
         post.addCommentCount();
     }
+
+    private void handleNotifications(UserJpaEntity user, CommunityPost post, CommunityComment comment, CommunityComment parent) {
+        Long currentUserId = user.getId();
+        Long postAuthorId = post.getAuthor().getId();
+
+        if (parent == null) {
+            // 새로운 댓글일 경우
+            // 자신의 게시글에 직접 댓글을 다는 경우가 아닐 때만 알림
+            if (!postAuthorId.equals(currentUserId)) {
+                notificationService.save(
+                        post.getAuthor(),
+                        NotificationType.COMMENT_ON_POST,
+                        post.getId(),
+                        comment.getContent()
+                );
+            }
+        } else {
+            // 대댓글
+            Long parentCommentAuthorId = parent.getUser().getId();
+
+            // 부모 댓글 작성자에게 알림
+            // 자기 자신에게는 보내지 않음
+            if (!parentCommentAuthorId.equals(currentUserId)) {
+                notificationService.save(
+                        parent.getUser(),
+                        NotificationType.REPLY_ON_COMMENT,
+                        post.getId(),
+                        comment.getContent()
+                );
+            }
+
+            // 게시글 작성자에게 알림
+            //
+            if (!postAuthorId.equals(currentUserId) && !postAuthorId.equals(parentCommentAuthorId)) {
+                notificationService.save(
+                        post.getAuthor(),
+                        NotificationType.REPLY_ON_COMMENT,
+                        post.getId(),
+                        comment.getContent()
+                );
+            }
+        }
+    }
+
 
     public void updateComment(UserJpaEntity user, Long commentId, CommunityCommentUpdateRequest request) {
         request.validate();

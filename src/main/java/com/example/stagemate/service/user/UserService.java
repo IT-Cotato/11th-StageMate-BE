@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.stagemate.global.auth.JwtTokenProvider;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -132,7 +133,7 @@ public class UserService implements LoginUseCase, RegisterUserUseCase {
                 RefreshTokenEntity.builder()
                         .userId(user.getId())
                         .token(refreshToken)
-                        .expiresAt(LocalDateTime.now().plusDays(14))
+                        .expiresAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")).plusDays(14))
                         .build()
         );
 

@@ -2,6 +2,7 @@ package com.example.stagemate.global.util;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
@@ -18,7 +19,7 @@ public final class DateFormat {
     public static String formatTimeIfTodayElseDateTime(LocalDateTime dateTime) {
         Objects.requireNonNull(dateTime, "dateTime");
         LocalDate target = dateTime.toLocalDate();
-        LocalDate today  = LocalDate.now();
+        LocalDate today  = LocalDate.now(ZoneId.of("Asia/Seoul"));
 
         if (target.isEqual(today)) {
             return dateTime.format(TIME_ONLY);
@@ -32,7 +33,7 @@ public final class DateFormat {
     // 날짜만 표기(yyyy/MM/dd)
     public static String formatTimeIfTodayElseDate(LocalDateTime dateTime) {
         Objects.requireNonNull(dateTime, "dateTime");
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
 
         if (dateTime.toLocalDate().isEqual(today)) {
             return dateTime.format(TIME_ONLY);

@@ -10,8 +10,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -62,7 +62,7 @@ public class Performance {
 
     //현재시간 기준으로 상태업데이트
     public void updateStatusBasedOnCurrentDate() {
-        LocalDate currentDate = LocalDate.now();
+        LocalDate currentDate = LocalDate.now(ZoneId.of("Asia/Seoul"));
 
         if (startDate.isBefore(currentDate) && endDate.isAfter(currentDate)) {
             this.performanceStatus = PerformanceStatus.ONGOING;
