@@ -3,6 +3,7 @@ package com.example.stagemate.controller.auth;
 import com.example.stagemate.domain.user.User;
 import com.example.stagemate.domain.user.entity.RefreshTokenEntity;
 import com.example.stagemate.domain.user.model.ConsentType;
+import com.example.stagemate.dto.auth.GuestInfo;
 import com.example.stagemate.dto.request.OAuth2SignupRequest;
 import com.example.stagemate.dto.response.TokenResponse;
 import com.example.stagemate.global.auth.JwtTokenProvider;
@@ -13,7 +14,6 @@ import com.example.stagemate.global.util.SignUpConsentTempStore;
 import com.example.stagemate.repository.user.RefreshTokenRepository;
 import com.example.stagemate.service.user.ConsentService;
 import com.example.stagemate.service.user.UserService;
-import com.example.stagemate.dto.auth.GuestInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -85,7 +86,7 @@ public class OAuthController {
                 RefreshTokenEntity.builder()
                         .userId(user.getId())
                         .token(refreshToken)
-                        .expiresAt(LocalDateTime.now().plusDays(14))
+                        .expiresAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")).plusDays(14))
                         .build()
         );
 

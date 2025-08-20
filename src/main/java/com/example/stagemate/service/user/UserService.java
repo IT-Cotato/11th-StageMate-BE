@@ -6,9 +6,12 @@ import com.example.stagemate.domain.user.entity.UserJpaEntity;
 import com.example.stagemate.domain.user.model.ConsentType;
 import com.example.stagemate.domain.user.port.out.LoadUserPort;
 import com.example.stagemate.domain.user.port.out.SaveUserPort;
+import com.example.stagemate.dto.auth.GuestInfo;
+import com.example.stagemate.dto.request.OAuth2SignupRequest;
 import com.example.stagemate.dto.request.RegisterUserRequest;
 import com.example.stagemate.dto.response.AccountInfoResponse;
 import com.example.stagemate.dto.response.TokenResponse;
+import com.example.stagemate.global.auth.JwtTokenProvider;
 import com.example.stagemate.global.exception.AppException;
 import com.example.stagemate.global.exception.CommonErrorCode;
 import com.example.stagemate.global.exception.auth.AuthErrorCode;
@@ -17,16 +20,14 @@ import com.example.stagemate.repository.user.UserJpaRepository;
 import com.example.stagemate.service.user.command.LoginCommand;
 import com.example.stagemate.service.user.command.NormalAgreeCommand;
 import com.example.stagemate.service.user.command.RegisterUserCommand;
-import com.example.stagemate.dto.auth.GuestInfo;
-import com.example.stagemate.dto.request.OAuth2SignupRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.example.stagemate.global.auth.JwtTokenProvider;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Map;
 
 @Service
@@ -130,7 +131,7 @@ public class UserService implements LoginUseCase, RegisterUserUseCase {
                 RefreshTokenEntity.builder()
                         .userId(user.getId())
                         .token(refreshToken)
-                        .expiresAt(LocalDateTime.now().plusDays(14))
+                        .expiresAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")).plusDays(14))
                         .build()
         );
 
