@@ -27,12 +27,13 @@ public class ChatService {
     private static final String MESSAGE_CHANNEL = "chat";
 
     public void sendGroupChat(ChatRequest chatRequest) {
+        Chat chat = chatRequest.toEntity();
 
         //몽고DB에 저장
-        chatRepository.save(chatRequest.toEntity());
+        chatRepository.save(chat);
 
         //메세지 구독자에게 publish
-        redisMessagePublisher.publish(chatRequest);
+        redisMessagePublisher.publish(chat);
     }
 
     public List<ChatResponse> getPreviousMessages(
