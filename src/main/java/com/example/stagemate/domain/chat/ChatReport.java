@@ -48,7 +48,7 @@ public class ChatReport {
                 .reporter(user)
                 .chatId(chatId)
                 .reason(reason)
-                .createdAt(LocalDateTime.now())
+                .createdAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
                 .build();
     }
 }
