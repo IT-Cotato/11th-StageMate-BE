@@ -36,6 +36,29 @@ public class UserBlockService {
     private final CommunityCommentRepository commentRepository;
     private final UserJpaRepository userRepository;
 
+    public void blockUser(UserJpaEntity user, Long blockedUserId) {
+        userRepository.findById(user.getId())
+                .orElseThrow(() -> new AppException(NOT_FOUND_USER));
+
+        UserJpaEntity blockedUser = userRepository.findById(blockedUserId)
+                .orElseThrow(() -> new AppException(NOT_FOUND_USER));
+
+        
+        //본인 차단 불가
+        if(user.getId().equals(blockedUser.getId())) {
+            throw new AppException(INVALID_BLOCK_SELF);
+        }
+
+        //이미 차단했는지 여부 확인
+        boolean isBlocked = userBlockRepository.existsByBlockerIdAndBlockedId(user.getId(), blockedUserId);
+        if (isBlocked) {
+            throw new AppException(USER_ALREADY_BLOCKED);
+        }
+
+        UserBlock userBlock = UserBlock.of(user, blockedUser);
+        userBlockRepository.save(userBlock);
+    }
+
     public void blockUser(UserJpaEntity user, Long targetId, String targetTypeRaw) {
         TargetType targetType;
         try {
