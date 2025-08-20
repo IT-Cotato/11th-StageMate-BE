@@ -10,8 +10,8 @@ import com.example.stagemate.dto.response.TokenResponse;
 import com.example.stagemate.global.auth.JwtTokenProvider;
 import com.example.stagemate.global.dto.DataResponse;
 import com.example.stagemate.global.exception.AppException;
-import com.example.stagemate.global.exception.auth.AuthErrorCode;
 import com.example.stagemate.global.exception.CommonErrorCode;
+import com.example.stagemate.global.exception.auth.AuthErrorCode;
 import com.example.stagemate.global.reslover.CurrentUser;
 import com.example.stagemate.global.util.SignUpConsentTempStore;
 import com.example.stagemate.repository.user.RefreshTokenRepository;
@@ -30,6 +30,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -185,7 +186,7 @@ public class AuthController {
         }
 
         // 5. 만료 여부 확인
-        if (savedToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+        if (savedToken.getExpiresAt().isBefore(LocalDateTime.now(ZoneId.of("Asia/Seoul")))) {
             refreshTokenRepository.deleteByUserId(userId);
             throw new AppException(AuthErrorCode.TOKEN_EXPIRED, "토큰이 만료되었습니다. 다시 로그인해주세요.");
         }

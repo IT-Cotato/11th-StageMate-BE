@@ -22,6 +22,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -60,7 +61,7 @@ public class ImageService {
             // 이미지 정보를 저장소에 저장
             Image image = Image.builder()
                     .imageUrl(imageUrl)
-                    .createdAt(LocalDateTime.now())
+                    .createdAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
                     .build();
 
             return imageRepository.save(image); // 이미지 엔티티를 저장하고 반환
@@ -164,7 +165,7 @@ public class ImageService {
             String gcsUrl = "https://storage.googleapis.com/" + bucketName + "/" + fileName;
             Image image = Image.builder()
                     .imageUrl(gcsUrl)
-                    .createdAt(LocalDateTime.now())
+                    .createdAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
                     .build();
 
             try {

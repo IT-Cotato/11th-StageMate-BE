@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Getter
@@ -35,7 +36,7 @@ public class MagazineStatistics {
                 .likeCount(magazine.getLikeCount())
                 .scrapCount(magazine.getScrapCount())
                 .totalCount(magazine.getLikeCount() + magazine.getScrapCount())
-                .updatedAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
                 .build();
     }
 }

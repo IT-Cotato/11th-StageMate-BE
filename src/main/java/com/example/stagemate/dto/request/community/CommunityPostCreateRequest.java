@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import static com.example.stagemate.global.exception.community.CommunityErrorCode.COMMUNITY_POST_CREATE_INVALID_INPUT;
 
@@ -33,7 +34,7 @@ public class CommunityPostCreateRequest {
                 .author(user)
                 .membersOnly(membersOnly)
                 .sendNotification(sendNotification)
-                .createdAt(LocalDateTime.now())
+                .createdAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
                 .build();
     }
 

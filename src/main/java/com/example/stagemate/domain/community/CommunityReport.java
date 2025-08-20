@@ -10,6 +10,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Getter
@@ -39,7 +40,7 @@ public class CommunityReport {
     private ReportReason reason;
 
     @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
     public static CommunityReport of(UserJpaEntity user, TargetType targetType, Long targetId, ReportReason reason) {
         return CommunityReport.builder()
@@ -47,7 +48,7 @@ public class CommunityReport {
                 .targetType(targetType)
                 .targetId(targetId)
                 .reason(reason)
-                .createdAt(LocalDateTime.now())
+                .createdAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
                 .build();
     }
     

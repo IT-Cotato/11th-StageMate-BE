@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Table(name = "user_consents")
@@ -38,7 +39,7 @@ public class UserConsent {
         this.user = user;
         this.consentType = consentType;
         this.agreed = agreed;
-        this.agreedAt = LocalDateTime.now();
+        this.agreedAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
     }
 
     public void setUser(UserJpaEntity user) {

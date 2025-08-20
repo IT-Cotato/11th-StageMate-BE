@@ -10,6 +10,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Getter
@@ -33,7 +34,7 @@ public class Notification {
     private Long targetId;
     private String content;
     @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
     public static Notification of(UserJpaEntity receiver, NotificationType type, Long targetId, String comment) {
         return Notification.builder()

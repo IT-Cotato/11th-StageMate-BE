@@ -6,6 +6,7 @@ import com.example.stagemate.domain.magazine.MagazineCreateForm;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Getter
 public class MagazineCreateRequest {
@@ -29,7 +30,7 @@ public class MagazineCreateRequest {
                 .subTitle(subTitle)
                 .content(content)
                 .category(magazineCategory)
-                .createdAt(LocalDateTime.now())
+                .createdAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
                 .build();
     }
 }

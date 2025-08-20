@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +26,7 @@ public class AuthTokenService {
                 RefreshTokenEntity.builder()
                         .userId(userId)
                         .token(refreshToken)
-                        .expiresAt(LocalDateTime.now().plusDays(14))
+                        .expiresAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")).plusDays(14))
                         .build()
         );
 
