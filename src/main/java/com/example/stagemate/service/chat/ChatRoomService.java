@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,7 +32,7 @@ public class ChatRoomService {
     }
 
     public void createChatRoomOrDeleteChatRoomBasedOnCurrentDate() {
-        List<Performance> performances = performanceRepository.findAllByStartDateAfter(LocalDate.now());
+        List<Performance> performances = performanceRepository.findAllByStartDateAfter(LocalDate.now(ZoneId.of("Asia/Seoul")));
         for (Performance performance : performances) {
             //공연 시작일자가 넘었는데도 채팅방이 존재하지않으면 생성
             createChatRoomIfNotExist(performance.getId());
@@ -63,7 +64,7 @@ public class ChatRoomService {
     private void deleteChatRoomIfEndDateAfter(Long chatRoomId) {
         Optional<ChatRoom> chatRoom = chatRoomRepository.findById(chatRoomId);
 
-        if (chatRoom.isPresent() && chatRoom.get().getEndDate().isAfter(LocalDate.now())) {
+        if (chatRoom.isPresent() && chatRoom.get().getEndDate().isAfter(LocalDate.now(ZoneId.of("Asia/Seoul")))) {
             deleteChatRoom(chatRoomId);
         }
     }

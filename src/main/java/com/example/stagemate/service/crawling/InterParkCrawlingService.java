@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -281,7 +282,7 @@ public class InterParkCrawlingService {
 
     private PerformanceStatus getPerformanceStatus(String startDate, String endDate) {
         //startDate, endDate는 20250701 형식
-        LocalDate currentDate = LocalDate.now();
+        LocalDate currentDate = LocalDate.now(ZoneId.of("Asia/Seoul"));
         LocalDate convertedStartDate = LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyyMMdd"));
         LocalDate convertedendDate = LocalDate.parse(endDate, DateTimeFormatter.ofPattern("yyyyMMdd"));
 
