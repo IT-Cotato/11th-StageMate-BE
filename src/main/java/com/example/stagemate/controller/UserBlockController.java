@@ -106,7 +106,7 @@ public class UserBlockController {
             @Parameter(hidden = true) @CurrentUser UserJpaEntity user
     ) {
         log.info("userIds: {}", userIds);
-        List<UserBlockStatusResponse> response = userBlockService.checkBlockedUser(user, userIds);
+        List<UserBlockStatusResponse> response = userBlockService.checkBlockedUser(user.getId(), userIds);
         return ResponseEntity.ok(DataResponse.from(response));
     }
 }

@@ -15,15 +15,16 @@ public interface ChatReportRepository extends JpaRepository<ChatReport, Long> {
     //existsByReporterIdAndChatId
     boolean existsByReporterIdAndChatId(Long reporterId, String chatId);
 
-    //유저별 채팅 신고 횟수 userIds를 파라미터로
+    //유저별 채팅 신고 당한 횟수 targetUserIds를 파라미터로
     @Query("""
     SELECT new com.example.stagemate.dto.response.chat.ChatReportCountResponse(
-        cr.reporter.id, COUNT(cr)
+        cr.targetUser.id, COUNT(cr)
     )
     FROM ChatReport cr
-    WHERE cr.reporter.id IN :userIds
-    GROUP BY cr.reporter.id
+    WHERE cr.targetUser.id IN :userIds
+    GROUP BY cr.targetUser.id
     """)
-    List<ChatReportCountResponse> getChatReportCount(@Param("userIds") List<Long> userIds);
+    List<ChatReportCountResponse> getChatReportedCount(@Param("userIds") List<Long> targetUserIds);
+
 
 }

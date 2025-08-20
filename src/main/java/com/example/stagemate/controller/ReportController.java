@@ -117,7 +117,7 @@ public class ReportController {
             @Parameter(hidden = true) @CurrentUser UserJpaEntity user
     ) {
 
-        List<ChatReportCountResponse> responses = reportService.getChatReportCount(user, userIds);
+        List<ChatReportCountResponse> responses = reportService.getChatReportCount(userIds);
         return ResponseEntity.ok(DataResponse.from(responses));
     }
 

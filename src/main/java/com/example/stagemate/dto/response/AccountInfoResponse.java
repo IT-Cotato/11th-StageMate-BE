@@ -9,6 +9,7 @@ import java.time.LocalDate;
 @Getter
 @NoArgsConstructor
 public class AccountInfoResponse {
+    private Long id;
     private String userId;
     private String email;
     private String name;
@@ -16,8 +17,9 @@ public class AccountInfoResponse {
     private LocalDate birth;
     private String profileImageUrl;
 
-    public AccountInfoResponse(String userId, String email, String name,
+    public AccountInfoResponse(Long id, String userId, String email, String name,
                                String nickname, LocalDate birth, String profileImageUrl) {
+        this.id = id;
         this.userId = userId;
         this.email = email;
         this.name = name;
@@ -28,6 +30,7 @@ public class AccountInfoResponse {
 
     public static AccountInfoResponse from(UserJpaEntity user) {
         return new AccountInfoResponse(
+                user.getId(),
                 user.getUserId(),
                 user.getEmail(),
                 user.getName(),

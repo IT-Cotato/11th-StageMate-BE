@@ -1,6 +1,7 @@
 package com.example.stagemate.redis;
 
 import com.example.stagemate.dto.request.chat.ChatRequest;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,18 +18,17 @@ public class RedisMessageSubscriber {
     public void onMessage(String message, String channel) {
         log.info("Received message: {} from channel: {}", message, channel);
         try {
-            ChatRequest chatRequest = objectMapper.readValue(message, ChatRequest.class);
+            // roomId만 뽑아서 destination 구성
+            JsonNode root = objectMapper.readTree(message);
+            long roomId = root.get("roomId").asLong();
+            String destination = "/topic/chat/room/" + roomId;
 
-            // ✅ roomId 기반으로 구독 경로 결정
-            String destinationChannel = "/topic/chat/room/" + chatRequest.getRoomId();
+            // ✅ JSON을 재가공하지 말고 그대로 브로커로 전달 (chatId/createdAt 유지)
+            messagingTemplate.convertAndSend(destination, message);
 
-            // ✅ 브로커로 메시지 전달
-            messagingTemplate.convertAndSend(destinationChannel, chatRequest);
-
-            log.info("Published to destination: {}", destinationChannel);
-            log.info("chatRequest: {}", chatRequest);
+            log.info("Published to destination: {}", destination);
         } catch (Exception e) {
-            log.error("Failed to parse message: {}", message, e);
+            log.error("Failed to forward message: {}", message, e);
         }
     }
 

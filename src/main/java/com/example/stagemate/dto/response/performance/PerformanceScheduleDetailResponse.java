@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record PerformanceScheduleDetailResponse(
+        Long performanceScheduleId,
         PerformanceDetailResponse performanceDetailResponse,
         String title,
         String content,
@@ -23,6 +24,7 @@ public record PerformanceScheduleDetailResponse(
 ) {
     public static PerformanceScheduleDetailResponse from(PerformanceSchedule performanceSchedule, boolean isScraped) {
         return new PerformanceScheduleDetailResponse(
+                performanceSchedule.getId(),
                 //공연 정보
                 PerformanceDetailResponse.from(performanceSchedule.getPerformance()),
                 performanceSchedule.getTitle(),
