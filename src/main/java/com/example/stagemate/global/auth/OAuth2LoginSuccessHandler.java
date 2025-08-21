@@ -38,7 +38,8 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             String accessToken = jwtTokenProvider.createToken(user.getId());
 
             String targetUrl = UriComponentsBuilder
-                    .fromUriString("http://localhost:3000/login-success")
+//                    .fromUriString("http://localhost:3000/login-success")
+                    .fromUriString("https://stagemate.co.kr/login-success")
                     .queryParam("accessToken", accessToken)
                     .build()
                     .encode(StandardCharsets.UTF_8)
@@ -55,7 +56,8 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             );
             request.getSession().setAttribute("guestInfo", guestInfo);
 
-            String targetUrl = "http://localhost:3000/oauth-agree"; // 프론트 약관 동의 페이지 주소
+//            String targetUrl = "http://localhost:3000/oauth-agree"; // 프론트 약관 동의 페이지 주소
+            String targetUrl = "https://stagemate.co.kr/oauth-agree";
             getRedirectStrategy().sendRedirect(request, response, targetUrl);
         }
     }
