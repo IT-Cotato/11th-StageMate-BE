@@ -4,6 +4,7 @@ import lombok.Getter;
 
 @Getter
 public class UserBlockRequest {
-    private Long targetId;         // 게시글 ID or 댓글 ID
-    private String targetType;     // POST 또는 COMMENT
+    private Long blockedUserId;         // 차단대상 유저ID
 }
+
+

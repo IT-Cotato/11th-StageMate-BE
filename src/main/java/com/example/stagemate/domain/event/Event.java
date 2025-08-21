@@ -1,9 +1,6 @@
 package com.example.stagemate.domain.event;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,7 +26,8 @@ public class Event {
 
     private String title;
 
-    private String content; //community에만 존재
+    @Column(name = "content", length = 1000) // Increase the length here
+    private String content;
 
     private String genre;
 

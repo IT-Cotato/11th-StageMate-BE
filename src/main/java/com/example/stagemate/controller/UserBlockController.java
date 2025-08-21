@@ -54,7 +54,10 @@ public class UserBlockController {
             @RequestBody UserBlockRequest request,
             @Parameter(hidden = true) @CurrentUser UserJpaEntity user
     ) {
-        userBlockService.blockUser(user, request.getTargetId(), request.getTargetType());
+//        userBlockService.blockUser(user, request.getTargetId(), request.getTargetType());
+
+        userBlockService.blockUser(user, request.getBlockedUserId());
+
         return ResponseEntity.ok(DataResponse.ok());
     }
 
